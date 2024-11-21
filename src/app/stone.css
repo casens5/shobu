@@ -1,0 +1,13 @@
+.stone-black {
+  background: radial-gradient(circle, rgba(48, 48, 48) 0%, rgba(0, 0, 0) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.stone-white {
+  background: radial-gradient(
+    circle,
+    rgba(232, 232, 232) 0%,
+    rgba(200, 200, 200) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
