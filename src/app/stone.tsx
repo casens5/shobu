@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import "./stone.css";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 export type BoardCoordinates = [0 | 1 | 2 | 3, 0 | 1 | 2 | 3];
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -10,11 +10,14 @@ export enum StoneColor {
   WHITE = "white",
 }
 
-export type StoneProps = {
+export type StoneObject = {
   id: StoneId;
   color: StoneColor;
-  onMove?: any;
-  handleMoveStone?: any;
+};
+
+export type StoneProps = StoneObject & {
+  //onMove?: any;
+  handleMoveStone: (id: StoneId, newPosition: [number, number]) => void;
 };
 
 export default function Stone({ id, color, handleMoveStone }: StoneProps) {
@@ -26,16 +29,22 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
     setPosition([e.clientX - 50, e.clientY - 50]);
   };
 
-  const handleMouseUp = (e: MouseEvent) => {
-    setIsDragging(false);
-    handleMoveStone(id, color, [e.clientX, e.clientY]);
-  };
+  const handleMouseUp = useCallback(
+    (e: MouseEvent) => {
+      setIsDragging(false);
+      handleMoveStone(id, [e.clientX, e.clientY]);
+    },
+    [id, handleMoveStone],
+  );
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setPosition([e.clientX - 50, e.clientY - 50]);
-    }
-  };
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition([e.clientX - 50, e.clientY - 50]);
+      }
+    },
+    [isDragging],
+  );
 
   // Attach global listeners during drag
   useEffect(() => {
@@ -50,7 +59,7 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
     <div

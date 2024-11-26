@@ -1,12 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import Stone, {
-  StoneId,
-  StoneColor,
-  BoardCoordinates,
-  StoneProps,
-} from "./stone";
+import Stone, { StoneId, StoneColor, StoneObject } from "./stone";
 import React, { useState, useEffect, useRef } from "react";
 
 type BoardProps = {
@@ -14,7 +9,7 @@ type BoardProps = {
 };
 
 export default function Board({ color }: BoardProps) {
-  const [board, setBoard] = useState<(StoneProps | null)[][]>([
+  const [board, setBoard] = useState<(StoneObject | null)[][]>([
     [
       { id: 0, color: StoneColor.BLACK },
       null,
@@ -56,11 +51,7 @@ export default function Board({ color }: BoardProps) {
     }
   }, []);
 
-  const handleMoveStone = (
-    id: StoneId,
-    color: StoneColor,
-    newPosition: BoardCoordinates,
-  ) => {
+  const handleMoveStone = (id: StoneId, newPosition: [number, number]) => {
     const newCoords = [
       Math.floor(
         (4 * (newPosition[0] - globalCoordinatesRef.current.left)) /
@@ -101,7 +92,7 @@ export default function Board({ color }: BoardProps) {
     const newBoard = [...board];
     newBoard[oldCoords[0]][oldCoords[1]] = null;
     console.log("hoho", newCoords, board, newBoard);
-    // @ts-ignore
+    // @ts-expect-error typescript is bad and ugly
     newBoard[newCoords[0]][newCoords[1]] = stone;
     setBoard(newBoard);
   };
