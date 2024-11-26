@@ -1,168 +1,156 @@
 "use client";
 
 import clsx from "clsx";
-import Stone, { StoneColor, BoardCoordinates, StoneProps } from "./stone";
-import React, { ReactNode, useState } from "react";
-
-type CellProps = {
-  className?: string;
-  position: BoardCoordinates;
-  children?: ReactNode;
-};
-
-export function Cell({ children, className }: CellProps) {
-  return <div className={clsx("p-2 border-black", className)}>{children}</div>;
-}
+import Stone, {
+  StoneId,
+  StoneColor,
+  BoardCoordinates,
+  StoneProps,
+} from "./stone";
+import React, { useState, useEffect, useRef } from "react";
 
 type BoardProps = {
   color: "light" | "dark";
 };
 
 export default function Board({ color }: BoardProps) {
-  // State to track positions of stones
-  const [stones, setStones] = useState<StoneProps[]>([
-    { id: 0, color: StoneColor.BLACK, position: [0, 0] },
-    { id: 1, color: StoneColor.BLACK, position: [1, 0] },
-    { id: 2, color: StoneColor.BLACK, position: [2, 0] },
-    { id: 3, color: StoneColor.BLACK, position: [3, 0] },
-    { id: 4, color: StoneColor.WHITE, position: [0, 3] },
-    { id: 5, color: StoneColor.WHITE, position: [1, 3] },
-    { id: 6, color: StoneColor.WHITE, position: [2, 3] },
-    { id: 7, color: StoneColor.WHITE, position: [3, 3] },
+  const [board, setBoard] = useState<(StoneProps | null)[][]>([
+    [
+      { id: 0, color: StoneColor.BLACK },
+      null,
+      null,
+      { id: 4, color: StoneColor.WHITE },
+    ],
+    [
+      { id: 1, color: StoneColor.BLACK },
+      null,
+      null,
+      { id: 5, color: StoneColor.WHITE },
+    ],
+    [
+      { id: 2, color: StoneColor.BLACK },
+      null,
+      null,
+      { id: 6, color: StoneColor.WHITE },
+    ],
+    [
+      { id: 3, color: StoneColor.BLACK },
+      null,
+      null,
+      { id: 7, color: StoneColor.WHITE },
+    ],
   ]);
 
-  const [draggingStone, setDraggingStone] = useState(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const globalCoordinatesRef = useRef({ top: 0, bottom: 0, left: 0, right: 0 });
 
-  const handleMoveStone = (id, newPosition) => {
-    setStones((prevStones) => ({
-      ...prevStones,
-      [id]: { ...prevStones[id], position: newPosition },
-    }));
+  useEffect(() => {
+    if (boardRef.current) {
+      const rect = boardRef.current.getBoundingClientRect();
+      globalCoordinatesRef.current = {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+      };
+    }
+  }, []);
+
+  const handleMoveStone = (
+    id: StoneId,
+    color: StoneColor,
+    newPosition: BoardCoordinates,
+  ) => {
+    const newCoords = [
+      Math.floor(
+        (4 * (newPosition[0] - globalCoordinatesRef.current.left)) /
+          (globalCoordinatesRef.current.right -
+            globalCoordinatesRef.current.left),
+      ),
+      Math.floor(
+        (4 * (newPosition[1] - globalCoordinatesRef.current.top)) /
+          (globalCoordinatesRef.current.bottom -
+            globalCoordinatesRef.current.top),
+      ),
+    ];
+    if (
+      newCoords[0] > 3 ||
+      newCoords[0] < 0 ||
+      newCoords[1] > 3 ||
+      newCoords[1] < 0
+    ) {
+      return; // exit; move is out of bounds
+    }
+
+    // get previous stone coordinates by its id
+    let oldCoords = null;
+    for (let colIndex = 0; colIndex < board.length; colIndex++) {
+      for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
+        if (board[colIndex][rowIndex]?.id === id) {
+          oldCoords = [colIndex, rowIndex];
+          break;
+        }
+      }
+      if (oldCoords) break;
+    }
+
+    if (!oldCoords) return; // Exit if stone not found
+
+    const stone = { ...board[oldCoords[0]][oldCoords[1]] };
+
+    const newBoard = [...board];
+    newBoard[oldCoords[0]][oldCoords[1]] = null;
+    console.log("hoho", newCoords, board, newBoard);
+    // @ts-ignore
+    newBoard[newCoords[0]][newCoords[1]] = stone;
+    setBoard(newBoard);
   };
-
-  function generateBoard() {
-    return Array.from({ length: 16 }).map((_, index) => {
-      let classStr = "";
-      if (index % 4 !== 3) {
-        classStr += "border-r-2 ";
-      }
-      if (index < 12) {
-        classStr += "border-b-2";
-      }
-
-      const position = [Math.floor(index / 4), index % 4];
-
-      return (
-        <Cell
-          key={index}
-          position={position as BoardCoordinates}
-          className={classStr}
-        />
-      );
-    });
-  }
 
   return (
     <div
+      ref={boardRef}
       className={clsx("w-80 h-80 rounded-2xl grid grid-cols-4", {
         "bg-yellow-950": color === "dark",
         "bg-yellow-800": color === "light",
       })}
     >
-      {generateBoard()}
-      {/*
-      <Cell className="border-r border-b">
-        <Stone
-          id={stones[0].id}
-          color={stones[0].color}
-          position={stones[0].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[0].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-      <Cell className="border-r border-b">
-        <Stone
-          id={stones[1].id}
-          color={stones[1].color}
-          position={stones[1].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[1].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-      <Cell className="border-r border-b">
-        <Stone
-          id={stones[2].id}
-          color={stones[2].color}
-          position={stones[2].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[2].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-      <Cell className="border-b">
-        <Stone
-          id={stones[3].id}
-          color={stones[3].color}
-          position={stones[3].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[3].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
+      {board.map((col, colIndex: number) => {
+        let rightBorder = "border-r-2";
+        if (colIndex === 3) {
+          rightBorder = "";
+        }
 
-      <Cell className="border-r border-b" />
-      <Cell className="border-r border-b" />
-      <Cell className="border-r border-b" />
-      <Cell className="border-b" />
+        return col.map((cell, rowIndex: number) => {
+          let bottomBorder = "border-b-2";
+          if (rowIndex === 3) {
+            bottomBorder = "";
+          }
 
-      <Cell className="border-r border-b" />
-      <Cell className="border-r border-b" />
-      <Cell className="border-r border-b" />
-      <Cell className="border-b" />
-
-      <Cell className="border-r">
-        <Stone
-          id={stones[4].id}
-          color={stones[4].color}
-          position={stones[4].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[4].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-      <Cell className="border-r">
-        <Stone
-          id={stones[5].id}
-          color={stones[5].color}
-          position={stones[5].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[5].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-      <Cell className="border-r">
-        <Stone
-          id={stones[6].id}
-          color={stones[6].color}
-          position={stones[6].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[6].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-      <Cell>
-        <Stone
-          id={stones[7].id}
-          color={stones[7].color}
-          position={stones[7].position}
-          onMove={handleMoveStone}
-          dragging={draggingStone === stones[7].id}
-          setDraggingStone={setDraggingStone}
-        />
-      </Cell>
-    */}
+          return (
+            <div
+              key={4 * rowIndex + colIndex}
+              className={clsx(
+                "min-w-20 min-h-20 border-black",
+                rightBorder,
+                bottomBorder,
+              )}
+              style={{
+                gridColumn: colIndex + 1,
+                gridRow: rowIndex + 1,
+              }}
+              //position={[colIndex, rowIndex] as BoardCoordinates}
+            >
+              {cell && (
+                <Stone
+                  id={cell.id}
+                  color={cell.color}
+                  handleMoveStone={handleMoveStone}
+                />
+              )}
+            </div>
+          );
+        });
+      })}
     </div>
   );
 }
