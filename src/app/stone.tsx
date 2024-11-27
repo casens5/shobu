@@ -46,7 +46,7 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
   const handleStart = (
     e: MouseEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>,
   ) => {
-    e.preventDefault()
+    e.preventDefault();
     setIsDragging(true);
     const position = getEventPosition(e);
     setPosition([position[0] - 40, position[1] - 40]);
@@ -54,7 +54,7 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
 
   const handleEnd = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
-      e.preventDefault()
+      e.preventDefault();
       setIsDragging(false);
       handleMoveStone(id, getEventPosition(e));
     },
@@ -107,7 +107,7 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
 
   return (
     <div
-      className={clsx("p-2 w-full h-full", {
+      className={clsx("p-2 w-full h-full touch-none", {
         "cursor-grab absolute": isDragging === true,
         "cursor-grabbing": isDragging === false,
       })}
@@ -120,7 +120,7 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
       onTouchStart={handleStart as TouchEventHandler}
     >
       <div
-        className={clsx("w-16 h-16 rounded-full shadow-lg", {
+        className={clsx("w-16 h-16 rounded-full shadow-lg touch-none", {
           "stone-black": color === "black",
           "stone-white": color === "white",
         })}

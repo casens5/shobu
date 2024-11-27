@@ -100,7 +100,7 @@ export default function Board({ color }: BoardProps) {
   return (
     <div
       ref={boardRef}
-      className={clsx("w-80 h-80 rounded-2xl grid grid-cols-4", {
+      className={clsx("w-80 h-80 rounded-2xl grid grid-cols-4 touch-none", {
         "bg-yellow-950": color === "dark",
         "bg-yellow-800": color === "light",
       })}
@@ -121,7 +121,7 @@ export default function Board({ color }: BoardProps) {
             <div
               key={4 * rowIndex + colIndex}
               className={clsx(
-                "min-w-20 min-h-20 border-black",
+                "min-w-20 min-h-20 border-black touch-none",
                 rightBorder,
                 bottomBorder,
               )}
