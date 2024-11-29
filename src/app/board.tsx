@@ -1,6 +1,7 @@
 "use client";
 
 import clsx from "clsx";
+import "./board.css";
 import Stone, { StoneId, StoneColor, StoneObject } from "./stone";
 import React, { useState, useEffect, useRef } from "react";
 
@@ -174,8 +175,8 @@ export default function Board({ color }: BoardProps) {
       className={clsx(
         "grid aspect-square h-auto w-full touch-none grid-cols-4 rounded-2xl",
         {
-          "bg-yellow-950": color === "dark",
-          "bg-yellow-800": color === "light",
+          "board-dark": color === "dark",
+          "board-light": color === "light",
         },
       )}
     >
