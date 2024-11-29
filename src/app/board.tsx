@@ -2,7 +2,8 @@
 
 import clsx from "clsx";
 import "./board.css";
-import Stone, { StoneId, StoneColor, StoneObject } from "./stone";
+import Stone, { StoneId, StoneObject } from "./stone";
+import { PlayerColor } from "./game";
 import React, { useState, useEffect, useRef } from "react";
 
 type BoardProps = {
@@ -70,30 +71,10 @@ export function Cell({
 
 export default function Board({ color }: BoardProps) {
   const [board, setBoard] = useState<(StoneObject | null)[][]>([
-    [
-      { id: 0, color: StoneColor.BLACK },
-      null,
-      null,
-      { id: 4, color: StoneColor.WHITE },
-    ],
-    [
-      { id: 1, color: StoneColor.BLACK },
-      null,
-      null,
-      { id: 5, color: StoneColor.WHITE },
-    ],
-    [
-      { id: 2, color: StoneColor.BLACK },
-      null,
-      null,
-      { id: 6, color: StoneColor.WHITE },
-    ],
-    [
-      { id: 3, color: StoneColor.BLACK },
-      null,
-      null,
-      { id: 7, color: StoneColor.WHITE },
-    ],
+    [{ id: 0, color: "black" }, null, null, { id: 4, color: "white" }],
+    [{ id: 1, color: "black" }, null, null, { id: 5, color: "white" }],
+    [{ id: 2, color: "black" }, null, null, { id: 6, color: "white" }],
+    [{ id: 3, color: "black" }, null, null, { id: 7, color: "white" }],
   ]);
   const [boardDimensions, setBoardDimensions] = useState({
     top: 0,
