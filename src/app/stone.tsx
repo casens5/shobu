@@ -16,7 +16,7 @@ export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type StoneObject = {
   id: StoneId;
-  color: PlayerColor
+  color: PlayerColor;
 };
 
 export type StoneProps = StoneObject & {

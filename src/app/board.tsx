@@ -3,11 +3,13 @@
 import clsx from "clsx";
 import "./board.css";
 import Stone, { StoneId, StoneObject } from "./stone";
-import { PlayerColor } from "./game";
+import { PlayerColor, BoardColor } from "./game";
 import React, { useState, useEffect, useRef } from "react";
 
 type BoardProps = {
-  color: "light" | "dark";
+  boardColor: BoardColor;
+  playerTurn: PlayerColor;
+  playerHome: PlayerColor;
 };
 
 type CellProps = {
@@ -69,7 +71,11 @@ export function Cell({
   );
 }
 
-export default function Board({ color }: BoardProps) {
+export default function Board({
+  boardColor,
+  playerTurn,
+  playerHome,
+}: BoardProps) {
   const [board, setBoard] = useState<(StoneObject | null)[][]>([
     [{ id: 0, color: "black" }, null, null, { id: 4, color: "white" }],
     [{ id: 1, color: "black" }, null, null, { id: 5, color: "white" }],
@@ -156,8 +162,8 @@ export default function Board({ color }: BoardProps) {
       className={clsx(
         "grid aspect-square h-auto w-full touch-none grid-cols-4 rounded-2xl",
         {
-          "board-dark": color === "dark",
-          "board-light": color === "light",
+          "board-dark": boardColor === "dark",
+          "board-light": boardColor === "light",
         },
       )}
     >
