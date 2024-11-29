@@ -17,6 +17,7 @@ export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StoneObject = {
   id: StoneId;
   color: PlayerColor;
+  canMove: boolean;
 };
 
 export type StoneProps = StoneObject & {
@@ -27,6 +28,7 @@ export type StoneProps = StoneObject & {
 export default function Stone({
   id,
   color,
+  canMove,
   containerWidth,
   handleMoveStone,
 }: StoneProps) {
@@ -46,6 +48,7 @@ export default function Stone({
     e: MouseEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>,
   ) => {
     if ("button" in e && e.button !== 0) return;
+    if (!canMove) return;
 
     e.preventDefault();
     setIsDragging(true);
@@ -114,8 +117,8 @@ export default function Stone({
   return (
     <div
       className={clsx("aspect-square h-auto w-full touch-none", {
-        "absolute cursor-grab": isDragging === true,
-        "cursor-grabbing": isDragging === false,
+        "absolute cursor-grabbing": isDragging === true,
+        "cursor-grab": canMove && isDragging === false,
       })}
       style={{
         left: isDragging ? position[0] : "",

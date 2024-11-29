@@ -63,6 +63,7 @@ export function Cell({
         <Stone
           id={cell.id}
           color={cell.color}
+          canMove={cell.canMove}
           containerWidth={containerWidth}
           handleMoveStone={handleMoveStone}
         />
@@ -77,10 +78,30 @@ export default function Board({
   playerHome,
 }: BoardProps) {
   const [board, setBoard] = useState<(StoneObject | null)[][]>([
-    [{ id: 0, color: "black" }, null, null, { id: 4, color: "white" }],
-    [{ id: 1, color: "black" }, null, null, { id: 5, color: "white" }],
-    [{ id: 2, color: "black" }, null, null, { id: 6, color: "white" }],
-    [{ id: 3, color: "black" }, null, null, { id: 7, color: "white" }],
+    [
+      { id: 0, color: "black", canMove: playerTurn === "black" },
+      null,
+      null,
+      { id: 4, color: "white", canMove: playerTurn === "white" },
+    ],
+    [
+      { id: 1, color: "black", canMove: playerTurn === "black" },
+      null,
+      null,
+      { id: 5, color: "white", canMove: playerTurn === "white" },
+    ],
+    [
+      { id: 2, color: "black", canMove: playerTurn === "black" },
+      null,
+      null,
+      { id: 6, color: "white", canMove: playerTurn === "white" },
+    ],
+    [
+      { id: 3, color: "black", canMove: playerTurn === "black" },
+      null,
+      null,
+      { id: 7, color: "white", canMove: playerTurn === "white" },
+    ],
   ]);
   const [boardDimensions, setBoardDimensions] = useState({
     top: 0,
