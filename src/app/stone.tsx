@@ -24,21 +24,24 @@ export type StoneObject = {
 };
 
 export type StoneProps = StoneObject & {
-  //onMove?: any;
+  containerWidth: number;
   handleMoveStone: (id: StoneId, newPosition: [number, number]) => void;
 };
 
-export default function Stone({ id, color, handleMoveStone }: StoneProps) {
+export default function Stone({
+  id,
+  color,
+  containerWidth,
+  handleMoveStone,
+}: StoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState([0, 0]);
 
   const getEventPosition = (e: MouseEvent | TouchEvent): [number, number] => {
     if ("touches" in e) {
-      // Touch event
       const touch = e.touches[0];
       return [touch.clientX, touch.clientY];
     } else {
-      // Mouse event
       return [e.clientX, e.clientY];
     }
   };
@@ -49,7 +52,10 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
     e.preventDefault();
     setIsDragging(true);
     const position = getEventPosition(e);
-    setPosition([position[0] - 40, position[1] - 40]);
+    setPosition([
+      position[0] - containerWidth / 2,
+      position[1] - containerWidth / 2,
+    ]);
   };
 
   const handleEnd = useCallback(
@@ -66,12 +72,14 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
       if (!isDragging) return;
       e.preventDefault();
       const position = getEventPosition(e);
-      setPosition([position[0] - 40, position[1] - 40]);
+      setPosition([
+        position[0] - containerWidth / 2,
+        position[1] - containerWidth / 2,
+      ]);
     },
-    [isDragging],
+    [isDragging, containerWidth],
   );
 
-  // Attach global listeners during drag
   useEffect(() => {
     if (isDragging) {
       // @ts-expect-error anoetuhn
@@ -107,23 +115,29 @@ export default function Stone({ id, color, handleMoveStone }: StoneProps) {
 
   return (
     <div
-      className={clsx("p-2 w-full h-full touch-none", {
-        "cursor-grab absolute": isDragging === true,
+      className={clsx("aspect-square h-auto w-full touch-none", {
+        "absolute cursor-grab": isDragging === true,
         "cursor-grabbing": isDragging === false,
       })}
       style={{
         left: isDragging ? position[0] : "",
         top: isDragging ? position[1] : "",
+        padding: containerWidth / 10,
+        maxWidth: containerWidth,
+        maxHeight: containerWidth,
       }}
       // we want the (invisible) frame to be clickable, not just the stone
       onMouseDown={handleStart as MouseEventHandler}
       onTouchStart={handleStart as TouchEventHandler}
     >
       <div
-        className={clsx("w-16 h-16 rounded-full shadow-lg touch-none", {
-          "stone-black": color === "black",
-          "stone-white": color === "white",
-        })}
+        className={clsx(
+          "aspect-square h-auto max-h-20 w-full max-w-20 touch-none rounded-full shadow-lg",
+          {
+            "stone-black": color === "black",
+            "stone-white": color === "white",
+          },
+        )}
       />
     </div>
   );

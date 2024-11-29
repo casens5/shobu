@@ -8,6 +8,65 @@ type BoardProps = {
   color: "light" | "dark";
 };
 
+type CellProps = {
+  cell: StoneObject | null;
+  row: 0 | 1 | 2 | 3;
+  col: 0 | 1 | 2 | 3;
+  className?: string;
+  handleMoveStone: (id: StoneId, newPosition: [number, number]) => void;
+};
+
+export function Cell({
+  cell,
+  row,
+  col,
+  handleMoveStone,
+  className,
+}: CellProps) {
+  const cellRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (cellRef.current) {
+        const width = cellRef.current.getBoundingClientRect().width;
+        setContainerWidth(width);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, []);
+
+  return (
+    <div
+      key={4 * row + col}
+      ref={cellRef}
+      className={clsx(
+        "box-border aspect-square h-auto w-full touch-none border-black",
+        className,
+      )}
+      style={{
+        gridColumn: col + 1,
+        gridRow: row + 1,
+      }}
+    >
+      {cell && (
+        <Stone
+          id={cell.id}
+          color={cell.color}
+          containerWidth={containerWidth}
+          handleMoveStone={handleMoveStone}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function Board({ color }: BoardProps) {
   const [board, setBoard] = useState<(StoneObject | null)[][]>([
     [
@@ -35,33 +94,45 @@ export default function Board({ color }: BoardProps) {
       { id: 7, color: StoneColor.WHITE },
     ],
   ]);
+  const [boardDimensions, setBoardDimensions] = useState({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  });
 
   const boardRef = useRef<HTMLDivElement>(null);
-  const globalCoordinatesRef = useRef({ top: 0, bottom: 0, left: 0, right: 0 });
 
-  useEffect(() => {
+  function updateBoardDimensions() {
     if (boardRef.current) {
       const rect = boardRef.current.getBoundingClientRect();
-      globalCoordinatesRef.current = {
+      setBoardDimensions({
         top: rect.top,
         bottom: rect.bottom,
         left: rect.left,
         right: rect.right,
-      };
+      });
     }
+  }
+
+  useEffect(() => {
+    updateBoardDimensions();
+    window.addEventListener("resize", updateBoardDimensions);
+
+    return () => {
+      window.removeEventListener("resize", updateBoardDimensions);
+    };
   }, []);
 
   const handleMoveStone = (id: StoneId, newPosition: [number, number]) => {
     const newCoords = [
       Math.floor(
-        (4 * (newPosition[0] - globalCoordinatesRef.current.left)) /
-          (globalCoordinatesRef.current.right -
-            globalCoordinatesRef.current.left),
+        (4 * (newPosition[0] - boardDimensions.left)) /
+          (boardDimensions.right - boardDimensions.left),
       ),
       Math.floor(
-        (4 * (newPosition[1] - globalCoordinatesRef.current.top)) /
-          (globalCoordinatesRef.current.bottom -
-            globalCoordinatesRef.current.top),
+        (4 * (newPosition[1] - boardDimensions.top)) /
+          (boardDimensions.bottom - boardDimensions.top),
       ),
     ];
     if (
@@ -100,45 +171,33 @@ export default function Board({ color }: BoardProps) {
   return (
     <div
       ref={boardRef}
-      className={clsx("w-80 h-80 rounded-2xl grid grid-cols-4 touch-none", {
-        "bg-yellow-950": color === "dark",
-        "bg-yellow-800": color === "light",
-      })}
+      className={clsx(
+        "grid aspect-square h-auto w-full touch-none grid-cols-4 rounded-2xl",
+        {
+          "bg-yellow-950": color === "dark",
+          "bg-yellow-800": color === "light",
+        },
+      )}
     >
       {board.map((col, colIndex: number) => {
-        let rightBorder = "border-r-2";
-        if (colIndex === 3) {
-          rightBorder = "";
-        }
+        // the padding is a weird hack that fixes the spacing for the top right corner of the board
+        const rightBorder =
+          colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
         return col.map((cell, rowIndex: number) => {
-          let bottomBorder = "border-b-2";
-          if (rowIndex === 3) {
-            bottomBorder = "";
-          }
+          const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
 
           return (
-            <div
+            <Cell
               key={4 * rowIndex + colIndex}
-              className={clsx(
-                "min-w-20 min-h-20 border-black touch-none",
-                rightBorder,
-                bottomBorder,
-              )}
-              style={{
-                gridColumn: colIndex + 1,
-                gridRow: rowIndex + 1,
-              }}
-              //position={[colIndex, rowIndex] as BoardCoordinates}
-            >
-              {cell && (
-                <Stone
-                  id={cell.id}
-                  color={cell.color}
-                  handleMoveStone={handleMoveStone}
-                />
-              )}
-            </div>
+              // @ts-expect-error anoetuhnt
+              row={rowIndex}
+              // @ts-expect-error anoetuhnt
+              col={colIndex}
+              cell={cell}
+              handleMoveStone={handleMoveStone}
+              className={rightBorder + " " + bottomBorder}
+            />
           );
         });
       })}
