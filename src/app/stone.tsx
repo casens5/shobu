@@ -45,6 +45,8 @@ export default function Stone({
   const handleStart = (
     e: MouseEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>,
   ) => {
+    if ("button" in e && e.button !== 0) return;
+
     e.preventDefault();
     setIsDragging(true);
     const position = getEventPosition(e);
