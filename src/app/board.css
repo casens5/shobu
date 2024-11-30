@@ -3,5 +3,13 @@
 }
 
 .board-dark {
-  background: linear-gradient(56deg, #6c4a21, #7c5a31);
+  background: linear-gradient(56deg, #735226, #836236);
+}
+
+.dark-transparent {
+  background: #00000055;
+}
+
+.red-transparent {
+  background: #aa000055;
 }

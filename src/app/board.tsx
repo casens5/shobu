@@ -22,6 +22,12 @@ type CellProps = {
   className?: string;
 };
 
+type LastMoveType = {
+  from: [Coord | null, Coord | null];
+  to: [Coord | null, Coord | null];
+  push: [Coord | null, Coord | null];
+};
+
 export function Cell({
   cell,
   row,
@@ -111,6 +117,24 @@ export default function Board({
     left: 0,
     right: 0,
   });
+  const [lastMove, setLastMove] = useState<LastMoveType>({
+    from: [null, null],
+    to: [null, null],
+    push: [null, null],
+  });
+
+  function getMoveColor(lastMove: any, rowIndex: Coord, colIndex: Coord) {
+    if (lastMove.from[0] === colIndex && lastMove.from[1] === rowIndex) {
+      return "dark-transparent";
+    }
+    if (lastMove.to[0] === colIndex && lastMove.to[1] === rowIndex) {
+      return "dark-transparent";
+    }
+    if (lastMove.push[0] === colIndex && lastMove.push[0] === rowIndex) {
+      return "red-transparent";
+    }
+    return "";
+  }
 
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -156,6 +180,7 @@ export default function Board({
     }
 
     // get previous stone coordinates by its id
+    // @ts-expect-error onteuhnotu
     let oldCoords = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
@@ -169,11 +194,18 @@ export default function Board({
 
     if (!oldCoords) return; // Exit if stone not found
 
+    // @ts-expect-error onteuhnotu
+    setLastMove((prevLastMove) => ({
+      ...prevLastMove,
+      // @ts-expect-error onteuhnotu
+      from: oldCoords,
+      to: newCoords,
+    }));
+
     const stone = { ...board[oldCoords[0]][oldCoords[1]] };
 
     const newBoard = [...board];
     newBoard[oldCoords[0]][oldCoords[1]] = null;
-    console.log("hoho", newCoords, board, newBoard);
     // @ts-expect-error typescript is bad and ugly
     newBoard[newCoords[0]][newCoords[1]] = stone;
     setBoard(newBoard);
@@ -193,25 +225,28 @@ export default function Board({
       {
         // @ts-expect-error onetuhnoethunht
         board.map((col, colIndex: Coord) => {
-        // the padding is a weird hack that fixes the spacing for the top right corner of the board
-        const rightBorder =
-          colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
+          // the padding is a weird hack that fixes the spacing for the top
+          // right corner of the board
+          const rightBorder =
+            colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
           // @ts-expect-error onetuhnoethunht
           return col.map((cell, rowIndex: Coord) => {
-          const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
+            const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
 
-          return (
-            <Cell
-              key={4 * rowIndex + colIndex}
-              row={rowIndex}
-              col={colIndex}
-              cell={cell}
-              handleMoveStone={handleMoveStone}
-              className={rightBorder + " " + bottomBorder}
-            />
-          );
-        });
+            const moveColor = getMoveColor(lastMove, rowIndex, colIndex);
+
+            return (
+              <Cell
+                key={4 * rowIndex + colIndex}
+                row={rowIndex}
+                col={colIndex}
+                cell={cell}
+                handleMoveStone={handleMoveStone}
+                className={`${rightBorder} ${bottomBorder} ${moveColor}`}
+              />
+            );
+          });
         })
       }
     </div>

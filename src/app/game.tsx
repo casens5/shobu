@@ -12,7 +12,7 @@ export function TurnIndicator({ playerTurn }: TurnIndicatorProps) {
 }
 
 export default function Game() {
-  const playerTurn = "white";
+  const playerTurn = "black";
 
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
