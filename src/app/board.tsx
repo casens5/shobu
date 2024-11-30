@@ -6,6 +6,8 @@ import Stone, { StoneId, StoneObject } from "./stone";
 import { PlayerColor, BoardColor } from "./game";
 import React, { useState, useEffect, useRef } from "react";
 
+type Coord = 0 | 1 | 2 | 3;
+
 type BoardProps = {
   boardColor: BoardColor;
   playerTurn: PlayerColor;
@@ -14,10 +16,10 @@ type BoardProps = {
 
 type CellProps = {
   cell: StoneObject | null;
-  row: 0 | 1 | 2 | 3;
-  col: 0 | 1 | 2 | 3;
-  className?: string;
+  row: Coord;
+  col: Coord;
   handleMoveStone: (id: StoneId, newPosition: [number, number]) => void;
+  className?: string;
 };
 
 export function Cell({
@@ -188,20 +190,21 @@ export default function Board({
         },
       )}
     >
-      {board.map((col, colIndex: number) => {
+      {
+        // @ts-expect-error onetuhnoethunht
+        board.map((col, colIndex: Coord) => {
         // the padding is a weird hack that fixes the spacing for the top right corner of the board
         const rightBorder =
           colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
-        return col.map((cell, rowIndex: number) => {
+          // @ts-expect-error onetuhnoethunht
+          return col.map((cell, rowIndex: Coord) => {
           const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
 
           return (
             <Cell
               key={4 * rowIndex + colIndex}
-              // @ts-expect-error anoetuhnt
               row={rowIndex}
-              // @ts-expect-error anoetuhnt
               col={colIndex}
               cell={cell}
               handleMoveStone={handleMoveStone}
@@ -209,7 +212,8 @@ export default function Board({
             />
           );
         });
-      })}
+        })
+      }
     </div>
   );
 }
