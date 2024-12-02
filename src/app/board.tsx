@@ -4,7 +4,13 @@ import clsx from "clsx";
 import "./board.css";
 import Stone, { StoneId, StoneObject } from "./stone";
 import { PlayerColor, BoardColor } from "./game";
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useImperativeHandle,
+  forwardRef,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 
 type Coord = 0 | 1 | 2 | 3;
 
@@ -81,11 +87,8 @@ export function Cell({
   );
 }
 
-export default function Board({
-  boardColor,
-  playerTurn,
-  playerHome,
-}: BoardProps) {
+const Board = forwardRef((props: BoardProps, ref) => {
+  const { boardColor, playerTurn, canPlay } = props;
   const [board, setBoard] = useState<(StoneObject | null)[][]>([
     [
       { id: 0, color: "black", canMove: false },
@@ -183,6 +186,10 @@ export default function Board({
     }
   }
 
+  useImperativeHandle(ref, () => ({
+    clearLastMove,
+  }));
+
   const boardRef = useRef<HTMLDivElement>(null);
 
   function updateBoardDimensions() {
@@ -253,9 +260,9 @@ export default function Board({
     } else {
       setLastMoveBlack({
         // @ts-expect-error onethu
-      from: oldCoords,
+        from: oldCoords,
         // @ts-expect-error onethu
-      to: newCoords,
+        to: newCoords,
         push: [null, null],
       });
     }
@@ -308,4 +315,6 @@ export default function Board({
       }
     </div>
   );
-}
+});
+
+export default Board;
