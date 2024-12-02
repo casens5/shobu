@@ -29,6 +29,33 @@ type CellProps = {
   className?: string;
 };
 
+type BoardType = [
+  [
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+  ],
+  [
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+  ],
+  [
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+  ],
+  [
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+    StoneObject | null,
+  ],
+];
+
 type LastMoveType = {
   from: [Coord | null, Coord | null];
   to: [Coord | null, Coord | null];
@@ -89,7 +116,8 @@ export function Cell({
 
 const Board = forwardRef((props: BoardProps, ref) => {
   const { boardColor, playerTurn, canPlay } = props;
-  const [board, setBoard] = useState<(StoneObject | null)[][]>([
+
+  const [board, setBoard] = useState<BoardType>([
     [
       { id: 0, color: "black", canMove: false },
       null,
@@ -133,6 +161,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
   });
 
   useEffect(() => {
+    // @ts-expect-error typescript is the actual worst
     setBoard((prevBoard) =>
       prevBoard.map((row) =>
         row.map((cell) => {
@@ -273,6 +302,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     newBoard[oldCoords[0]][oldCoords[1]] = null;
     // @ts-expect-error typescript is bad and ugly
     newBoard[newCoords[0]][newCoords[1]] = stone;
+    // @ts-expect-error typescript is bad and ugly
     setBoard(newBoard);
   };
 
@@ -287,9 +317,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
         },
       )}
     >
-      {
-        // @ts-expect-error onetuhnoethunht
-        board.map((col, colIndex: Coord) => {
+      {/* @ts-expect-error typescript is bad and ugly */}
+      {board.map((col, colIndex: Coord) => {
           // the padding is a weird hack that fixes the spacing for the top
           // right corner of the board
           const rightBorder =
@@ -311,8 +340,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
               />
             );
           });
-        })
-      }
+      })}
     </div>
   );
 });
