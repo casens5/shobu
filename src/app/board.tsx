@@ -12,6 +12,7 @@ type BoardProps = {
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
+  canPlay: boolean;
 };
 
 type CellProps = {
@@ -87,28 +88,28 @@ export default function Board({
 }: BoardProps) {
   const [board, setBoard] = useState<(StoneObject | null)[][]>([
     [
-      { id: 0, color: "black", canMove: playerTurn === "black" },
+      { id: 0, color: "black", canMove: false },
       null,
       null,
-      { id: 4, color: "white", canMove: playerTurn === "white" },
+      { id: 4, color: "white", canMove: false },
     ],
     [
-      { id: 1, color: "black", canMove: playerTurn === "black" },
+      { id: 1, color: "black", canMove: false },
       null,
       null,
-      { id: 5, color: "white", canMove: playerTurn === "white" },
+      { id: 5, color: "white", canMove: false },
     ],
     [
-      { id: 2, color: "black", canMove: playerTurn === "black" },
+      { id: 2, color: "black", canMove: false },
       null,
       null,
-      { id: 6, color: "white", canMove: playerTurn === "white" },
+      { id: 6, color: "white", canMove: false },
     ],
     [
-      { id: 3, color: "black", canMove: playerTurn === "black" },
+      { id: 3, color: "black", canMove: false },
       null,
       null,
-      { id: 7, color: "white", canMove: playerTurn === "white" },
+      { id: 7, color: "white", canMove: false },
     ],
   ]);
   const [boardDimensions, setBoardDimensions] = useState({
@@ -127,6 +128,20 @@ export default function Board({
     to: [null, null],
     push: [null, null],
   });
+
+  useEffect(() => {
+    setBoard((prevBoard) =>
+      prevBoard.map((row) =>
+        row.map((cell) => {
+          if (cell === null) return null;
+          return {
+            ...cell,
+            canMove: canPlay && cell.color === playerTurn,
+          };
+        }),
+      ),
+    );
+  }, [playerTurn, canPlay]);
 
   function getMoveColor(rowIndex: Coord, colIndex: Coord) {
     if (
@@ -154,17 +169,17 @@ export default function Board({
 
   function clearLastMove(playerColor: PlayerColor) {
     if (playerColor === "white") {
-      setLastMoveWhite((prev) => ({
+      setLastMoveWhite({
         from: [null, null],
         to: [null, null],
         push: [null, null],
-      }));
+      });
     } else {
-      setLastMoveBlack((prev) => ({
+      setLastMoveBlack({
         from: [null, null],
         to: [null, null],
         push: [null, null],
-      }));
+      });
     }
   }
 
@@ -212,14 +227,13 @@ export default function Board({
     }
 
     // get previous stone coordinates and color by its id
-    // @ts-expect-error onteuhnotu
     let oldCoords = null;
     let stoneColor = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === id) {
           oldCoords = [colIndex, rowIndex];
-          stoneColor = board[colIndex][rowIndex].color;
+          stoneColor = board[colIndex][rowIndex]!.color;
           break;
         }
       }
@@ -229,19 +243,21 @@ export default function Board({
     if (!oldCoords) return; // Exit if stone not found
 
     if (stoneColor === "white") {
-      setLastMoveWhite((prev) => ({
-        ...prev,
-    // @ts-expect-error onteuhnotu
+      setLastMoveWhite({
+        // @ts-expect-error onethu
         from: oldCoords,
+        // @ts-expect-error onethu
         to: newCoords,
-      }));
+        push: [null, null],
+      });
     } else {
-      setLastMoveBlack((prev) => ({
-        ...prev,
-      // @ts-expect-error onteuhnotu
+      setLastMoveBlack({
+        // @ts-expect-error onethu
       from: oldCoords,
+        // @ts-expect-error onethu
       to: newCoords,
-    }));
+        push: [null, null],
+      });
     }
 
     const stone = { ...board[oldCoords[0]][oldCoords[1]] };

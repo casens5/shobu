@@ -1,4 +1,7 @@
+"use client";
+
 import Board from "./board";
+import { useState } from "react";
 
 export type PlayerColor = "black" | "white";
 export type BoardColor = "dark" | "light";
@@ -12,10 +15,19 @@ export function TurnIndicator({ playerTurn }: TurnIndicatorProps) {
 }
 
 export default function Game() {
-  const playerTurn = "black";
+  const [playerTurn, setPlayerTurn] = useState<PlayerColor>("black");
 
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
+      <div
+        onClick={() => {
+          setPlayerTurn((prev) => {
+            return prev === "white" ? "black" : "white";
+          });
+        }}
+      >
+        change player
+      </div>
       <TurnIndicator playerTurn={playerTurn} />
       <div className="max-h-2xl grid h-auto w-full max-w-2xl grid-cols-2 items-center gap-x-7 gap-y-12 sm:gap-x-8 sm:gap-y-16">
         <Board boardColor="dark" playerTurn={playerTurn} playerHome="white" />
