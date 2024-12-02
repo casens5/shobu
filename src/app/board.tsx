@@ -117,23 +117,55 @@ export default function Board({
     left: 0,
     right: 0,
   });
-  const [lastMove, setLastMove] = useState<LastMoveType>({
+  const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
+    from: [null, null],
+    to: [null, null],
+    push: [null, null],
+  });
+  const [lastMoveBlack, setLastMoveBlack] = useState<LastMoveType>({
     from: [null, null],
     to: [null, null],
     push: [null, null],
   });
 
-  function getMoveColor(lastMove: any, rowIndex: Coord, colIndex: Coord) {
-    if (lastMove.from[0] === colIndex && lastMove.from[1] === rowIndex) {
+  function getMoveColor(rowIndex: Coord, colIndex: Coord) {
+    if (
+      (lastMoveWhite.from[0] === colIndex &&
+        lastMoveWhite.from[1] === rowIndex) ||
+      (lastMoveBlack.from[0] === colIndex && lastMoveBlack.from[1] === rowIndex)
+    ) {
       return "dark-transparent";
     }
-    if (lastMove.to[0] === colIndex && lastMove.to[1] === rowIndex) {
+    if (
+      (lastMoveWhite.to[0] === colIndex && lastMoveWhite.to[1] === rowIndex) ||
+      (lastMoveBlack.to[0] === colIndex && lastMoveBlack.to[1] === rowIndex)
+    ) {
       return "dark-transparent";
     }
-    if (lastMove.push[0] === colIndex && lastMove.push[0] === rowIndex) {
+    if (
+      (lastMoveWhite.push[0] === colIndex &&
+        lastMoveWhite.push[0] === rowIndex) ||
+      (lastMoveBlack.push[0] === colIndex && lastMoveBlack.push[0] === rowIndex)
+    ) {
       return "red-transparent";
     }
     return "";
+  }
+
+  function clearLastMove(playerColor: PlayerColor) {
+    if (playerColor === "white") {
+      setLastMoveWhite((prev) => ({
+        from: [null, null],
+        to: [null, null],
+        push: [null, null],
+      }));
+    } else {
+      setLastMoveBlack((prev) => ({
+        from: [null, null],
+        to: [null, null],
+        push: [null, null],
+      }));
+    }
   }
 
   const boardRef = useRef<HTMLDivElement>(null);
@@ -179,13 +211,15 @@ export default function Board({
       return; // exit; move is out of bounds
     }
 
-    // get previous stone coordinates by its id
+    // get previous stone coordinates and color by its id
     // @ts-expect-error onteuhnotu
     let oldCoords = null;
+    let stoneColor = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === id) {
           oldCoords = [colIndex, rowIndex];
+          stoneColor = board[colIndex][rowIndex].color;
           break;
         }
       }
@@ -194,13 +228,21 @@ export default function Board({
 
     if (!oldCoords) return; // Exit if stone not found
 
+    if (stoneColor === "white") {
+      setLastMoveWhite((prev) => ({
+        ...prev,
     // @ts-expect-error onteuhnotu
-    setLastMove((prevLastMove) => ({
-      ...prevLastMove,
+        from: oldCoords,
+        to: newCoords,
+      }));
+    } else {
+      setLastMoveBlack((prev) => ({
+        ...prev,
       // @ts-expect-error onteuhnotu
       from: oldCoords,
       to: newCoords,
     }));
+    }
 
     const stone = { ...board[oldCoords[0]][oldCoords[1]] };
 
@@ -233,8 +275,7 @@ export default function Board({
           // @ts-expect-error onetuhnoethunht
           return col.map((cell, rowIndex: Coord) => {
             const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
-
-            const moveColor = getMoveColor(lastMove, rowIndex, colIndex);
+            const moveColor = getMoveColor(rowIndex, colIndex);
 
             return (
               <Cell
