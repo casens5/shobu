@@ -143,22 +143,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
       { id: 7, color: "white", canMove: false },
     ],
   ]);
-  const [boardDimensions, setBoardDimensions] = useState({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  });
-  const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
-    from: [null, null],
-    to: [null, null],
-    push: [null, null],
-  });
-  const [lastMoveBlack, setLastMoveBlack] = useState<LastMoveType>({
-    from: [null, null],
-    to: [null, null],
-    push: [null, null],
-  });
 
   useEffect(() => {
     // @ts-expect-error typescript is the actual worst
@@ -174,6 +158,18 @@ const Board = forwardRef((props: BoardProps, ref) => {
       ),
     );
   }, [playerTurn, canPlay]);
+
+  // record the last player's moves
+  const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
+    from: [null, null],
+    to: [null, null],
+    push: [null, null],
+  });
+  const [lastMoveBlack, setLastMoveBlack] = useState<LastMoveType>({
+    from: [null, null],
+    to: [null, null],
+    push: [null, null],
+  });
 
   function getMoveColor(rowIndex: Coord, colIndex: Coord) {
     if (
@@ -199,6 +195,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     return "";
   }
 
+  // clear the last move via function passed to the parent game
   function clearLastMove(playerColor: PlayerColor) {
     if (playerColor === "white") {
       setLastMoveWhite({
@@ -219,7 +216,14 @@ const Board = forwardRef((props: BoardProps, ref) => {
     clearLastMove,
   }));
 
+  // handle board resizing
   const boardRef = useRef<HTMLDivElement>(null);
+  const [boardDimensions, setBoardDimensions] = useState({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  });
 
   function updateBoardDimensions() {
     if (boardRef.current) {
@@ -319,27 +323,27 @@ const Board = forwardRef((props: BoardProps, ref) => {
     >
       {/* @ts-expect-error typescript is bad and ugly */}
       {board.map((col, colIndex: Coord) => {
-          // the padding is a weird hack that fixes the spacing for the top
-          // right corner of the board
-          const rightBorder =
-            colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
+        // the padding is a weird hack that fixes the spacing for the top
+        // right corner of the board
+        const rightBorder =
+          colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
-          // @ts-expect-error onetuhnoethunht
-          return col.map((cell, rowIndex: Coord) => {
-            const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
-            const moveColor = getMoveColor(rowIndex, colIndex);
+        // @ts-expect-error onetuhnoethunht
+        return col.map((cell, rowIndex: Coord) => {
+          const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
+          const moveColor = getMoveColor(rowIndex, colIndex);
 
-            return (
-              <Cell
-                key={4 * rowIndex + colIndex}
-                row={rowIndex}
-                col={colIndex}
-                cell={cell}
-                handleMoveStone={handleMoveStone}
-                className={`${rightBorder} ${bottomBorder} ${moveColor}`}
-              />
-            );
-          });
+          return (
+            <Cell
+              key={4 * rowIndex + colIndex}
+              row={rowIndex}
+              col={colIndex}
+              cell={cell}
+              handleMoveStone={handleMoveStone}
+              className={`${rightBorder} ${bottomBorder} ${moveColor}`}
+            />
+          );
+        });
       })}
     </div>
   );
