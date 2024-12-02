@@ -91,15 +91,6 @@ export default function Stone({
       window.addEventListener("touchmove", handleMove);
       // @ts-expect-error anoetuhn
       window.addEventListener("touchend", handleEnd);
-    } else {
-      // @ts-expect-error anoetuhn
-      window.removeEventListener("mousemove", handleMove);
-      // @ts-expect-error anoetuhn
-      window.removeEventListener("mouseup", handleEnd);
-      // @ts-expect-error anoetuhn
-      window.removeEventListener("touchmove", handleMove);
-      // @ts-expect-error anoetuhn
-      window.removeEventListener("touchend", handleEnd);
     }
 
     return () => {
