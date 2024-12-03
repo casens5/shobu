@@ -73,6 +73,13 @@ export default function Game() {
       canPlay: true,
     },
   ];
+  const [moves, setMoves] = useState<
+    {
+      boardId: BoardId;
+      direction: Direction;
+      length: Length;
+    }[]
+  >([]);
 
   function clearAllPlayerMoves(playerColor: PlayerColor) {
     boardRefs.forEach((ref) => {
@@ -80,6 +87,10 @@ export default function Game() {
         ref.current.clearLastMove(playerColor);
       }
     });
+  }
+
+  function handleMove(boardId: BoardId, direction: Direction, length: Length) {
+    setMoves((prevMoves) => [...prevMoves, { boardId, direction, length }]);
   }
 
   return (
@@ -103,16 +114,26 @@ export default function Game() {
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <div className="grid grid-cols-2 gap-x-7 bg-[#00000088] py-6 sm:gap-x-8 sm:rounded-t-3xl sm:p-8">
           {/* @ts-expect-error onetunheot */}
-          <Board {...boards[0]} />
+          <Board {...boards[0]} onMove={handleMove} />
           {/* @ts-expect-error onetunheot */}
-          <Board {...boards[1]} />
+          <Board {...boards[1]} onMove={handleMove} />
         </div>
         <div className="grid grid-cols-2 gap-x-7 bg-[#ffffff22] py-6 sm:gap-x-8 sm:rounded-b-3xl sm:p-8">
           {/* @ts-expect-error onetunheot */}
-          <Board {...boards[2]} />
+          <Board {...boards[2]} onMove={handleMove} />
           {/* @ts-expect-error onetunheot */}
-          <Board {...boards[3]} />
+          <Board {...boards[3]} onMove={handleMove} />
         </div>
+      </div>
+      <div className="mt-4">
+        <h3>Moves:</h3>
+        <ul>
+          {moves.map((entry, index) => (
+            <li key={index}>
+              {entry.boardId}: {entry.direction} {entry.length}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

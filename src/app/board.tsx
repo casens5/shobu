@@ -15,10 +15,12 @@ import React, {
 type Coord = 0 | 1 | 2 | 3;
 
 type BoardProps = {
+  id: BoardId;
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
   canPlay: boolean;
+  onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
 };
 
 type CellProps = {
@@ -159,7 +161,7 @@ export function Cell({
 }
 
 const Board = forwardRef((props: BoardProps, ref) => {
-  const { boardColor, playerTurn, canPlay } = props;
+  const { id, boardColor, playerTurn, canPlay, onMove } = props;
 
   const [board, setBoard] = useState<BoardType>([
     [
@@ -310,7 +312,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
   }
 
   const handleMoveStoneAction = (
-    id: StoneId,
+    stoneId: StoneId,
     newPosition: [number, number],
   ) => {
     const newCoords = [
@@ -337,7 +339,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     let stoneColor = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
-        if (board[colIndex][rowIndex]?.id === id) {
+        if (board[colIndex][rowIndex]?.id === stoneId) {
           oldCoords = [colIndex, rowIndex] as [Coord, Coord];
           stoneColor = board[colIndex][rowIndex]!.color;
           break;
@@ -399,7 +401,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     const length = getMoveLength(oldCoords, newCoords) as Length;
     console.log("baba", direction, length);
 
-    //onMove(id, direction, length)
+    onMove(id, direction!, length);
   };
 
   return (
