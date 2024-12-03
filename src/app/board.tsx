@@ -349,4 +349,5 @@ const Board = forwardRef((props: BoardProps, ref) => {
   );
 });
 
+Board.displayName = "Board";
 export default Board;

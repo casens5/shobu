@@ -15,7 +15,7 @@ type TurnIndicatorProps = {
 };
 
 export function TurnIndicator({ playerTurn }: TurnIndicatorProps) {
-  return <div className="mb-4 text-center">{playerTurn}'s turn</div>;
+  return <div className="mb-4 text-center">{playerTurn}s turn</div>;
 }
 
 export default function Game() {
