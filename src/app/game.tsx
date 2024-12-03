@@ -6,6 +6,19 @@ import { useState, useRef } from "react";
 export type PlayerColor = "black" | "white";
 export type BoardColor = "dark" | "light";
 
+export type BoardId = 0 | 1 | 2 | 3;
+export enum Direction {
+  N,
+  NE,
+  E,
+  SE,
+  S,
+  SW,
+  W,
+  NW,
+}
+export type Length = 1 | 2;
+
 interface BoardRef {
   clearLastMove: (playerColor: "white" | "black") => void;
 }

@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import "./board.css";
 import Stone, { StoneId, StoneObject } from "./stone";
-import { PlayerColor, BoardColor } from "./game";
+import { PlayerColor, BoardColor, BoardId, Length, Direction } from "./game";
 import React, {
   useImperativeHandle,
   forwardRef,
@@ -61,6 +61,50 @@ type LastMoveType = {
   to: [Coord | null, Coord | null];
   push: [Coord | null, Coord | null];
 };
+
+function getMoveLength(
+  oldCoords: [Coord, Coord],
+  newCoords: [Coord, Coord],
+): number {
+  return Math.max(
+    Math.abs(oldCoords[0] - newCoords[0]),
+    Math.abs(oldCoords[1] - newCoords[1]),
+  );
+}
+
+function getDirection(
+  oldCoords: [Coord, Coord],
+  newCoords: [Coord, Coord],
+): Direction | null {
+  // north/south movement
+  if (oldCoords[0] === newCoords[0]) {
+    if (oldCoords[1] > newCoords[1]) {
+      return Direction.N;
+    } else {
+      return Direction.S;
+    }
+  }
+  // east/west movement
+  if (oldCoords[1] === newCoords[1]) {
+    if (oldCoords[0] < newCoords[0]) {
+      return Direction.E;
+    } else {
+      return Direction.W;
+    }
+  }
+  // diagonal
+  if (oldCoords[0] < newCoords[0] && oldCoords[1] > newCoords[1]) {
+    return Direction.NE;
+  } else if (oldCoords[0] < newCoords[0] && oldCoords[1] < newCoords[1]) {
+    return Direction.SE;
+  } else if (oldCoords[0] > newCoords[0] && oldCoords[1] > newCoords[1]) {
+    return Direction.NW;
+  } else if (oldCoords[0] > newCoords[0] && oldCoords[1] < newCoords[1]) {
+    return Direction.SW;
+  }
+  // error?????
+  return null;
+}
 
 export function Cell({
   cell,
@@ -246,6 +290,25 @@ const Board = forwardRef((props: BoardProps, ref) => {
     };
   }, []);
 
+  function isMoveLegal(
+    oldCoords: [Coord, Coord],
+    newCoords: [Coord, Coord],
+    length: number,
+  ): boolean {
+    if (length < 1 || length > 2) {
+      return false;
+    }
+    const xMove = Math.abs(oldCoords[0] - newCoords[0]);
+    const yMove = Math.abs(oldCoords[1] - newCoords[1]);
+    if (
+      !(xMove === 0 || xMove === length) ||
+      !(yMove === 0 || yMove === length)
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   const handleMoveStoneAction = (
     id: StoneId,
     newPosition: [number, number],
@@ -303,6 +366,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return;
     }
 
+    if (
+      !isMoveLegal(oldCoords, newCoords, getMoveLength(oldCoords, newCoords))
+    ) {
+      return null;
+    }
+
     if (stoneColor === "white") {
       setLastMoveWhite({
         from: oldCoords,
@@ -325,6 +394,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
     newBoard[newCoords[0]][newCoords[1]] = stone;
     // @ts-expect-error typescript is bad and ugly
     setBoard(newBoard);
+
+    const direction = getDirection(oldCoords, newCoords);
+    const length = getMoveLength(oldCoords, newCoords) as Length;
+    console.log("baba", direction, length);
+
+    //onMove(id, direction, length)
   };
 
   return (
