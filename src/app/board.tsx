@@ -25,7 +25,7 @@ type CellProps = {
   cell: StoneObject | null;
   row: Coord;
   col: Coord;
-  handleMoveStone: (id: StoneId, newPosition: [number, number]) => void;
+  handleMoveStoneAction: (id: StoneId, newPosition: [number, number]) => void;
   className?: string;
 };
 
@@ -66,7 +66,7 @@ export function Cell({
   cell,
   row,
   col,
-  handleMoveStone,
+  handleMoveStoneAction,
   className,
 }: CellProps) {
   const cellRef = useRef<HTMLDivElement>(null);
@@ -107,7 +107,7 @@ export function Cell({
           color={cell.color}
           canMove={cell.canMove}
           containerWidth={containerWidth}
-          handleMoveStone={handleMoveStone}
+          handleMoveStoneAction={handleMoveStoneAction}
         />
       )}
     </div>
@@ -246,7 +246,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
     };
   }, []);
 
-  const handleMoveStone = (id: StoneId, newPosition: [number, number]) => {
+  const handleMoveStoneAction = (
+    id: StoneId,
+    newPosition: [number, number],
+  ) => {
     const newCoords = [
       Math.floor(
         (4 * (newPosition[0] - boardDimensions.left)) /
@@ -256,7 +259,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
         (4 * (newPosition[1] - boardDimensions.top)) /
           (boardDimensions.bottom - boardDimensions.top),
       ),
-    ];
+    ] as [Coord, Coord];
     if (
       newCoords[0] > 3 ||
       newCoords[0] < 0 ||
@@ -272,7 +275,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === id) {
-          oldCoords = [colIndex, rowIndex];
+          oldCoords = [colIndex, rowIndex] as [Coord, Coord];
           stoneColor = board[colIndex][rowIndex]!.color;
           break;
         }
@@ -284,17 +287,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     if (stoneColor === "white") {
       setLastMoveWhite({
-        // @ts-expect-error onethu
         from: oldCoords,
-        // @ts-expect-error onethu
         to: newCoords,
         push: [null, null],
       });
     } else {
       setLastMoveBlack({
-        // @ts-expect-error onethu
         from: oldCoords,
-        // @ts-expect-error onethu
         to: newCoords,
         push: [null, null],
       });
@@ -339,7 +338,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
               row={rowIndex}
               col={colIndex}
               cell={cell}
-              handleMoveStone={handleMoveStone}
+              handleMoveStoneAction={handleMoveStoneAction}
               className={`${rightBorder} ${bottomBorder} ${moveColor}`}
             />
           );

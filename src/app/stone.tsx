@@ -22,7 +22,7 @@ export type StoneObject = {
 
 export type StoneProps = StoneObject & {
   containerWidth: number;
-  handleMoveStone: (id: StoneId, newPosition: [number, number]) => void;
+  handleMoveStoneAction: (id: StoneId, newPosition: [number, number]) => void;
 };
 
 export default function Stone({
@@ -30,7 +30,7 @@ export default function Stone({
   color,
   canMove,
   containerWidth,
-  handleMoveStone,
+  handleMoveStoneAction,
 }: StoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState([0, 0]);
@@ -63,9 +63,9 @@ export default function Stone({
     (e: React.MouseEvent | React.TouchEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      handleMoveStone(id, getEventPosition(e));
+      handleMoveStoneAction(id, getEventPosition(e));
     },
-    [id, handleMoveStone],
+    [id, handleMoveStoneAction],
   );
 
   const handleMove = useCallback(
