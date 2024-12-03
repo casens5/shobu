@@ -285,6 +285,24 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     if (!oldCoords) return; // Exit if stone not found
 
+    // moved to the starting place.  de-select.
+    if (oldCoords === newCoords) {
+      if (stoneColor === "white") {
+        setLastMoveWhite({
+          from: [null, null],
+          to: [null, null],
+          push: [null, null],
+        });
+      } else {
+        setLastMoveBlack({
+          from: [null, null],
+          to: [null, null],
+          push: [null, null],
+        });
+      }
+      return;
+    }
+
     if (stoneColor === "white") {
       setLastMoveWhite({
         from: oldCoords,
