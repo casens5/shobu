@@ -14,23 +14,6 @@ import React, {
 
 type Coord = 0 | 1 | 2 | 3;
 
-type BoardProps = {
-  id: BoardId;
-  boardColor: BoardColor;
-  playerTurn: PlayerColor;
-  playerHome: PlayerColor;
-  canPlay: boolean;
-  onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
-};
-
-type CellProps = {
-  cell: StoneObject | null;
-  row: Coord;
-  col: Coord;
-  handleMoveStoneAction: (id: StoneId, newPosition: [number, number]) => void;
-  className?: string;
-};
-
 type BoardType = [
   [
     StoneObject | null,
@@ -108,6 +91,14 @@ function getDirection(
   return null;
 }
 
+type CellProps = {
+  cell: StoneObject | null;
+  row: Coord;
+  col: Coord;
+  handleMoveStoneAction: (id: StoneId, newPosition: [number, number]) => void;
+  className?: string;
+};
+
 export function Cell({
   cell,
   row,
@@ -159,6 +150,16 @@ export function Cell({
     </div>
   );
 }
+
+type BoardProps = {
+  id: BoardId;
+  boardColor: BoardColor;
+  playerTurn: PlayerColor;
+  playerHome: PlayerColor;
+  canPlay: boolean;
+  onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
+  allowedMove: { direction: Direction; length: Length };
+};
 
 const Board = forwardRef((props: BoardProps, ref) => {
   const { id, boardColor, playerTurn, canPlay, onMove } = props;
