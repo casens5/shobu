@@ -36,7 +36,7 @@ function getMoveLength(
 function getDirection(
   oldCoords: [Coord, Coord],
   newCoords: [Coord, Coord],
-): Direction | null {
+): Direction {
   // north/south movement
   if (oldCoords[0] === newCoords[0]) {
     if (oldCoords[1] > newCoords[1]) {
@@ -63,8 +63,9 @@ function getDirection(
   } else if (oldCoords[0] > newCoords[0] && oldCoords[1] < newCoords[1]) {
     return Direction.SW;
   }
-  // error?????
-  return null;
+
+  console.error("invalid direction: ${oldCoords}, ${newCoords}");
+  return Direction.N;
 }
 
 type CellProps = {
