@@ -135,11 +135,11 @@ type BoardProps = {
   playerHome: PlayerColor;
   canPlay: boolean;
   onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
-  allowedMove: { direction: Direction; length: Length };
+  allowedMove: { direction: Direction; length: Length } | null;
 };
 
 const Board = forwardRef((props: BoardProps, ref) => {
-  const { id, boardColor, playerTurn, canPlay, onMove } = props;
+  const { id, boardColor, playerTurn, canPlay, onMove, allowedMove } = props;
 
   const [board, setBoard] = useState<BoardType>([
     [
@@ -352,6 +352,16 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
+    const direction = getDirection(oldCoords, newCoords);
+    const length = getMoveLength(oldCoords, newCoords) as Length;
+
+    if (
+      allowedMove &&
+      (allowedMove.direction !== direction || allowedMove.length !== length)
+    ) {
+      return null;
+    }
+
     if (stoneColor === "white") {
       setLastMoveWhite({
         from: oldCoords,
@@ -375,11 +385,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     // @ts-expect-error typescript is bad and ugly
     setBoard(newBoard);
 
-    const direction = getDirection(oldCoords, newCoords);
-    const length = getMoveLength(oldCoords, newCoords) as Length;
-    console.log("baba", direction, length);
-
-    onMove(id, direction!, length);
+    onMove(id, direction, length);
   };
 
   return (

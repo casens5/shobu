@@ -24,7 +24,7 @@ export default function Game() {
     useRef<BoardRef | null>(null),
     useRef<BoardRef | null>(null),
   ];
-  const boards = [
+  const [boards, setBoards] = useState([
     {
       id: 0,
       ref: boardRefs[0],
@@ -32,6 +32,7 @@ export default function Game() {
       playerTurn: playerTurn,
       playerHome: "white",
       canPlay: true,
+      allowedMove: null,
     },
     {
       id: 1,
@@ -40,6 +41,7 @@ export default function Game() {
       playerTurn: playerTurn,
       playerHome: "white",
       canPlay: true,
+      allowedMove: null,
     },
     {
       id: 2,
@@ -48,6 +50,7 @@ export default function Game() {
       playerTurn: playerTurn,
       playerHome: "black",
       canPlay: true,
+      allowedMove: null,
     },
     {
       id: 3,
@@ -56,17 +59,13 @@ export default function Game() {
       playerTurn: playerTurn,
       playerHome: "black",
       canPlay: true,
+      allowedMove: null,
     },
-  ];
-  const [moves, setMoves] = useState<
-    {
-      boardId: BoardId;
-      direction: Direction;
-      length: Length;
-    }[]
-  >([]);
+  ]);
 
-  function clearAllPlayerMoves(playerColor: PlayerColor) {
+  const [moves, setMoves] = useState<MoveType>([]);
+
+  function clearMoves(playerColor: PlayerColor) {
     boardRefs.forEach((ref) => {
       if (ref.current) {
         ref.current.clearLastMove(playerColor);
@@ -75,27 +74,62 @@ export default function Game() {
   }
 
   function handleMove(boardId: BoardId, direction: Direction, length: Length) {
-    setMoves((prevMoves) => [...prevMoves, { boardId, direction, length }]);
+    if (moves.length === 0 || moves[moves.length - 1].length === 3) {
+      const color = boards[boardId].boardColor;
+      setBoards(
+        // @ts-expect-error onetuh
+        boards.map((board) => {
+          if (board.boardColor === color) {
+            return {
+              ...board,
+              allowedMove: null,
+              canPlay: false,
+            };
+          } else {
+            return {
+              ...board,
+              allowedMove: { direction, length },
+              canPlay: true,
+            };
+          }
+        }),
+      );
+    } else {
+      setPlayerTurn((prev) => {
+        const color = prev === "white" ? "black" : "white";
+        setBoards(
+          boards.map((board) => ({
+            ...board,
+            playerTurn: color,
+            canPlay: board.playerHome === playerTurn,
+            allowedMove: null,
+          })),
+        );
+        clearMoves(color);
+        return color;
+      });
+    }
+
+    const newMove = { boardId, direction, length };
+
+    // @ts-expect-error why would typescript complain? this code is awesome
+    setMoves((prev) => {
+      if (prev.length === 0) {
+        return [[playerTurn, newMove]];
+      } else if (prev[prev.length - 1].length === 3) {
+        return [...prev, [playerTurn, newMove]];
+      } else {
+        return [
+          ...prev.slice(0, prev.length - 1),
+          [...prev[prev.length - 1], newMove],
+        ];
+      }
+    });
   }
 
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
-      <div
-        onClick={() => {
-          setPlayerTurn((prev) => {
-            return prev === "white" ? "black" : "white";
-          });
-        }}
-      >
-        change player
-      </div>
       <TurnIndicator playerTurn={playerTurn} />
-      <div className="text-left" onClick={() => clearAllPlayerMoves("white")}>
-        clear white moves
-      </div>
-      <div className="text-right" onClick={() => clearAllPlayerMoves("black")}>
-        clear black moves
-      </div>
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <div className="grid grid-cols-2 gap-x-7 bg-[#00000088] py-6 sm:gap-x-8 sm:rounded-t-3xl sm:p-8">
           {/* @ts-expect-error onetunheot */}
@@ -110,15 +144,12 @@ export default function Game() {
           <Board {...boards[3]} onMove={handleMove} />
         </div>
       </div>
-      <div className="mt-4">
-        <h3>Moves:</h3>
-        <ul>
-          {moves.map((entry, index) => (
-            <li key={index}>
-              {entry.boardId}: {entry.direction} {entry.length}
-            </li>
-          ))}
-        </ul>
+      <div
+        onClick={() => {
+          console.log("what is board", playerTurn, boards);
+        }}
+      >
+        test
       </div>
     </div>
   );
