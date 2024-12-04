@@ -9,16 +9,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { PlayerColor } from "./game";
-
-export type BoardCoordinates = [0 | 1 | 2 | 3, 0 | 1 | 2 | 3];
-export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
-export type StoneObject = {
-  id: StoneId;
-  color: PlayerColor;
-  canMove: boolean;
-};
+import { StoneId, StoneObject } from "./types";
 
 export type StoneProps = StoneObject & {
   containerWidth: number;

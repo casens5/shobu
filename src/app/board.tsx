@@ -2,8 +2,19 @@
 
 import clsx from "clsx";
 import "./board.css";
-import Stone, { StoneId, StoneObject } from "./stone";
-import { PlayerColor, BoardColor, BoardId, Length, Direction } from "./game";
+import Stone from "./stone";
+import {
+  PlayerColor,
+  BoardColor,
+  BoardId,
+  Length,
+  Direction,
+  Coord,
+  BoardType,
+  LastMoveType,
+  StoneId,
+  StoneObject,
+} from "./types";
 import React, {
   useImperativeHandle,
   forwardRef,
@@ -11,41 +22,6 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-
-type Coord = 0 | 1 | 2 | 3;
-
-type BoardType = [
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-];
-
-type LastMoveType = {
-  from: [Coord | null, Coord | null];
-  to: [Coord | null, Coord | null];
-  push: [Coord | null, Coord | null];
-};
 
 function getMoveLength(
   oldCoords: [Coord, Coord],

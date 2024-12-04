@@ -2,22 +2,7 @@
 
 import Board from "./board";
 import { useState, useRef } from "react";
-
-export type PlayerColor = "black" | "white";
-export type BoardColor = "dark" | "light";
-
-export type BoardId = 0 | 1 | 2 | 3;
-export enum Direction {
-  N,
-  NE,
-  E,
-  SE,
-  S,
-  SW,
-  W,
-  NW,
-}
-export type Length = 1 | 2;
+import { MoveType, PlayerColor, BoardId, Direction, Length } from "./types";
 
 interface BoardRef {
   clearLastMove: (playerColor: "white" | "black") => void;
