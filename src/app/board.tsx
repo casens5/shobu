@@ -68,6 +68,28 @@ function getDirection(
   return Direction.N;
 }
 
+// this function is probably too complicated, but makes the transparecy effect
+// on LastMove squares not look weird on the corners *shrug emoji*
+function getCornerBorder(rowIndex: Coord, colIndex: Coord): string {
+  if (rowIndex === 0) {
+    if (colIndex === 0) {
+      return "rounded-tl-2xl";
+    }
+    if (colIndex === 3) {
+      return "rounded-tr-2xl";
+    }
+  }
+  if (rowIndex === 3) {
+    if (colIndex === 0) {
+      return "rounded-bl-2xl";
+    }
+    if (colIndex === 3) {
+      return "rounded-br-2xl";
+    }
+  }
+  return "";
+}
+
 type CellProps = {
   cell: StoneObject | null;
   row: Coord;
@@ -410,6 +432,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
         return col.map((cell, rowIndex: Coord) => {
           const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
           const moveColor = getMoveColor(rowIndex, colIndex);
+          const cornerBorder = getCornerBorder(rowIndex, colIndex);
 
           return (
             <Cell
@@ -418,7 +441,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
               col={colIndex}
               cell={cell}
               handleMoveStoneAction={handleMoveStoneAction}
-              className={`${rightBorder} ${bottomBorder} ${moveColor}`}
+              className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
             />
           );
         });
