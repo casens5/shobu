@@ -36,37 +36,19 @@ type ErrorMessageProps = {
 };
 
 export function ErrorMessage({ message }: ErrorMessageProps) {
-  switch (message) {
-    case BoardMessage.MOVEUNEQUALTOPASSIVEMOVE:
-      return (
-        <div className="mb-4 text-center">
-          your active move must be the same direction and distance as the
-          passive move
-        </div>
-      );
-    case BoardMessage.MOVETOOLONG:
-      return (
-        <div className="mb-4 text-center">
-          you can only move a stone a distance of 1 or 2 squares
-        </div>
-      );
-    case BoardMessage.MOVEOUTOFBOUNDS:
-      return <div className="mb-4 text-center">move is out of bounds</div>;
-    case BoardMessage.MOVESAMECOLORBLOCKING:
-      return (
-        <div className="mb-4 text-center">
-          you can't push stones of your own color
-        </div>
-      );
-    case BoardMessage.MOVEKNIGHT:
-      return (
-        <div className="mb-4 text-center">
-          you can only move orthogonally or diagonally, no knight moves
-        </div>
-      );
-    default:
-      return null;
-  }
+  return (
+    <div className="mb-4 text-center">
+      {message === BoardMessage.MOVEUNEQUALTOPASSIVEMOVE &&
+        "your active move must be the same direction and distance as the passive move"}
+      {message === BoardMessage.MOVETOOLONG &&
+        "you can only move a stone by a distance of 1 or 2 squares"}
+      {message === BoardMessage.MOVEOUTOFBOUNDS && "move is out of bounds"}
+      {message === BoardMessage.MOVESAMECOLORBLOCKING &&
+        "you can't push stones of your own color"}
+      {message === BoardMessage.MOVEKNIGHT &&
+        "you can only move orthogonally or diagonally (no knight moves)"}
+    </div>
+  );
 }
 
 export default function Game() {
