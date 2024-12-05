@@ -158,10 +158,19 @@ type BoardProps = {
   canPlay: boolean;
   onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
   allowedMove: { direction: Direction; length: Length } | null;
+  onPlayerWin: (player: PlayerColor) => void;
 };
 
 const Board = forwardRef((props: BoardProps, ref) => {
-  const { id, boardColor, playerTurn, canPlay, onMove, allowedMove } = props;
+  const {
+    id,
+    boardColor,
+    playerTurn,
+    canPlay,
+    onMove,
+    allowedMove,
+    onPlayerWin,
+  } = props;
 
   const [board, setBoard] = useState<BoardType>([
     [
@@ -204,6 +213,19 @@ const Board = forwardRef((props: BoardProps, ref) => {
       ),
     );
   }, [playerTurn, canPlay]);
+
+  useEffect(() => {
+    if (
+      !board.some((row) => row.some((cell) => cell && cell.color === "black"))
+    ) {
+      onPlayerWin("white");
+    }
+    if (
+      !board.some((row) => row.some((cell) => cell && cell.color === "white"))
+    ) {
+      onPlayerWin("black");
+    }
+  }, [board]);
 
   // record the last player's moves
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
