@@ -2,7 +2,14 @@
 
 import Board from "./board";
 import { useState, useRef } from "react";
-import { MoveType, PlayerColor, BoardId, Direction, Length } from "./types";
+import {
+  MoveType,
+  PlayerColor,
+  BoardId,
+  Direction,
+  Length,
+  BoardMessage,
+} from "./types";
 
 interface BoardRef {
   clearLastMove: (playerColor: "white" | "black") => void;
@@ -22,6 +29,44 @@ type WinIndicatorProps = {
 
 export function WinIndicator({ playerWin }: WinIndicatorProps) {
   return <div className="mb-4 text-center">{playerWin} is the winner</div>;
+}
+
+type ErrorMessageProps = {
+  message: BoardMessage;
+};
+
+export function ErrorMessage({ message }: ErrorMessageProps) {
+  switch (message) {
+    case BoardMessage.MOVEUNEQUALTOPASSIVEMOVE:
+      return (
+        <div className="mb-4 text-center">
+          your active move must be the same direction and distance as the
+          passive move
+        </div>
+      );
+    case BoardMessage.MOVETOOLONG:
+      return (
+        <div className="mb-4 text-center">
+          you can only move a stone a distance of 1 or 2 squares
+        </div>
+      );
+    case BoardMessage.MOVEOUTOFBOUNDS:
+      return <div className="mb-4 text-center">move is out of bounds</div>;
+    case BoardMessage.MOVESAMECOLORBLOCKING:
+      return (
+        <div className="mb-4 text-center">
+          you can't push stones of your own color
+        </div>
+      );
+    case BoardMessage.MOVEKNIGHT:
+      return (
+        <div className="mb-4 text-center">
+          you can only move orthogonally or diagonally, no knight moves
+        </div>
+      );
+    default:
+      return null;
+  }
 }
 
 export default function Game() {
@@ -73,6 +118,7 @@ export default function Game() {
 
   const [moves, setMoves] = useState<MoveType>([]);
   const [playerWin, setPlayerWin] = useState<PlayerColor | undefined>();
+  const [boardMessage, setBoardMessage] = useState<BoardMessage | undefined>();
 
   function clearMoves(playerColor: PlayerColor) {
     boardRefs.forEach((ref) => {
@@ -80,6 +126,23 @@ export default function Game() {
         ref.current.clearLastMove(playerColor);
       }
     });
+  }
+
+  function handleMessage(message: BoardMessage) {
+    switch (message) {
+      case BoardMessage.WINBLACK:
+        handlePlayerWin("black");
+        return;
+      case BoardMessage.WINWHITE:
+        handlePlayerWin("white");
+        return;
+      case BoardMessage.MOVECLEARERROR:
+        setBoardMessage(undefined);
+        return;
+      default:
+        setBoardMessage(message);
+        return;
+    }
   }
 
   function handlePlayerWin(playerColor: PlayerColor) {
@@ -153,34 +216,23 @@ export default function Game() {
       ) : (
         <TurnIndicator playerTurn={playerTurn} />
       )}
+      {boardMessage ? (
+        <ErrorMessage message={boardMessage} />
+      ) : (
+        <div className="h-[44px]" />
+      )}
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <div className="grid grid-cols-2 gap-x-7 bg-[#00000088] py-[23px] sm:gap-x-8 sm:rounded-t-3xl sm:p-[26px]">
           {/* @ts-expect-error onetunheot */}
-          <Board
-            {...boards[0]}
-            onMove={handleMove}
-            onPlayerWin={handlePlayerWin}
-          />
+          <Board {...boards[0]} onMove={handleMove} onMessage={handleMessage} />
           {/* @ts-expect-error onetunheot */}
-          <Board
-            {...boards[1]}
-            onMove={handleMove}
-            onPlayerWin={handlePlayerWin}
-          />
+          <Board {...boards[1]} onMove={handleMove} onMessage={handleMessage} />
         </div>
         <div className="grid grid-cols-2 gap-x-7 bg-[#ffffff22] py-[23px] sm:gap-x-8 sm:rounded-b-3xl sm:p-[26px]">
           {/* @ts-expect-error onetunheot */}
-          <Board
-            {...boards[2]}
-            onMove={handleMove}
-            onPlayerWin={handlePlayerWin}
-          />
+          <Board {...boards[2]} onMove={handleMove} onMessage={handleMessage} />
           {/* @ts-expect-error onetunheot */}
-          <Board
-            {...boards[3]}
-            onMove={handleMove}
-            onPlayerWin={handlePlayerWin}
-          />
+          <Board {...boards[3]} onMove={handleMove} onMessage={handleMessage} />
         </div>
       </div>
       <div

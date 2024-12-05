@@ -14,6 +14,7 @@ import {
   LastMoveType,
   StoneId,
   StoneObject,
+  BoardMessage,
 } from "./types";
 import React, {
   useImperativeHandle,
@@ -158,7 +159,7 @@ type BoardProps = {
   canPlay: boolean;
   onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
   allowedMove: { direction: Direction; length: Length } | null;
-  onPlayerWin: (player: PlayerColor) => void;
+  onMessage: (message: BoardMessage) => void;
 };
 
 const Board = forwardRef((props: BoardProps, ref) => {
@@ -169,7 +170,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     canPlay,
     onMove,
     allowedMove,
-    onPlayerWin,
+    onMessage,
   } = props;
 
   const [board, setBoard] = useState<BoardType>([
@@ -220,12 +221,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
     if (
       !board.some((row) => row.some((cell) => cell && cell.color === "black"))
     ) {
-      onPlayerWin("white");
+      onMessage(BoardMessage.WINWHITE);
     }
     if (
       !board.some((row) => row.some((cell) => cell && cell.color === "white"))
     ) {
-      onPlayerWin("black");
+      onMessage(BoardMessage.WINBLACK);
     }
   }, [board]);
 
@@ -323,6 +324,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
   ): boolean {
     // can't move 3 spaces, or 0 or negative spaces
     if (length < 1 || length > 2) {
+      onMessage(BoardMessage.MOVETOOLONG);
       return false;
     }
 
@@ -333,6 +335,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       !(xMove === 0 || xMove === length) ||
       !(yMove === 0 || yMove === length)
     ) {
+      onMessage(BoardMessage.MOVEKNIGHT);
       return false;
     }
 
@@ -345,6 +348,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       if (board[newCoords[0]][newCoords[1]]) {
         // can't push your own stone
         if (board[newCoords[0]][newCoords[1]]!.color === playerTurn) {
+          onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
           return false;
         }
       }
@@ -366,6 +370,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
           (board[betweenCoords[0]][betweenCoords[1]] &&
             board[betweenCoords[0]][betweenCoords[1]]!.color === playerTurn)
         ) {
+          onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
           return false;
         }
       }
@@ -395,6 +400,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       newCoords[1] > 3 ||
       newCoords[1] < 0
     ) {
+      onMessage(BoardMessage.MOVEOUTOFBOUNDS);
       return; // exit; move is out of bounds
     }
 
@@ -445,9 +451,11 @@ const Board = forwardRef((props: BoardProps, ref) => {
       allowedMove &&
       (allowedMove.direction !== direction || allowedMove.length !== length)
     ) {
+      onMessage(BoardMessage.MOVEUNEQUALTOPASSIVEMOVE);
       return null;
     }
 
+    // move is successful
     if (stoneColor === "white") {
       setLastMoveWhite({
         from: oldCoords,
@@ -471,6 +479,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     // @ts-expect-error typescript is bad and ugly
     setBoard(newBoard);
 
+    onMessage(BoardMessage.MOVECLEARERROR);
     onMove(id, direction, length);
   };
 
