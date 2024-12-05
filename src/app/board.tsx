@@ -199,6 +199,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     ],
   ]);
 
+  // update each stone's `canMove` when playerTurn and canPlay update
   useEffect(() => {
     // @ts-expect-error typescript is the actual worst
     setBoard((prevBoard) =>
@@ -214,6 +215,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     );
   }, [playerTurn, canPlay]);
 
+  // detect win condition
   useEffect(() => {
     if (
       !board.some((row) => row.some((cell) => cell && cell.color === "black"))
@@ -319,9 +321,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
     newCoords: [Coord, Coord],
     length: number,
   ): boolean {
+    // can't move 3 spaces, or 0 or negative spaces
     if (length < 1 || length > 2) {
       return false;
     }
+
+    // only allow orthogonal or diagonal moves, no knight moves
     const xMove = Math.abs(oldCoords[0] - newCoords[0]);
     const yMove = Math.abs(oldCoords[1] - newCoords[1]);
     if (
@@ -330,6 +335,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
     ) {
       return false;
     }
+
+    // move is legal
     return true;
   }
 
