@@ -154,7 +154,7 @@ export default function Game() {
         <TurnIndicator playerTurn={playerTurn} />
       )}
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
-        <div className="grid grid-cols-2 gap-x-7 bg-[#00000088] py-6 sm:gap-x-8 sm:rounded-t-3xl sm:p-8">
+        <div className="grid grid-cols-2 gap-x-7 bg-[#00000088] py-[23px] sm:gap-x-8 sm:rounded-t-3xl sm:p-[26px]">
           {/* @ts-expect-error onetunheot */}
           <Board
             {...boards[0]}
@@ -168,7 +168,7 @@ export default function Game() {
             onPlayerWin={handlePlayerWin}
           />
         </div>
-        <div className="grid grid-cols-2 gap-x-7 bg-[#ffffff22] py-6 sm:gap-x-8 sm:rounded-b-3xl sm:p-8">
+        <div className="grid grid-cols-2 gap-x-7 bg-[#ffffff22] py-[23px] sm:gap-x-8 sm:rounded-b-3xl sm:p-[26px]">
           {/* @ts-expect-error onetunheot */}
           <Board
             {...boards[2]}
