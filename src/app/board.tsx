@@ -1,5 +1,6 @@
 "use client";
 
+import { isEqual } from "lodash-es";
 import clsx from "clsx";
 import "./board.css";
 import Stone from "./stone";
@@ -418,10 +419,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
       if (oldCoords) break;
     }
 
-    if (!oldCoords) return; // Exit if stone not found
+    if (!oldCoords) {
+      console.error("could not get coordinates from stone id");
+      return null;
+    }
 
     // moved to the starting place.  de-select.
-    if (oldCoords === newCoords) {
+    if (isEqual(oldCoords, newCoords)) {
       if (stoneColor === "white") {
         setLastMoveWhite({
           from: [null, null],
@@ -435,7 +439,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
           push: [null, null],
         });
       }
-      return;
+      onMessage(BoardMessage.MOVECLEARERROR);
+      return null;
     }
 
     if (
