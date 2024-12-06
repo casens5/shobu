@@ -45,6 +45,8 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
       {message === BoardMessage.MOVEOUTOFBOUNDS && "move is out of bounds"}
       {message === BoardMessage.MOVESAMECOLORBLOCKING &&
         "you can't push stones of your own color"}
+      {message === BoardMessage.MOVETWOSTONESBLOCKING &&
+        "you can't push two stones in a row"}
       {message === BoardMessage.MOVEKNIGHT &&
         "you can only move orthogonally or diagonally (no knight moves)"}
     </div>

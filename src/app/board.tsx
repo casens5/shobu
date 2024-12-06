@@ -341,39 +341,52 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     const nextCoords = [
-      newCoords[0] + (newCoords[0] - oldCoords[0]),
-      newCoords[1] + (newCoords[1] - oldCoords[1]),
+      newCoords[0] + (newCoords[0] - oldCoords[0]) / length,
+      newCoords[1] + (newCoords[1] - oldCoords[1]) / length,
     ];
     if (length === 1) {
-      // detect 2 stones in a row
+      // detect push
       if (board[newCoords[0]][newCoords[1]]) {
         // can't push your own stone
         if (board[newCoords[0]][newCoords[1]]!.color === playerTurn) {
           onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
           return false;
         }
+        // can't push 2 stones in a row
+        if (board[nextCoords[0]][nextCoords[1]]) {
+          onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
+          return false;
+        }
       }
-    } else if (length === 2) {
       // unnecessary but legible if (length === 2)
+    } else if (length === 2) {
       const betweenCoords = [
         oldCoords[0] + (newCoords[0] - oldCoords[0]) / 2,
         oldCoords[1] + (newCoords[1] - oldCoords[1]) / 2,
       ];
 
+      // can't push your own stone(s)
       if (
-        board[newCoords[0]][newCoords[1]] ||
-        board[betweenCoords[0]][betweenCoords[1]]
-      ) {
-        // can't push your own stone(s)
-        if (
-          (board[newCoords[0]][newCoords[1]] &&
-            board[newCoords[0]][newCoords[1]]!.color === playerTurn) ||
+        (board[newCoords[0]][newCoords[1]] ||
+          board[betweenCoords[0]][betweenCoords[1]]) &&
+        ((board[newCoords[0]][newCoords[1]] &&
+          board[newCoords[0]][newCoords[1]]!.color === playerTurn) ||
           (board[betweenCoords[0]][betweenCoords[1]] &&
-            board[betweenCoords[0]][betweenCoords[1]]!.color === playerTurn)
-        ) {
-          onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
-          return false;
-        }
+            board[betweenCoords[0]][betweenCoords[1]]!.color === playerTurn))
+      ) {
+        onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
+        return false;
+      }
+      // can't push 2 stones in a row
+      if (
+        (board[betweenCoords[0]][betweenCoords[1]] &&
+          board[newCoords[0]][newCoords[1]]) ||
+        ((board[betweenCoords[0]][betweenCoords[1]] ||
+          board[newCoords[0]][newCoords[1]]) &&
+          board[nextCoords[0]][nextCoords[1]])
+      ) {
+        onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
+        return false;
       }
     }
 
