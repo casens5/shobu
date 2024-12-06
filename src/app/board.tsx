@@ -456,12 +456,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
-    if (
-      !isMoveLegal(oldCoords, newCoords, getMoveLength(oldCoords, newCoords))
-    ) {
-      return null;
-    }
-
     const direction = getDirection(oldCoords, newCoords);
     const length = getMoveLength(oldCoords, newCoords) as Length;
 
@@ -470,6 +464,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
       (allowedMove.direction !== direction || allowedMove.length !== length)
     ) {
       onMessage(BoardMessage.MOVEUNEQUALTOPASSIVEMOVE);
+      return null;
+    }
+
+    if (!isMoveLegal(oldCoords, newCoords, length)) {
       return null;
     }
 
