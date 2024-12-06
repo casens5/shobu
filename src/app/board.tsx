@@ -111,12 +111,12 @@ export function Cell({
   const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
-    const updateWidth = () => {
+    function updateWidth() {
       if (cellRef.current) {
         const width = cellRef.current.getBoundingClientRect().width;
         setContainerWidth(width);
       }
-    };
+    }
 
     updateWidth();
     window.addEventListener("resize", updateWidth);
@@ -243,7 +243,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     push: [null, null],
   });
 
-  function getMoveColor(rowIndex: Coord, colIndex: Coord) {
+  function getMoveColor(rowIndex: Coord, colIndex: Coord): string {
     if (
       (lastMoveWhite.from[0] === colIndex &&
         lastMoveWhite.from[1] === rowIndex) ||
