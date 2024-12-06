@@ -320,7 +320,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
   function isMoveLegal(
     oldCoords: [Coord, Coord],
+    betweenCoords: [Coord, Coord] | null,
     newCoords: [Coord, Coord],
+    nextCoords: [Coord, Coord] | null,
     length: number,
   ): boolean {
     // can't move 3 spaces, or 0 or negative spaces
@@ -340,10 +342,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return false;
     }
 
-    const nextCoords = [
-      newCoords[0] + (newCoords[0] - oldCoords[0]) / length,
-      newCoords[1] + (newCoords[1] - oldCoords[1]) / length,
-    ];
     if (length === 1) {
       // detect push
       if (board[newCoords[0]][newCoords[1]]) {
@@ -353,18 +351,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
           return false;
         }
         // can't push 2 stones in a row
-        if (board[nextCoords[0]][nextCoords[1]]) {
+        if (nextCoords && board[nextCoords[0]][nextCoords[1]]) {
           onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
           return false;
         }
       }
-      // unnecessary but legible if (length === 2)
-    } else if (length === 2) {
-      const betweenCoords = [
-        oldCoords[0] + (newCoords[0] - oldCoords[0]) / 2,
-        oldCoords[1] + (newCoords[1] - oldCoords[1]) / 2,
-      ];
-
+      // unnecessary but legible if (length === 2) and betweenCoords check
+    } else if (length === 2 && betweenCoords) {
       // can't push your own stone(s)
       if (
         (board[newCoords[0]][newCoords[1]] ||
@@ -383,7 +376,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
           board[newCoords[0]][newCoords[1]]) ||
         ((board[betweenCoords[0]][betweenCoords[1]] ||
           board[newCoords[0]][newCoords[1]]) &&
-          board[nextCoords[0]][nextCoords[1]])
+          nextCoords &&
+          [nextCoords[0]][nextCoords[1]])
       ) {
         onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
         return false;
@@ -467,11 +461,26 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
-    if (!isMoveLegal(oldCoords, newCoords, length)) {
+    const betweenCoords =
+      length === 2
+        ? ([
+            oldCoords[0] + (newCoords[0] - oldCoords[0]) / 2,
+            oldCoords[1] + (newCoords[1] - oldCoords[1]) / 2,
+          ] as [Coord, Coord])
+        : null;
+    const nextX = newCoords[0] + (newCoords[0] - oldCoords[0]) / length;
+    const nextY = newCoords[1] + (newCoords[1] - oldCoords[1]) / length;
+    const nextCoords =
+      nextX >= 0 && nextX <= 3 && nextY >= 0 && nextY <= 3
+        ? ([nextX, nextY] as [Coord, Coord])
+        : null;
+
+    if (!isMoveLegal(oldCoords, betweenCoords, newCoords, nextCoords, length)) {
       return null;
     }
 
     // move is successful
+
     if (stoneColor === "white") {
       setLastMoveWhite({
         from: oldCoords,
