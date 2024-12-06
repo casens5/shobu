@@ -259,8 +259,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
     if (
       (lastMoveWhite.push[0] === colIndex &&
-        lastMoveWhite.push[0] === rowIndex) ||
-      (lastMoveBlack.push[0] === colIndex && lastMoveBlack.push[0] === rowIndex)
+        lastMoveWhite.push[1] === rowIndex) ||
+      (lastMoveBlack.push[0] === colIndex && lastMoveBlack.push[1] === rowIndex)
     ) {
       return "red-transparent";
     }
@@ -377,7 +377,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
         ((board[betweenCoords[0]][betweenCoords[1]] ||
           board[newCoords[0]][newCoords[1]]) &&
           nextCoords &&
-          [nextCoords[0]][nextCoords[1]])
+          board[nextCoords[0]][nextCoords[1]])
       ) {
         onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
         return false;
@@ -413,12 +413,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // get previous stone coordinates and color by its id
+    // @ts-ignore
     let oldCoords = null;
     let stoneColor = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === stoneId) {
-          oldCoords = [colIndex, rowIndex] as [Coord, Coord];
+          oldCoords = [colIndex, rowIndex];
           stoneColor = board[colIndex][rowIndex]!.color;
           break;
         }
@@ -430,6 +431,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       console.error("could not get coordinates from stone id");
       return null;
     }
+    oldCoords = oldCoords as [Coord, Coord];
 
     // moved to the starting place.  de-select.
     if (isEqual(oldCoords, newCoords)) {
@@ -480,24 +482,61 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // move is successful
+    const stone = { ...board[oldCoords[0]][oldCoords[1]] };
+    const newBoard = [...board];
 
-    if (stoneColor === "white") {
-      setLastMoveWhite({
-        from: oldCoords,
-        to: newCoords,
-        push: [null, null],
-      });
-    } else {
-      setLastMoveBlack({
-        from: oldCoords,
-        to: newCoords,
-        push: [null, null],
-      });
+    // check if we're pushing an opponent's stone
+    if (
+      nextCoords &&
+      ((length === 1 && board[newCoords[0]][newCoords[1]]) ||
+        (length === 2 &&
+          (board[betweenCoords![0]][betweenCoords![1]] ||
+            board[newCoords[0]][newCoords[1]])))
+    ) {
+      const pushedStone =
+        length === 1
+          ? ({
+              ...board[newCoords[0]][newCoords[1]],
+            } as StoneObject)
+          : ({
+              ...(board[betweenCoords![0]][betweenCoords![1]] ||
+                board[newCoords[0]][newCoords[1]]),
+            } as StoneObject);
+
+      if (length === 2 && board[betweenCoords![0]][betweenCoords![1]]) {
+        newBoard[betweenCoords![0]][betweenCoords![1]] = null;
+      }
+
+      newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
+      if (stoneColor === "white") {
+        setLastMoveWhite((prev) => ({
+          ...prev,
+          push: nextCoords,
+        }));
+      } else {
+        setLastMoveBlack((prev) => ({
+          ...prev,
+          push: nextCoords,
+        }));
+      }
     }
 
-    const stone = { ...board[oldCoords[0]][oldCoords[1]] };
+    if (stoneColor === "white") {
+      setLastMoveWhite((prev) => ({
+        ...prev,
+        // @ts-ignore
+        from: oldCoords,
+        to: newCoords,
+      }));
+    } else {
+      setLastMoveBlack((prev) => ({
+        ...prev,
+        // @ts-ignore
+        from: oldCoords,
+        to: newCoords,
+      }));
+    }
 
-    const newBoard = [...board];
     newBoard[oldCoords[0]][oldCoords[1]] = null;
     // @ts-expect-error typescript is bad and ugly
     newBoard[newCoords[0]][newCoords[1]] = stone;
