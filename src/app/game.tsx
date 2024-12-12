@@ -1,7 +1,8 @@
 "use client";
 
+import clsx from "clsx";
 import Board from "./board";
-import { useState, useRef } from "react";
+import { useState, useRef, ReactNode } from "react";
 import {
   MoveType,
   PlayerColor,
@@ -53,6 +54,27 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
   );
 }
 
+type HomeAreaProps = {
+  color: PlayerColor;
+  children: ReactNode;
+};
+
+export function HomeArea({ color, children }: HomeAreaProps) {
+  return (
+    <div
+      className={clsx(
+        "grid grid-cols-2 gap-x-7 py-[23px] sm:gap-x-8 sm:rounded-t-3xl sm:p-[26px]",
+        {
+          "bg-[#00000088]": color === "black",
+          "bg-[#ffffff22]": color === "white",
+        },
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Game() {
   const [playerTurn, setPlayerTurn] = useState<PlayerColor>("black");
   const boardRefs = [
@@ -67,7 +89,7 @@ export default function Game() {
       ref: boardRefs[0],
       boardColor: "dark",
       playerTurn: playerTurn,
-      playerHome: "white",
+      playerHome: "black",
       canPlay: true,
       allowedMove: null,
     },
@@ -76,7 +98,7 @@ export default function Game() {
       ref: boardRefs[1],
       boardColor: "light",
       playerTurn: playerTurn,
-      playerHome: "white",
+      playerHome: "black",
       canPlay: true,
       allowedMove: null,
     },
@@ -85,8 +107,8 @@ export default function Game() {
       ref: boardRefs[2],
       boardColor: "light",
       playerTurn: playerTurn,
-      playerHome: "black",
-      canPlay: true,
+      playerHome: "white",
+      canPlay: false,
       allowedMove: null,
     },
     {
@@ -94,8 +116,8 @@ export default function Game() {
       ref: boardRefs[3],
       boardColor: "dark",
       playerTurn: playerTurn,
-      playerHome: "black",
-      canPlay: true,
+      playerHome: "white",
+      canPlay: false,
       allowedMove: null,
     },
   ]);
@@ -167,7 +189,7 @@ export default function Game() {
           boards.map((board) => ({
             ...board,
             playerTurn: color,
-            canPlay: board.playerHome === playerTurn,
+            canPlay: board.playerHome !== playerTurn,
             allowedMove: null,
           })),
         );
@@ -206,18 +228,18 @@ export default function Game() {
         <div className="h-[44px]" />
       )}
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
-        <div className="grid grid-cols-2 gap-x-7 bg-[#00000088] py-[23px] sm:gap-x-8 sm:rounded-t-3xl sm:p-[26px]">
+        <HomeArea color="black">
           {/* @ts-expect-error onetunheot */}
           <Board {...boards[0]} onMove={handleMove} onMessage={handleMessage} />
           {/* @ts-expect-error onetunheot */}
           <Board {...boards[1]} onMove={handleMove} onMessage={handleMessage} />
-        </div>
-        <div className="grid grid-cols-2 gap-x-7 bg-[#ffffff22] py-[23px] sm:gap-x-8 sm:rounded-b-3xl sm:p-[26px]">
+        </HomeArea>
+        <HomeArea color="white">
           {/* @ts-expect-error onetunheot */}
           <Board {...boards[2]} onMove={handleMove} onMessage={handleMessage} />
           {/* @ts-expect-error onetunheot */}
           <Board {...boards[3]} onMove={handleMove} onMessage={handleMessage} />
-        </div>
+        </HomeArea>
       </div>
       <div
         onClick={() => {
