@@ -229,7 +229,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     ) {
       onMessage(BoardMessage.WINBLACK);
     }
-  }, [board]);
+  }, [onMessage, board]);
 
   // record the last player's moves
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
@@ -413,6 +413,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // get previous stone coordinates and color by its id
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     let oldCoords = null;
     let stoneColor = null;
@@ -524,14 +525,14 @@ const Board = forwardRef((props: BoardProps, ref) => {
     if (stoneColor === "white") {
       setLastMoveWhite((prev) => ({
         ...prev,
-        // @ts-ignore
+        // @ts-expect error onethunoethunt
         from: oldCoords,
         to: newCoords,
       }));
     } else {
       setLastMoveBlack((prev) => ({
         ...prev,
-        // @ts-ignore
+        // @ts-expect error onethunoethunt
         from: oldCoords,
         to: newCoords,
       }));
