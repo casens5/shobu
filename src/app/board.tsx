@@ -488,11 +488,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     // check if we're pushing an opponent's stone
     if (
-      nextCoords &&
-      ((length === 1 && board[newCoords[0]][newCoords[1]]) ||
+      (length === 1 && board[newCoords[0]][newCoords[1]]) ||
         (length === 2 &&
           (board[betweenCoords![0]][betweenCoords![1]] ||
-            board[newCoords[0]][newCoords[1]])))
+          board[newCoords[0]][newCoords[1]]))
     ) {
       const pushedStone =
         length === 1
@@ -507,7 +506,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       if (length === 2 && board[betweenCoords![0]][betweenCoords![1]]) {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
-
+      if (nextCoords) {
       newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
       if (stoneColor === "white") {
         setLastMoveWhite((prev) => ({
@@ -519,6 +518,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
           ...prev,
           push: nextCoords,
         }));
+        }
       }
     }
 
