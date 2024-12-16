@@ -50,6 +50,8 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
         "you can't push two stones in a row"}
       {message === BoardMessage.MOVEKNIGHT &&
         "you can only move orthogonally or diagonally (no knight moves)"}
+      {message === BoardMessage.MOVEPASSIVECANTPUSH &&
+        "your first move must be passive (can't push a stone)"}
     </div>
   );
 }

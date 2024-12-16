@@ -482,17 +482,22 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
-    // move is successful
     const stone = { ...board[oldCoords[0]][oldCoords[1]] };
     const newBoard = [...board];
 
     // check if we're pushing an opponent's stone
     if (
       (length === 1 && board[newCoords[0]][newCoords[1]]) ||
-        (length === 2 &&
-          (board[betweenCoords![0]][betweenCoords![1]] ||
+      (length === 2 &&
+        (board[betweenCoords![0]][betweenCoords![1]] ||
           board[newCoords[0]][newCoords[1]]))
     ) {
+      // can't push if this is the passive move
+      if (allowedMove == null) {
+        onMessage(BoardMessage.MOVEPASSIVECANTPUSH);
+        return null;
+      }
+
       const pushedStone =
         length === 1
           ? ({
@@ -507,21 +512,22 @@ const Board = forwardRef((props: BoardProps, ref) => {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
       if (nextCoords) {
-      newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
-      if (stoneColor === "white") {
-        setLastMoveWhite((prev) => ({
-          ...prev,
-          push: nextCoords,
-        }));
-      } else {
-        setLastMoveBlack((prev) => ({
-          ...prev,
-          push: nextCoords,
-        }));
+        newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
+        if (stoneColor === "white") {
+          setLastMoveWhite((prev) => ({
+            ...prev,
+            push: nextCoords,
+          }));
+        } else {
+          setLastMoveBlack((prev) => ({
+            ...prev,
+            push: nextCoords,
+          }));
         }
       }
     }
 
+    // move is successful
     if (stoneColor === "white") {
       setLastMoveWhite((prev) => ({
         ...prev,
