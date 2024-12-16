@@ -235,12 +235,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
     from: [null, null],
     to: [null, null],
-    push: [null, null],
+    isPush: false,
   });
   const [lastMoveBlack, setLastMoveBlack] = useState<LastMoveType>({
     from: [null, null],
     to: [null, null],
-    push: [null, null],
+    isPush: false,
   });
 
   function getMoveColor(rowIndex: Coord, colIndex: Coord): string {
@@ -252,17 +252,20 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return "dark-transparent";
     }
     if (
+      (lastMoveWhite.isPush &&
+        lastMoveWhite.to[0] === colIndex &&
+        lastMoveWhite.to[1] === rowIndex) ||
+      (lastMoveBlack.isPush &&
+        lastMoveBlack.to[0] === colIndex &&
+        lastMoveBlack.to[1] === rowIndex)
+    ) {
+      return "red-transparent";
+    }
+    if (
       (lastMoveWhite.to[0] === colIndex && lastMoveWhite.to[1] === rowIndex) ||
       (lastMoveBlack.to[0] === colIndex && lastMoveBlack.to[1] === rowIndex)
     ) {
       return "dark-transparent";
-    }
-    if (
-      (lastMoveWhite.push[0] === colIndex &&
-        lastMoveWhite.push[1] === rowIndex) ||
-      (lastMoveBlack.push[0] === colIndex && lastMoveBlack.push[1] === rowIndex)
-    ) {
-      return "red-transparent";
     }
     return "";
   }
@@ -273,13 +276,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
       setLastMoveWhite({
         from: [null, null],
         to: [null, null],
-        push: [null, null],
+        isPush: false,
       });
     } else {
       setLastMoveBlack({
         from: [null, null],
         to: [null, null],
-        push: [null, null],
+        isPush: false,
       });
     }
   }
@@ -440,13 +443,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
         setLastMoveWhite({
           from: [null, null],
           to: [null, null],
-          push: [null, null],
+          isPush: false,
         });
       } else {
         setLastMoveBlack({
           from: [null, null],
           to: [null, null],
-          push: [null, null],
+          isPush: false,
         });
       }
       onMessage(BoardMessage.MOVECLEARERROR);
@@ -507,23 +510,24 @@ const Board = forwardRef((props: BoardProps, ref) => {
               ...(board[betweenCoords![0]][betweenCoords![1]] ||
                 board[newCoords[0]][newCoords[1]]),
             } as StoneObject);
+      if (nextCoords) {
+        newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
+      }
 
       if (length === 2 && board[betweenCoords![0]][betweenCoords![1]]) {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
-      if (nextCoords) {
-        newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
-        if (stoneColor === "white") {
-          setLastMoveWhite((prev) => ({
-            ...prev,
-            push: nextCoords,
-          }));
-        } else {
-          setLastMoveBlack((prev) => ({
-            ...prev,
-            push: nextCoords,
-          }));
-        }
+
+      if (stoneColor === "white") {
+        setLastMoveWhite((prev) => ({
+          ...prev,
+          isPush: true,
+        }));
+      } else {
+        setLastMoveBlack((prev) => ({
+          ...prev,
+          isPush: true,
+        }));
       }
     }
 

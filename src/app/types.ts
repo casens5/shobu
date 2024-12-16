@@ -35,7 +35,7 @@ export type BoardType = [
 export type LastMoveType = {
   from: [Coord | null, Coord | null];
   to: [Coord | null, Coord | null];
-  push: [Coord | null, Coord | null];
+  isPush: boolean
 };
 export type PlayerColor = "black" | "white";
 export type BoardColor = "dark" | "light";
