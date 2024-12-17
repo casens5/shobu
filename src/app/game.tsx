@@ -197,7 +197,9 @@ export default function Game() {
             ...board,
             playerTurn: color,
           allowedMove:
-              board.playerHome !== prev ? { notInHomeBoard: true } : {},
+              board.playerHome !== color
+                ? { notInHomeBoard: true }
+                : { isPassive: true },
           })),
         );
         clearMoves(color);
