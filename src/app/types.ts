@@ -81,12 +81,14 @@ export type AllowedMove =
       gameOver: true;
       notInHomeBoard: true;
       wrongColor: true;
-      undoPassive: true;
+      changePassive: true;
     }>;
 export type NewMove = {
   boardId: BoardId;
   direction: Direction;
   length: Length;
+  changePassive?: boolean;
+  undoPassive?: boolean;
 }
 
 export enum BoardMessage {

@@ -161,13 +161,47 @@ export default function Game() {
     setPlayerWin(playerColor);
   }
 
-  function handleMove(newMove: NewMove, changePassive?: boolean) {
+  function handleMove(newMove: NewMove) {
+    // there are 2 cases.  one is where you change the passive move to another passive move on that board, and one where you undo the passive move so that you can make a passive move on the other board!
+    if (newMove.undoPassive) {
+      setMoves((prev) => {
+        prev.pop();
+        return prev;
+      });
+
+      setBoards(
+        // @ts-expect-error onetuh
+        boards.map((board) => ({
+          ...board,
+          allowedMove:
+            board.playerHome !== playerTurn
+              ? { notInHomeBoard: true }
+              : { isPassive: true },
+        })),
+      );
+
+      return;
+    }
+
+    if (newMove.changePassive) {
+      setMoves((prev) => {
+        return [...prev.slice(0, prev.length - 1), [playerTurn, newMove]];
+      });
+      return;
+    }
+
+    // passive move
     if (moves.length === 0 || moves[moves.length - 1].length === 3) {
       const color = boards[newMove.boardId].boardColor;
       setBoards(
         // @ts-expect-error onetuh
         boards.map((board) => {
-          if (board.boardColor === color) {
+          if (board.id === newMove.boardId) {
+            return {
+              ...board,
+              allowedMove: { changePassive: true },
+            };
+          } else if (board.boardColor === color) {
             return {
               ...board,
               allowedMove: { wrongColor: true },
@@ -183,16 +217,25 @@ export default function Game() {
           }
         }),
       );
+      setMoves((prev) => {
+        if (prev.length === 0) {
+          return [[playerTurn, newMove]];
+        } else {
+          return [...prev, [playerTurn, newMove]];
+        }
+      });
     } else {
+      // active move, switch players
+
       // you would really think that you don't have to shove all this logic inside the setPlayerTurn function, but react doesn't handle state as well as we wish it would.  so in it goes.
       setPlayerTurn((prev) => {
         const color = prev === "white" ? "black" : "white";
         setBoards(
-        // @ts-expect-error onetuh
+          // @ts-expect-error onetuh
           boards.map((board) => ({
             ...board,
             playerTurn: color,
-          allowedMove:
+            allowedMove:
               board.playerHome !== color
                 ? { notInHomeBoard: true }
                 : { isPassive: true },
@@ -201,19 +244,14 @@ export default function Game() {
         clearMoves(color);
         return color;
       });
-    // @ts-expect-error why would typescript complain? this code is awesome
-    setMoves((prev) => {
-      if (prev.length === 0) {
-        return [[playerTurn, newMove]];
-      } else if (prev[prev.length - 1].length === 3) {
-        return [...prev, [playerTurn, newMove]];
-      } else {
+      // @ts-expect-error why would typescript complain? this code is awesome
+      setMoves((prev) => {
         return [
           ...prev.slice(0, prev.length - 1),
           [...prev[prev.length - 1], newMove],
         ];
-      }
-    });
+      });
+    }
   }
 
   return (
@@ -244,7 +282,7 @@ export default function Game() {
       </div>
       <div
         onClick={() => {
-          console.log("what is board", playerTurn, boards);
+          console.log("oh hi", boards, moves);
         }}
       >
         test

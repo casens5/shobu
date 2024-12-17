@@ -163,7 +163,7 @@ type BoardProps = {
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
-  onMove: (newMove: NewMove, changePassive?: boolean) => void;
+  onMove: (newMove: NewMove) => void;
   allowedMove: AllowedMove;
   onMessage: (message: BoardMessage) => void;
 };
@@ -443,21 +443,37 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     // moved to the starting place.  de-select.
     if (isEqual(oldCoords, newCoords)) {
-      if (stoneColor === "white") {
-        setLastMoveWhite({
-          from: [null, null],
-          to: [null, null],
-          isPush: false,
-        });
-      } else {
-        setLastMoveBlack({
-          from: [null, null],
-          to: [null, null],
-          isPush: false,
-        });
-      }
       onMessage(BoardMessage.MOVECLEARERROR);
       return null;
+    }
+
+    const newBoard = [...board];
+    let stone = { ...board[oldCoords[0]][oldCoords[1]] };
+
+    // @ts-expect-error onuteh
+    if (allowedMove.changePassive != null) {
+      oldCoords =
+        stoneColor === "white"
+          ? (lastMoveWhite.from as BoardCoordinates)
+          : (lastMoveBlack.from as BoardCoordinates);
+
+      const deleteCoords =
+        stoneColor === "white"
+          ? (lastMoveWhite.to as BoardCoordinates)
+          : (lastMoveBlack.to as BoardCoordinates);
+
+      stone = { ...board[deleteCoords[0]][deleteCoords[1]] };
+      newBoard[deleteCoords[0]][deleteCoords[1]] = null;
+
+      if (isEqual(oldCoords, newCoords)) {
+        clearLastMove(stoneColor!);
+        //@ts-ignore
+        newBoard[newCoords[0]][newCoords[1]] = stone;
+        //@ts-ignore
+        setBoard(newBoard);
+        onMove({ boardId: 0, direction: 0, length: 1, undoPassive: true });
+        return;
+      }
     }
 
     const direction = getDirection(oldCoords, newCoords);
@@ -490,9 +506,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
     if (!isMoveLegal(oldCoords, betweenCoords, newCoords, nextCoords, length)) {
       return null;
     }
-
-    const stone = { ...board[oldCoords[0]][oldCoords[1]] };
-    const newBoard = [...board];
 
     // check if we're pushing an opponent's stone
     if (
@@ -562,7 +575,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
     setBoard(newBoard);
 
     onMessage(BoardMessage.MOVECLEARERROR);
-    onMove({ boardId: id, direction, length });
+    onMove({
+      boardId: id,
+      direction,
+      length,
+      // @ts-expect-error typescript is bad and ugly
+      changePassive: allowedMove.changePassive,
+    });
   };
 
   function showError() {
