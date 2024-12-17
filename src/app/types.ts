@@ -1,6 +1,6 @@
 import { BoardRef } from "./game";
 
-export type BoardCoordinates = [0 | 1 | 2 | 3, 0 | 1 | 2 | 3];
+export type BoardCoordinates = [Coord, Coord];
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StoneObject = {
   id: StoneId;
@@ -83,6 +83,11 @@ export type AllowedMove =
       wrongColor: true;
       undoPassive: true;
     }>;
+export type NewMove = {
+  boardId: BoardId;
+  direction: Direction;
+  length: Length;
+}
 
 export enum BoardMessage {
   WINBLACK,

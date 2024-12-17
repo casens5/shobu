@@ -3,14 +3,7 @@
 import clsx from "clsx";
 import Board from "./board";
 import { useState, useRef, ReactNode } from "react";
-import {
-  MoveType,
-  PlayerColor,
-  BoardId,
-  Direction,
-  Length,
-  BoardMessage,
-} from "./types";
+import { MoveType, PlayerColor, BoardMessage, NewMove } from "./types";
 
 export interface BoardRef {
   clearLastMove: (playerColor: "white" | "black") => void;
@@ -168,9 +161,9 @@ export default function Game() {
     setPlayerWin(playerColor);
   }
 
-  function handleMove(boardId: BoardId, direction: Direction, length: Length) {
+  function handleMove(newMove: NewMove, changePassive?: boolean) {
     if (moves.length === 0 || moves[moves.length - 1].length === 3) {
-      const color = boards[boardId].boardColor;
+      const color = boards[newMove.boardId].boardColor;
       setBoards(
         // @ts-expect-error onetuh
         boards.map((board) => {
@@ -182,7 +175,10 @@ export default function Game() {
           } else {
             return {
               ...board,
-              allowedMove: { direction, length },
+              allowedMove: {
+                direction: newMove.direction,
+                length: newMove.length,
+              },
             };
           }
         }),
@@ -205,10 +201,6 @@ export default function Game() {
         clearMoves(color);
         return color;
       });
-    }
-
-    const newMove = { boardId, direction, length };
-
     // @ts-expect-error why would typescript complain? this code is awesome
     setMoves((prev) => {
       if (prev.length === 0) {

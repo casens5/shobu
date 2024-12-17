@@ -17,6 +17,8 @@ import {
   StoneObject,
   BoardMessage,
   AllowedMove,
+  BoardCoordinates,
+  NewMove,
 } from "./types";
 import React, {
   useImperativeHandle,
@@ -27,8 +29,8 @@ import React, {
 } from "react";
 
 function getMoveLength(
-  oldCoords: [Coord, Coord],
-  newCoords: [Coord, Coord],
+  oldCoords: BoardCoordinates,
+  newCoords: BoardCoordinates,
 ): number {
   return Math.max(
     Math.abs(oldCoords[0] - newCoords[0]),
@@ -37,8 +39,8 @@ function getMoveLength(
 }
 
 function getDirection(
-  oldCoords: [Coord, Coord],
-  newCoords: [Coord, Coord],
+  oldCoords: BoardCoordinates,
+  newCoords: BoardCoordinates,
 ): Direction {
   // north/south movement
   if (oldCoords[0] === newCoords[0]) {
@@ -161,7 +163,7 @@ type BoardProps = {
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
-  onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
+  onMove: (newMove: NewMove, changePassive?: boolean) => void;
   allowedMove: AllowedMove;
   onMessage: (message: BoardMessage) => void;
 };
@@ -324,10 +326,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
   }, []);
 
   function isMoveLegal(
-    oldCoords: [Coord, Coord],
-    betweenCoords: [Coord, Coord] | null,
-    newCoords: [Coord, Coord],
-    nextCoords: [Coord, Coord] | null,
+    oldCoords: BoardCoordinates,
+    betweenCoords: BoardCoordinates | null,
+    newCoords: BoardCoordinates,
+    nextCoords: BoardCoordinates | null,
     length: number,
   ): boolean {
     // can't move 3 spaces, or 0 or negative spaces
@@ -437,7 +439,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       console.error("could not get coordinates from stone id");
       return null;
     }
-    oldCoords = oldCoords as [Coord, Coord];
+    oldCoords = oldCoords as BoardCoordinates;
 
     // moved to the starting place.  de-select.
     if (isEqual(oldCoords, newCoords)) {
@@ -540,14 +542,14 @@ const Board = forwardRef((props: BoardProps, ref) => {
     if (stoneColor === "white") {
       setLastMoveWhite((prev) => ({
         ...prev,
-        // @ts-expect error onethunoethunt
+        // @ts-ignore
         from: oldCoords,
         to: newCoords,
       }));
     } else {
       setLastMoveBlack((prev) => ({
         ...prev,
-        // @ts-expect error onethunoethunt
+        // @ts-ignore
         from: oldCoords,
         to: newCoords,
       }));
@@ -560,7 +562,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     setBoard(newBoard);
 
     onMessage(BoardMessage.MOVECLEARERROR);
-    onMove(id, direction, length);
+    onMove({ boardId: id, direction, length });
   };
 
   function showError() {
