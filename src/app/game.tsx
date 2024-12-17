@@ -12,7 +12,7 @@ import {
   BoardMessage,
 } from "./types";
 
-interface BoardRef {
+export interface BoardRef {
   clearLastMove: (playerColor: "white" | "black") => void;
 }
 
@@ -188,18 +188,21 @@ export default function Game() {
         }),
       );
     } else {
-      const color = playerTurn === "white" ? "black" : "white";
+      // you would really think that you don't have to shove all this logic inside the setPlayerTurn function, but react doesn't handle state as well as we wish it would.  so in it goes.
+      setPlayerTurn((prev) => {
+        const color = prev === "white" ? "black" : "white";
         setBoards(
         // @ts-expect-error onetuh
           boards.map((board) => ({
             ...board,
             playerTurn: color,
           allowedMove:
-            board.playerHome !== playerTurn ? { notInHomeBoard: true } : {},
+              board.playerHome !== prev ? { notInHomeBoard: true } : {},
           })),
         );
         clearMoves(color);
-      setPlayerTurn(color);
+        return color;
+      });
     }
 
     const newMove = { boardId, direction, length };

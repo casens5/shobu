@@ -1,3 +1,5 @@
+import { BoardRef } from "./game";
+
 export type BoardCoordinates = [0 | 1 | 2 | 3, 0 | 1 | 2 | 3];
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StoneObject = {
@@ -6,7 +8,7 @@ export type StoneObject = {
   canMove: boolean;
 };
 export type Coord = 0 | 1 | 2 | 3;
-export type BoardType = [
+export type GridType = [
   [
     StoneObject | null,
     StoneObject | null,
@@ -32,6 +34,14 @@ export type BoardType = [
     StoneObject | null,
   ],
 ];
+export type BoardType = {
+  id: BoardId;
+  ref: BoardRef;
+  boardColor: BoardColor;
+  playerTurn: PlayerColor;
+  playerHome: PlayerColor;
+  allowedMove: AllowedMove;
+};
 export type LastMoveType = {
   from: [Coord | null, Coord | null];
   to: [Coord | null, Coord | null];
@@ -66,12 +76,13 @@ export type MoveType = [
 ][];
 export type AllowedMove =
   | { direction: Direction; length: Length }
-  | { isPassive: true | undefined;
-    gameOver: true | undefined;
-    notInHomeBoard: true | undefined;
-    wrongColor: true | undefined;
-    undoPassive: true | undefined;
-   };
+  | Partial<{
+      isPassive: true;
+      gameOver: true;
+      notInHomeBoard: true;
+      wrongColor: true;
+      undoPassive: true;
+    }>;
 
 export enum BoardMessage {
   WINBLACK,

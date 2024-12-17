@@ -11,7 +11,7 @@ import {
   Length,
   Direction,
   Coord,
-  BoardType,
+  GridType,
   LastMoveType,
   StoneId,
   StoneObject,
@@ -169,7 +169,7 @@ type BoardProps = {
 const Board = forwardRef((props: BoardProps, ref) => {
   const { id, boardColor, playerTurn, onMove, allowedMove, onMessage } = props;
 
-  const [board, setBoard] = useState<BoardType>([
+  const [board, setBoard] = useState<GridType>([
     [
       { id: 0, color: "black", canMove: false },
       null,
