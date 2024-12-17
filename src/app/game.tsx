@@ -52,6 +52,10 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
         "you can only move orthogonally or diagonally (no knight moves)"}
       {message === BoardMessage.MOVEPASSIVECANTPUSH &&
         "your first move must be passive (can't push a stone)"}
+      {message === BoardMessage.MOVENOTINHOMEAREA &&
+        "your first move must be passive (in your home area)"}
+      {message === BoardMessage.MOVEWRONGCOLOR &&
+        "you must play on a opposite color board from your first move"}
     </div>
   );
 }
@@ -92,8 +96,7 @@ export default function Game() {
       boardColor: "dark",
       playerTurn: playerTurn,
       playerHome: "black",
-      canPlay: true,
-      allowedMove: null,
+      allowedMove: { isPassive: true },
     },
     {
       id: 1,
@@ -101,8 +104,7 @@ export default function Game() {
       boardColor: "light",
       playerTurn: playerTurn,
       playerHome: "black",
-      canPlay: true,
-      allowedMove: null,
+      allowedMove: { isPassive: true },
     },
     {
       id: 2,
@@ -110,8 +112,9 @@ export default function Game() {
       boardColor: "light",
       playerTurn: playerTurn,
       playerHome: "white",
-      canPlay: false,
-      allowedMove: null,
+      allowedMove: {
+        notInHomeBoard: true,
+      },
     },
     {
       id: 3,
@@ -119,8 +122,9 @@ export default function Game() {
       boardColor: "dark",
       playerTurn: playerTurn,
       playerHome: "white",
-      canPlay: false,
-      allowedMove: null,
+      allowedMove: {
+        notInHomeBoard: true,
+      },
     },
   ]);
 
@@ -155,9 +159,10 @@ export default function Game() {
 
   function handlePlayerWin(playerColor: PlayerColor) {
     setBoards(
+      // @ts-expect-error onetuh
       boards.map((board) => ({
         ...board,
-        canPlay: false,
+        allowedMove: { gameOver: true },
       })),
     );
     setPlayerWin(playerColor);
@@ -172,32 +177,29 @@ export default function Game() {
           if (board.boardColor === color) {
             return {
               ...board,
-              allowedMove: null,
-              canPlay: false,
+              allowedMove: { wrongColor: true },
             };
           } else {
             return {
               ...board,
               allowedMove: { direction, length },
-              canPlay: true,
             };
           }
         }),
       );
     } else {
-      setPlayerTurn((prev) => {
-        const color = prev === "white" ? "black" : "white";
+      const color = playerTurn === "white" ? "black" : "white";
         setBoards(
+        // @ts-expect-error onetuh
           boards.map((board) => ({
             ...board,
             playerTurn: color,
-            canPlay: board.playerHome !== playerTurn,
-            allowedMove: null,
+          allowedMove:
+            board.playerHome !== playerTurn ? { notInHomeBoard: true } : {},
           })),
         );
         clearMoves(color);
-        return color;
-      });
+      setPlayerTurn(color);
     }
 
     const newMove = { boardId, direction, length };

@@ -16,6 +16,7 @@ import {
   StoneId,
   StoneObject,
   BoardMessage,
+  AllowedMove,
 } from "./types";
 import React, {
   useImperativeHandle,
@@ -96,6 +97,7 @@ type CellProps = {
   cell: StoneObject | null;
   row: Coord;
   col: Coord;
+  onMouseDownAction: () => void;
   handleMoveStoneAction: (id: StoneId, newPosition: [number, number]) => void;
   className?: string;
 };
@@ -104,6 +106,7 @@ export function Cell({
   cell,
   row,
   col,
+  onMouseDownAction,
   handleMoveStoneAction,
   className,
 }: CellProps) {
@@ -130,6 +133,7 @@ export function Cell({
     <div
       key={4 * row + col}
       ref={cellRef}
+      onMouseDown={onMouseDownAction}
       className={clsx(
         "box-border aspect-square h-auto w-full touch-none border-black",
         className,
@@ -157,22 +161,13 @@ type BoardProps = {
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
-  canPlay: boolean;
   onMove: (boardId: BoardId, direction: Direction, length: Length) => void;
-  allowedMove: { direction: Direction; length: Length } | null;
+  allowedMove: AllowedMove;
   onMessage: (message: BoardMessage) => void;
 };
 
 const Board = forwardRef((props: BoardProps, ref) => {
-  const {
-    id,
-    boardColor,
-    playerTurn,
-    canPlay,
-    onMove,
-    allowedMove,
-    onMessage,
-  } = props;
+  const { id, boardColor, playerTurn, onMove, allowedMove, onMessage } = props;
 
   const [board, setBoard] = useState<BoardType>([
     [
@@ -201,7 +196,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     ],
   ]);
 
-  // update each stone's `canMove` when playerTurn and canPlay update
+  // change which stones can move based on turn phase
   useEffect(() => {
     // @ts-expect-error typescript is the actual worst
     setBoard((prevBoard) =>
@@ -210,12 +205,19 @@ const Board = forwardRef((props: BoardProps, ref) => {
           if (cell === null) return null;
           return {
             ...cell,
-            canMove: canPlay && cell.color === playerTurn,
+            canMove:
+              cell.color === playerTurn &&
+              // @ts-expect-error ontuheonuth
+              allowedMove.wrongColor == null &&
+              // @ts-expect-error ontuheonuth
+              allowedMove.notInHomeBoard == null &&
+              // @ts-expect-error ontuheonuth
+              allowedMove.gameOver == null,
           };
         }),
       ),
     );
-  }, [playerTurn, canPlay]);
+  }, [playerTurn, allowedMove]);
 
   // detect win condition
   useEffect(() => {
@@ -460,7 +462,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
     const length = getMoveLength(oldCoords, newCoords) as Length;
 
     if (
-      allowedMove &&
+      // @ts-expect-error onuteh
+      allowedMove.direction != null &&
+      // @ts-expect-error onuteh
       (allowedMove.direction !== direction || allowedMove.length !== length)
     ) {
       onMessage(BoardMessage.MOVEUNEQUALTOPASSIVEMOVE);
@@ -496,7 +500,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
           board[newCoords[0]][newCoords[1]]))
     ) {
       // can't push if this is the passive move
-      if (allowedMove == null) {
+      // @ts-expect-error onethunoethunth
+      if (allowedMove.isPassive != null) {
         onMessage(BoardMessage.MOVEPASSIVECANTPUSH);
         return null;
       }
@@ -558,6 +563,17 @@ const Board = forwardRef((props: BoardProps, ref) => {
     onMove(id, direction, length);
   };
 
+  function showError() {
+    // @ts-expect-error onetuhonetuh
+    if (allowedMove.notInHomeBoard) {
+      onMessage(BoardMessage.MOVENOTINHOMEAREA);
+    }
+    // @ts-expect-error onetuhonetuh
+    if (allowedMove.wrongColor) {
+      onMessage(BoardMessage.MOVEWRONGCOLOR);
+    }
+  }
+
   return (
     <div
       ref={boardRef}
@@ -590,6 +606,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
               cell={cell}
               handleMoveStoneAction={handleMoveStoneAction}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
+              onMouseDownAction={showError}
             />
           );
         });

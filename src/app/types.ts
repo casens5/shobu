@@ -35,7 +35,7 @@ export type BoardType = [
 export type LastMoveType = {
   from: [Coord | null, Coord | null];
   to: [Coord | null, Coord | null];
-  isPush: boolean
+  isPush: boolean;
 };
 export type PlayerColor = "black" | "white";
 export type BoardColor = "dark" | "light";
@@ -64,6 +64,15 @@ export type MoveType = [
     length: Length;
   }?,
 ][];
+export type AllowedMove =
+  | { direction: Direction; length: Length }
+  | { isPassive: true | undefined;
+    gameOver: true | undefined;
+    notInHomeBoard: true | undefined;
+    wrongColor: true | undefined;
+    undoPassive: true | undefined;
+   };
+
 export enum BoardMessage {
   WINBLACK,
   WINWHITE,
@@ -71,8 +80,10 @@ export enum BoardMessage {
   MOVEOUTOFBOUNDS,
   MOVEKNIGHT,
   MOVESAMECOLORBLOCKING,
-  MOVETWOSTONESBLOCKING, 
+  MOVETWOSTONESBLOCKING,
   MOVEUNEQUALTOPASSIVEMOVE,
   MOVECLEARERROR,
   MOVEPASSIVECANTPUSH,
+  MOVENOTINHOMEAREA,
+  MOVEWRONGCOLOR,
 }
