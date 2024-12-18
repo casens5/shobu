@@ -467,9 +467,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
       if (isEqual(oldCoords, newCoords)) {
         clearLastMove(stoneColor!);
-        //@ts-ignore
+        // @ts-expect-error ontehuntoeh
         newBoard[newCoords[0]][newCoords[1]] = stone;
-        //@ts-ignore
+        // @ts-expect-error ontehuntoeh
         setBoard(newBoard);
         onMove({ boardId: 0, direction: 0, length: 1, undoPassive: true });
         return;
@@ -555,6 +555,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     if (stoneColor === "white") {
       setLastMoveWhite((prev) => ({
         ...prev,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         from: oldCoords,
         to: newCoords,
@@ -562,6 +563,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     } else {
       setLastMoveBlack((prev) => ({
         ...prev,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         from: oldCoords,
         to: newCoords,
