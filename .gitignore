@@ -45,3 +45,4 @@ notes.txt
 
 # python
 *.pyc
+.python-version
