@@ -1,11 +1,10 @@
 from flask import Flask, request, session, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from config import Config
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'MoriahIhaiUrazSpyttHyssopSoujiFandaPirk'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(Config)
 
 db = SQLAlchemy(app)
 
