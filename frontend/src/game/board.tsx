@@ -414,14 +414,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // get previous stone coordinates and color by its id
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    let oldCoords = null;
+    let oldCoords = null as BoardCoordinates | null;
     let stoneColor = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === stoneId) {
-          oldCoords = [colIndex, rowIndex];
+          oldCoords = [colIndex, rowIndex] as BoardCoordinates;
           stoneColor = board[colIndex][rowIndex]!.color;
           break;
         }
@@ -429,7 +427,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       if (oldCoords) break;
     }
 
-    if (!oldCoords) {
+    if (oldCoords == null) {
       console.error("could not get coordinates from stone id");
       return null;
     }
@@ -547,18 +545,16 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     // move is successful
     if (stoneColor === "white") {
+      // @ts-ignore
       setLastMoveWhite((prev) => ({
         ...prev,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         from: oldCoords,
         to: newCoords,
       }));
     } else {
+      // @ts-ignore
       setLastMoveBlack((prev) => ({
         ...prev,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         from: oldCoords,
         to: newCoords,
       }));

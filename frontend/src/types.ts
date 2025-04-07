@@ -43,8 +43,8 @@ export type BoardType = {
   allowedMove: AllowedMove;
 };
 export type LastMoveType = {
-  from: [Coord | null, Coord | null];
-  to: [Coord | null, Coord | null];
+  from: BoardCoordinates | [null, null];
+  to: BoardCoordinates | [null, null];
   isPush: boolean;
 };
 export type PlayerColor = "black" | "white";
