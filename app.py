@@ -1,10 +1,12 @@
-from flask import Flask, request, session, jsonify, render_template, redirect, url_for
+from flask import Flask, request, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS
 from config import Config
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend/dist", static_url_path='')
 app.config.from_object(Config)
+CORS(app, supports_credentials=True)
 
 db = SQLAlchemy(app)
 
@@ -20,70 +22,67 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
 with app.app_context():
     db.create_all()
 
-@app.route('/logout', methods=['POST'])
+@app.route('/api/logout', methods=['POST'])
 def logout():
     session.pop('user_id', None)
     return jsonify({'message': 'logout successful'}), 200
 
-@app.route('/status', methods=['GET'])
+@app.route('/api/status', methods=['GET'])
 def status():
-    if 'user_id' in session:
-        user = User.query.get(session['user_id'])
+    user_id = session.get('user_id')
+    if user_id:
+        user = User.query.get(user_id)
         return jsonify({'logged_in': True, 'username': user.username})
-    else:
-        return jsonify({'logged_in': False})
+    return jsonify({'logged_in': False})
 
-
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
-    if request.method == 'POST':
-        data = request.form
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
 
-        if not username or not email or not password:
-            return 'missing fields', 400
+    if not username or not email or not password:
+        return jsonify({'error': 'missing fields'}), 400
 
-        if User.query.filter((User.username == username) | (User.email == email)).first():
-            return 'user already exists', 400
+    if User.query.filter((User.username == username) | (User.email == email)).first():
+        return jsonify({'error': 'user already exists'}), 400
 
-        user = User(username=username, email=email)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('login'))
+    user = User(username=username, email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
 
-    return render_template('register.html')
+    return jsonify({'message': 'registration successful'}), 201
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        data = request.form
-        username = data.get('username')
-        password = data.get('password')
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            session['user_id'] = user.id
-            return redirect(url_for('profile_page'))
-        else:
-            return 'invalid credentials', 401
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        session['user_id'] = user.id
+        return jsonify({'message': 'login successful'})
+    return jsonify({'error': 'invalid credentials'}), 401
 
-    return render_template('login.html')
-
-@app.route('/profile')
-def profile_page():
+@app.route('/api/profile', methods=['GET'])
+def profile():
     user_id = session.get('user_id')
     if not user_id:
-        return redirect(url_for('login'))
+        return jsonify({'error': 'unauthorized'}), 401
 
     user = User.query.get(user_id)
-    return render_template('profile.html', user=user)
+    return jsonify({'username': user.username, 'email': user.email})
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def index(path):
+    return app.send_static_file('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
