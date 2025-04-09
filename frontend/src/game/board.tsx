@@ -219,20 +219,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
     );
   }, [playerTurn, allowedMove]);
 
-  // detect win condition
-  useEffect(() => {
-    if (
-      !board.some((row) => row.some((cell) => cell && cell.color === "black"))
-    ) {
-      onMessage(BoardMessage.WINWHITE);
-    }
-    if (
-      !board.some((row) => row.some((cell) => cell && cell.color === "white"))
-    ) {
-      onMessage(BoardMessage.WINBLACK);
-    }
-  }, [onMessage, board]);
-
   // record the last player's moves
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
     from: [null, null],
@@ -389,6 +375,19 @@ const Board = forwardRef((props: BoardProps, ref) => {
     return true;
   }
 
+  function checkWin() {
+    if (
+      !board.some((row) => row.some((cell) => cell && cell.color === "black"))
+    ) {
+      onMessage(BoardMessage.WINWHITE);
+    }
+    if (
+      !board.some((row) => row.some((cell) => cell && cell.color === "white"))
+    ) {
+      onMessage(BoardMessage.WINBLACK);
+    }
+  }
+
   const handleMoveStoneAction = (
     stoneId: StoneId,
     newPosition: [number, number],
@@ -543,6 +542,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
       }
     }
 
+    onMessage(BoardMessage.MOVECLEARERROR);
+    checkWin();
+
     // move is successful
     if (stoneColor === "white") {
       // @ts-ignore
@@ -566,7 +568,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
     // @ts-expect-error typescript is bad and ugly
     setBoard(newBoard);
 
-    onMessage(BoardMessage.MOVECLEARERROR);
     onMove({
       boardId: id,
       direction,
