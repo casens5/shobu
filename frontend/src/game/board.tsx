@@ -388,7 +388,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
   }
 
-  const handleStoneMove = (stoneId: StoneId, newPosition: [number, number]) => {
+  function handleStoneMove(stoneId: StoneId, newPosition: [number, number]) {
     const newCoords = [
       Math.floor(
         (4 * (newPosition[0] - boardDimensions.left)) /
@@ -411,12 +411,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     // get previous stone coordinates and color by its id
     let oldCoords = null as BoardCoordinates | null;
-    let stoneColor = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === stoneId) {
           oldCoords = [colIndex, rowIndex] as BoardCoordinates;
-          stoneColor = board[colIndex][rowIndex]!.color;
           break;
         }
       }
@@ -428,7 +426,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
     oldCoords = oldCoords as BoardCoordinates;
+    playMove(oldCoords, newCoords);
+  }
 
+  function playMove(oldCoords: BoardCoordinates, newCoords: BoardCoordinates) {
     // moved to the starting place.  de-select.
     if (isEqual(oldCoords, newCoords)) {
       onMessage(BoardMessage.MOVECLEARERROR);
@@ -437,6 +438,11 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     const newBoard = [...board];
     let stone = { ...board[oldCoords[0]][oldCoords[1]] };
+    if (stone == null) {
+      console.error("no stone exists: ${oldCoords}");
+      return null;
+    }
+    let stoneColor = board[oldCoords[0]][oldCoords[1]]!.color;
 
     // @ts-expect-error onuteh
     if (allowedMove.changePassive != null) {
@@ -572,7 +578,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       // @ts-expect-error typescript is bad and ugly
       changePassive: allowedMove.changePassive,
     });
-  };
+  }
 
   function showError() {
     // @ts-expect-error onetuhonetuh
