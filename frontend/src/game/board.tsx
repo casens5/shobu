@@ -14,7 +14,8 @@ import {
   StoneId,
   StoneObject,
   BoardMessage,
-  AllowedMove,
+  Move,
+  MoveCondition,
   BoardCoordinates,
   NewMove,
 } from "../types";
@@ -162,12 +163,21 @@ type BoardProps = {
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
   onMove: (newMove: NewMove) => void;
-  allowedMove: AllowedMove;
+  restrictedMove: Move | null;
+  moveCondition: MoveCondition;
   onMessage: (message: BoardMessage) => void;
 };
 
 const Board = forwardRef((props: BoardProps, ref) => {
-  const { id, boardColor, playerTurn, onMove, allowedMove, onMessage } = props;
+  const {
+    id,
+    boardColor,
+    playerTurn,
+    onMove,
+    restrictedMove,
+    moveCondition,
+    onMessage,
+  } = props;
 
   const [board, setBoard] = useState<GridType>([
     [
@@ -198,26 +208,23 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
   // change which stones can move based on turn phase
   useEffect(() => {
-    // @ts-expect-error typescript is the actual worst
-    setBoard((prevBoard) =>
-      prevBoard.map((row) =>
-        row.map((cell) => {
+    setBoard((prevBoard) => {
+      const newBoard = prevBoard.map((row) =>
+        row.map((cell: StoneObject | null) => {
           if (cell === null) return null;
           return {
             ...cell,
             canMove:
               cell.color === playerTurn &&
-              // @ts-expect-error ontuheonuth
-              allowedMove.wrongColor == null &&
-              // @ts-expect-error ontuheonuth
-              allowedMove.notInHomeBoard == null &&
-              // @ts-expect-error ontuheonuth
-              allowedMove.gameOver == null,
+              moveCondition != MoveCondition.WRONGCOLOR &&
+              moveCondition != MoveCondition.NOTINHOMEBOARD &&
+              moveCondition != MoveCondition.GAMEOVER,
           };
         }),
-      ),
-    );
-  }, [playerTurn, allowedMove]);
+      );
+      return newBoard as GridType;
+    });
+  }, [playerTurn, MoveCondition]);
 
   // record the last player's moves
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
@@ -406,7 +413,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       newCoords[1] < 0
     ) {
       onMessage(BoardMessage.MOVEOUTOFBOUNDS);
-      return; // exit; move is out of bounds
+      return null; // exit; move is out of bounds
     }
 
     // get previous stone coordinates and color by its id
@@ -444,8 +451,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
     let stoneColor = board[oldCoords[0]][oldCoords[1]]!.color;
 
-    // @ts-expect-error onuteh
-    if (allowedMove.changePassive != null) {
+    if (moveCondition === MoveCondition.CHANGEPASSIVE) {
       oldCoords =
         stoneColor === "white"
           ? (lastMoveWhite.from as BoardCoordinates)
@@ -474,10 +480,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
     const length = getMoveLength(oldCoords, newCoords) as Length;
 
     if (
-      // @ts-expect-error onuteh
-      allowedMove.direction != null &&
-      // @ts-expect-error onuteh
-      (allowedMove.direction !== direction || allowedMove.length !== length)
+      restrictedMove != null &&
+      (restrictedMove.direction !== direction ||
+        restrictedMove.length !== length)
     ) {
       onMessage(BoardMessage.MOVEUNEQUALTOPASSIVEMOVE);
       return null;
@@ -509,8 +514,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
           board[newCoords[0]][newCoords[1]]))
     ) {
       // can't push if this is the passive move
-      // @ts-expect-error onethunoethunth
-      if (allowedMove.isPassive != null) {
+      if (moveCondition == MoveCondition.ISPASSIVE) {
         onMessage(BoardMessage.MOVEPASSIVECANTPUSH);
         return null;
       }
@@ -575,18 +579,15 @@ const Board = forwardRef((props: BoardProps, ref) => {
       boardId: id,
       direction,
       length,
-      // @ts-expect-error typescript is bad and ugly
-      changePassive: allowedMove.changePassive,
+      changePassive: moveCondition === MoveCondition.CHANGEPASSIVE,
     });
   }
 
   function showError() {
-    // @ts-expect-error onetuhonetuh
-    if (allowedMove.notInHomeBoard) {
+    if (moveCondition === MoveCondition.NOTINHOMEBOARD) {
       onMessage(BoardMessage.MOVENOTINHOMEAREA);
     }
-    // @ts-expect-error onetuhonetuh
-    if (allowedMove.wrongColor) {
+    if (moveCondition === MoveCondition.WRONGCOLOR) {
       onMessage(BoardMessage.MOVEWRONGCOLOR);
     }
   }

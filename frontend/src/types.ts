@@ -40,7 +40,8 @@ export type BoardType = {
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
-  allowedMove: AllowedMove;
+  restrictedMove: Move | null;
+  moveCondition: MoveCondition;
 };
 export type LastMoveType = {
   from: BoardCoordinates | [null, null];
@@ -74,15 +75,15 @@ export type MoveType = [
     length: Length;
   }?,
 ][];
-export type AllowedMove =
-  | { direction: Direction; length: Length }
-  | Partial<{
-      isPassive: true;
-      gameOver: true;
-      notInHomeBoard: true;
-      wrongColor: true;
-      changePassive: true;
-    }>;
+export type Move = { direction: Direction; length: Length }
+export enum MoveCondition {
+  ISACTIVE,
+  ISPASSIVE,
+  GAMEOVER,
+  NOTINHOMEBOARD,
+  WRONGCOLOR,
+  CHANGEPASSIVE,
+}
 export type NewMove = {
   boardId: BoardId;
   direction: Direction;

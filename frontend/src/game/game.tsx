@@ -1,7 +1,13 @@
 import clsx from "clsx";
 import Board from "./board";
 import { useState, useRef, ReactNode } from "react";
-import { MoveType, PlayerColor, BoardMessage, NewMove } from "../types";
+import {
+  MoveType,
+  PlayerColor,
+  BoardMessage,
+  NewMove,
+  MoveCondition,
+} from "../types";
 
 export interface BoardRef {
   clearLastMove: (playerColor: "white" | "black") => void;
@@ -87,7 +93,7 @@ export default function Game() {
       boardColor: "dark",
       playerTurn: playerTurn,
       playerHome: "black",
-      allowedMove: { isPassive: true },
+      moveCondition: MoveCondition.ISPASSIVE,
     },
     {
       id: 1,
@@ -95,7 +101,7 @@ export default function Game() {
       boardColor: "light",
       playerTurn: playerTurn,
       playerHome: "black",
-      allowedMove: { isPassive: true },
+      moveCondition: MoveCondition.ISPASSIVE,
     },
     {
       id: 2,
@@ -103,9 +109,7 @@ export default function Game() {
       boardColor: "light",
       playerTurn: playerTurn,
       playerHome: "white",
-      allowedMove: {
-        notInHomeBoard: true,
-      },
+      moveCondition: MoveCondition.NOTINHOMEBOARD,
     },
     {
       id: 3,
@@ -113,9 +117,7 @@ export default function Game() {
       boardColor: "dark",
       playerTurn: playerTurn,
       playerHome: "white",
-      allowedMove: {
-        notInHomeBoard: true,
-      },
+      moveCondition: MoveCondition.NOTINHOMEBOARD,
     },
   ]);
 
@@ -150,10 +152,9 @@ export default function Game() {
 
   function handlePlayerWin(playerColor: PlayerColor) {
     setBoards(
-      // @ts-expect-error onetuh
       boards.map((board) => ({
         ...board,
-        allowedMove: { gameOver: true },
+        moveCondition: MoveCondition.GAMEOVER,
       })),
     );
     setPlayerWin(playerColor);
@@ -168,13 +169,12 @@ export default function Game() {
       });
 
       setBoards(
-        // @ts-expect-error onetuh
         boards.map((board) => ({
           ...board,
-          allowedMove:
+          MoveCondition:
             board.playerHome !== playerTurn
-              ? { notInHomeBoard: true }
-              : { isPassive: true },
+              ? MoveCondition.NOTINHOMEBOARD
+              : MoveCondition.ISPASSIVE,
         })),
       );
 
@@ -192,22 +192,22 @@ export default function Game() {
     if (moves.length === 0 || moves[moves.length - 1].length === 3) {
       const color = boards[newMove.boardId].boardColor;
       setBoards(
-        // @ts-expect-error onetuh
         boards.map((board) => {
           if (board.id === newMove.boardId) {
             return {
               ...board,
-              allowedMove: { changePassive: true },
+              moveCondition: MoveCondition.CHANGEPASSIVE,
             };
           } else if (board.boardColor === color) {
             return {
               ...board,
-              allowedMove: { wrongColor: true },
+              moveCondition: MoveCondition.WRONGCOLOR,
             };
           } else {
             return {
               ...board,
-              allowedMove: {
+              moveCondition: MoveCondition.ISACTIVE,
+              restrictedMove: {
                 direction: newMove.direction,
                 length: newMove.length,
               },
@@ -229,14 +229,13 @@ export default function Game() {
       setPlayerTurn((prev) => {
         const color = prev === "white" ? "black" : "white";
         setBoards(
-          // @ts-expect-error onetuh
           boards.map((board) => ({
             ...board,
             playerTurn: color,
-            allowedMove:
+            moveCondition:
               board.playerHome !== color
-                ? { notInHomeBoard: true }
-                : { isPassive: true },
+                ? MoveCondition.NOTINHOMEBOARD
+                : MoveCondition.ISPASSIVE,
           })),
         );
         clearMoves(color);
