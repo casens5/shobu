@@ -98,7 +98,7 @@ type CellProps = {
   row: Coord;
   col: Coord;
   onMouseDownAction: () => void;
-  handleMoveStoneAction: (id: StoneId, newPosition: [number, number]) => void;
+  handleStoneMove: (id: StoneId, newPosition: [number, number]) => void;
   className?: string;
 };
 
@@ -107,7 +107,7 @@ function Cell({
   row,
   col,
   onMouseDownAction,
-  handleMoveStoneAction,
+  handleStoneMove,
   className,
 }: CellProps) {
   const cellRef = useRef<HTMLDivElement>(null);
@@ -149,7 +149,7 @@ function Cell({
           color={cell.color}
           canMove={cell.canMove}
           containerWidth={containerWidth}
-          handleMoveStoneAction={handleMoveStoneAction}
+          handleStoneMove={handleStoneMove}
         />
       )}
     </div>
@@ -388,10 +388,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
   }
 
-  const handleMoveStoneAction = (
-    stoneId: StoneId,
-    newPosition: [number, number],
-  ) => {
+  const handleStoneMove = (stoneId: StoneId, newPosition: [number, number]) => {
     const newCoords = [
       Math.floor(
         (4 * (newPosition[0] - boardDimensions.left)) /
@@ -618,7 +615,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
               row={rowIndex}
               col={colIndex}
               cell={cell}
-              handleMoveStoneAction={handleMoveStoneAction}
+              handleStoneMove={handleStoneMove}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
               onMouseDownAction={showError}
             />
