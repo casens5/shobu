@@ -294,27 +294,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
     right: 0,
   });
 
-  function updateBoardDimensions() {
-    if (boardRef.current) {
-      const rect = boardRef.current.getBoundingClientRect();
-      setBoardDimensions({
-        top: rect.top,
-        bottom: rect.bottom,
-        left: rect.left,
-        right: rect.right,
-      });
-    }
-  }
-
-  useEffect(() => {
-    updateBoardDimensions();
-    window.addEventListener("resize", updateBoardDimensions);
-
-    return () => {
-      window.removeEventListener("resize", updateBoardDimensions);
-    };
-  }, []);
-
   function isMoveLegal(
     oldCoords: BoardCoordinates,
     betweenCoords: BoardCoordinates | null,
@@ -589,6 +568,27 @@ const Board = forwardRef((props: BoardProps, ref) => {
       onMessage(BoardMessage.MOVEWRONGCOLOR);
     }
   }
+
+  function updateBoardDimensions() {
+    if (boardRef.current) {
+      const rect = boardRef.current.getBoundingClientRect();
+      setBoardDimensions({
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+      });
+    }
+  }
+
+  useEffect(() => {
+    updateBoardDimensions();
+    window.addEventListener("resize", updateBoardDimensions);
+
+    return () => {
+      window.removeEventListener("resize", updateBoardDimensions);
+    };
+  }, []);
 
   return (
     <div
