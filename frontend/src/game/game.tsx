@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Board from "./board";
 import { useState, useRef, ReactNode } from "react";
 import {
-  MoveType,
+  MoveRecord,
   PlayerColor,
   BoardMessage,
   NewMove,
@@ -93,6 +93,7 @@ export default function Game() {
       boardColor: "dark",
       playerTurn: playerTurn,
       playerHome: "black",
+      restrictedMove: null,
       moveCondition: MoveCondition.ISPASSIVE,
     },
     {
@@ -101,6 +102,7 @@ export default function Game() {
       boardColor: "light",
       playerTurn: playerTurn,
       playerHome: "black",
+      restrictedMove: null,
       moveCondition: MoveCondition.ISPASSIVE,
     },
     {
@@ -109,6 +111,7 @@ export default function Game() {
       boardColor: "light",
       playerTurn: playerTurn,
       playerHome: "white",
+      restrictedMove: null,
       moveCondition: MoveCondition.NOTINHOMEBOARD,
     },
     {
@@ -117,11 +120,12 @@ export default function Game() {
       boardColor: "dark",
       playerTurn: playerTurn,
       playerHome: "white",
+      restrictedMove: null,
       moveCondition: MoveCondition.NOTINHOMEBOARD,
     },
   ]);
 
-  const [moves, setMoves] = useState<MoveType>([]);
+  const [moves, setMoves] = useState<MoveRecord[]>([]);
   const [playerWin, setPlayerWin] = useState<PlayerColor | undefined>();
   const [boardMessage, setBoardMessage] = useState<BoardMessage | undefined>();
 
@@ -172,9 +176,9 @@ export default function Game() {
         boards.map((board) => ({
           ...board,
           MoveCondition:
-            board.playerHome !== playerTurn
-              ? MoveCondition.NOTINHOMEBOARD
-              : MoveCondition.ISPASSIVE,
+            board.playerHome === playerTurn
+              ? MoveCondition.ISPASSIVE
+              : MoveCondition.NOTINHOMEBOARD,
         })),
       );
 
@@ -183,44 +187,48 @@ export default function Game() {
 
     if (newMove.changePassive) {
       setMoves((prev) => {
-        return [...prev.slice(0, prev.length - 1), [playerTurn, newMove]];
+        return [
+          ...prev.slice(0, prev.length - 1),
+          { playerColor: playerTurn, firstMove: newMove },
+        ];
       });
       return;
     }
 
     // passive move
-    if (moves.length === 0 || moves[moves.length - 1].length === 3) {
+    if (moves.length === 0 || moves[moves.length - 1].secondMove != null) {
       const color = boards[newMove.boardId].boardColor;
       setBoards(
+        //@ts-expect-error notehunothe
         boards.map((board) => {
           if (board.id === newMove.boardId) {
             return {
               ...board,
+              restrictedMove: null,
               moveCondition: MoveCondition.CHANGEPASSIVE,
             };
           } else if (board.boardColor === color) {
             return {
               ...board,
+              restrictedMove: null,
               moveCondition: MoveCondition.WRONGCOLOR,
             };
           } else {
             return {
               ...board,
-              moveCondition: MoveCondition.ISACTIVE,
               restrictedMove: {
                 direction: newMove.direction,
                 length: newMove.length,
               },
+              moveCondition: MoveCondition.ISACTIVE,
             };
           }
         }),
       );
       setMoves((prev) => {
-        if (prev.length === 0) {
-          return [[playerTurn, newMove]];
-        } else {
-          return [...prev, [playerTurn, newMove]];
-        }
+        const copy = prev.slice();
+        copy.push({ playerColor: playerTurn, firstMove: newMove });
+        return copy;
       });
     } else {
       // active move, switch players
@@ -232,21 +240,19 @@ export default function Game() {
           boards.map((board) => ({
             ...board,
             playerTurn: color,
+            restrictedMove: null,
             moveCondition:
-              board.playerHome !== color
-                ? MoveCondition.NOTINHOMEBOARD
-                : MoveCondition.ISPASSIVE,
+              board.playerHome === color
+                ? MoveCondition.ISPASSIVE
+                : MoveCondition.NOTINHOMEBOARD,
           })),
         );
         clearMoves(color);
         return color;
       });
-      // @ts-expect-error why would typescript complain? this code is awesome
       setMoves((prev) => {
-        return [
-          ...prev.slice(0, prev.length - 1),
-          [...prev[prev.length - 1], newMove],
-        ];
+        prev[prev.length - 1].secondMove = newMove;
+        return prev;
       });
     }
   }

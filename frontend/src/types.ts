@@ -62,20 +62,20 @@ export enum Direction {
   NW,
 }
 export type Length = 1 | 2;
-export type MoveType = [
-  PlayerColor,
-  {
+export type MoveRecord = {
+  playerColor: PlayerColor;
+  firstMove: {
     boardId: BoardId;
     direction: Direction;
     length: Length;
-  },
-  {
+  };
+  secondMove?: {
     boardId: BoardId;
     direction: Direction;
     length: Length;
-  }?,
-][];
-export type Move = { direction: Direction; length: Length }
+  };
+};
+export type Move = { direction: Direction; length: Length };
 export enum MoveCondition {
   ISACTIVE,
   ISPASSIVE,
