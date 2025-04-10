@@ -209,7 +209,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
   // change which stones can move based on turn phase
   useEffect(() => {
     setBoard((prevBoard) => {
-      const newBoard = prevBoard.map((row) =>
+      return prevBoard.map((row) =>
         row.map((cell: StoneObject | null) => {
           if (cell === null) return null;
           return {
@@ -221,10 +221,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
               moveCondition != MoveCondition.GAMEOVER,
           };
         }),
-      );
-      return newBoard as GridType;
+      ) as GridType;
     });
-  }, [playerTurn, MoveCondition]);
+  }, [playerTurn, moveCondition]);
 
   // record the last player's moves
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
