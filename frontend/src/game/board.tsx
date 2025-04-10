@@ -417,7 +417,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // get previous stone coordinates and color by its id
-    let oldCoords = null as BoardCoordinates | null;
+    let oldCoords = null;
     for (let colIndex = 0; colIndex < board.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < board[colIndex].length; rowIndex++) {
         if (board[colIndex][rowIndex]?.id === stoneId) {
@@ -442,6 +442,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       onMessage(BoardMessage.MOVECLEARERROR);
       return null;
     }
+    onMessage(BoardMessage.MOVECLEARERROR);
 
     const newBoard = [...board];
     let stone = { ...board[oldCoords[0]][oldCoords[1]] };
@@ -449,16 +450,15 @@ const Board = forwardRef((props: BoardProps, ref) => {
       console.error("no stone exists: ${oldCoords}");
       return null;
     }
-    let stoneColor = board[oldCoords[0]][oldCoords[1]]!.color;
 
     if (moveCondition === MoveCondition.CHANGEPASSIVE) {
       oldCoords =
-        stoneColor === "white"
+        stone.color === "white"
           ? (lastMoveWhite.from as BoardCoordinates)
           : (lastMoveBlack.from as BoardCoordinates);
 
       const deleteCoords =
-        stoneColor === "white"
+        stone.color === "white"
           ? (lastMoveWhite.to as BoardCoordinates)
           : (lastMoveBlack.to as BoardCoordinates);
 
@@ -466,7 +466,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       newBoard[deleteCoords[0]][deleteCoords[1]] = null;
 
       if (isEqual(oldCoords, newCoords)) {
-        clearLastMove(stoneColor!);
+        clearLastMove(stone.color!);
         // @ts-expect-error ontehuntoeh
         newBoard[newCoords[0]][newCoords[1]] = stone;
         // @ts-expect-error ontehuntoeh
@@ -536,7 +536,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
 
-      if (stoneColor === "white") {
+      if (stone.color === "white") {
         setLastMoveWhite((prev) => ({
           ...prev,
           isPush: true,
@@ -549,11 +549,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
       }
     }
 
-    onMessage(BoardMessage.MOVECLEARERROR);
     checkWin();
 
     // move is successful
-    if (stoneColor === "white") {
+    if (stone.color === "white") {
       // @ts-ignore
       setLastMoveWhite((prev) => ({
         ...prev,

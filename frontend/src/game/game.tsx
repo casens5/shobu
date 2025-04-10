@@ -261,7 +261,9 @@ export default function Game() {
       {boardMessage ? (
         <ErrorMessage message={boardMessage} />
       ) : (
-        <div className="h-[44px]" />
+        <div className="h-[44px]">
+          {/* empty space so that the appearance/hiding of error message doesn't jostle */}
+        </div>
       )}
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <HomeArea color="black">
