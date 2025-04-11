@@ -296,12 +296,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
   function isMoveLegal(
     oldCoords: BoardCoordinates,
-    betweenCoords: BoardCoordinates | null,
     newCoords: BoardCoordinates,
-    nextCoords: BoardCoordinates | null,
     length: number,
+    betweenCoords?: BoardCoordinates,
+    nextCoords?: BoardCoordinates,
   ): boolean {
-    // can't move 3 spaces, or 0 or negative spaces
+    // move must be 1 or 2 spaces long
     if (length < 1 || length > 2) {
       onMessage(BoardMessage.MOVETOOLONG);
       return false;
@@ -410,10 +410,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
       console.error("could not get coordinates from stone id");
       return null;
     }
-    oldCoords = oldCoords as BoardCoordinates;
-    playMove(oldCoords, newCoords);
+    playMove(oldCoords as BoardCoordinates, newCoords);
   }
 
+  // should pass stoneId too maybe?
   function playMove(oldCoords: BoardCoordinates, newCoords: BoardCoordinates) {
     // moved to the starting place.  de-select.
     if (isEqual(oldCoords, newCoords)) {
@@ -428,6 +428,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       console.error("no stone exists: ${oldCoords}");
       return null;
     }
+    stone = stone as StoneObject;
 
     if (moveCondition === MoveCondition.CHANGEPASSIVE) {
       oldCoords =
@@ -472,15 +473,15 @@ const Board = forwardRef((props: BoardProps, ref) => {
             oldCoords[0] + (newCoords[0] - oldCoords[0]) / 2,
             oldCoords[1] + (newCoords[1] - oldCoords[1]) / 2,
           ] as [Coord, Coord])
-        : null;
+        : undefined;
     const nextX = newCoords[0] + (newCoords[0] - oldCoords[0]) / length;
     const nextY = newCoords[1] + (newCoords[1] - oldCoords[1]) / length;
     const nextCoords =
       nextX >= 0 && nextX <= 3 && nextY >= 0 && nextY <= 3
         ? ([nextX, nextY] as [Coord, Coord])
-        : null;
+        : undefined;
 
-    if (!isMoveLegal(oldCoords, betweenCoords, newCoords, nextCoords, length)) {
+    if (!isMoveLegal(oldCoords, newCoords, length, betweenCoords, nextCoords)) {
       return null;
     }
 
