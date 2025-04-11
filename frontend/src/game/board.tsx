@@ -478,6 +478,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // check if we're pushing an opponent's stone
+    let isPush = false;
     if (
       (length === 1 && board[newCoords[0]][newCoords[1]]) ||
       (length === 2 &&
@@ -507,9 +508,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
 
-      // @ts-ignore
-      checkWin(newBoard);
-
       if (stone.color === "white") {
         setLastMoveWhite((prev) => ({
           ...prev,
@@ -521,6 +519,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
           isPush: true,
         }));
       }
+      isPush = true;
     }
 
     // move is successful
@@ -543,6 +542,10 @@ const Board = forwardRef((props: BoardProps, ref) => {
     newBoard[oldCoords[0]][oldCoords[1]] = null;
     newBoard[newCoords[0]][newCoords[1]] = stone;
     setBoard(newBoard);
+
+    if (isPush) {
+      checkWin(newBoard);
+    }
 
     onMove({
       boardId: id,
