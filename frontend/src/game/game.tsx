@@ -51,6 +51,7 @@ function ErrorMessage({ message }: ErrorMessageProps) {
         "your first move must be passive (in your home area)"}
       {message === BoardMessage.MOVEWRONGCOLOR &&
         "you must play on a opposite color board from your first move"}
+      {message === BoardMessage.MOVECLEARERROR && ""}
     </div>
   );
 }
@@ -125,7 +126,9 @@ export default function Game() {
 
   const [moves, setMoves] = useState<MoveRecord[]>([]);
   const [playerWin, setPlayerWin] = useState<PlayerColor | undefined>();
-  const [boardMessage, setBoardMessage] = useState<BoardMessage | undefined>();
+  const [boardMessage, setBoardMessage] = useState<BoardMessage>(
+    BoardMessage.MOVECLEARERROR,
+  );
 
   function clearMoves(playerColor: PlayerColor) {
     boardRefs.forEach((ref) => {
@@ -142,9 +145,6 @@ export default function Game() {
         return;
       case BoardMessage.WINWHITE:
         handlePlayerWin("white");
-        return;
-      case BoardMessage.MOVECLEARERROR:
-        setBoardMessage(undefined);
         return;
       default:
         setBoardMessage(message);
@@ -258,13 +258,9 @@ export default function Game() {
       ) : (
         <TurnIndicator playerTurn={playerTurn} />
       )}
-      {boardMessage ? (
+      <div className="h-[44px]">
         <ErrorMessage message={boardMessage} />
-      ) : (
-        <div className="h-[44px]">
-          {/* empty space so that the appearance/hiding of error message doesn't jostle */}
-        </div>
-      )}
+      </div>
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <HomeArea color="black">
           <Board {...boards[0]} onMove={handleMove} onMessage={handleMessage} />
