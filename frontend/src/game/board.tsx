@@ -37,7 +37,7 @@ function getMoveLength(
   );
 }
 
-function getDirection(
+function getMoveDirection(
   oldCoords: BoardCoordinates,
   newCoords: BoardCoordinates,
 ): Direction {
@@ -447,7 +447,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
-    const direction = getDirection(oldCoords, newCoords);
+    const direction = getMoveDirection(oldCoords, newCoords);
     const length = getMoveLength(oldCoords, newCoords) as Length;
 
     if (
