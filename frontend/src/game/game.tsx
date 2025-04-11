@@ -165,8 +165,12 @@ export default function Game() {
   }
 
   function handleMove(newMove: NewMove) {
-    // there are 2 cases.  one is where you change the passive move to another passive move on that board, and one where you undo the passive move so that you can make a passive move on the other board!
-    if (newMove.undoPassive) {
+    // undo the passive move
+    if (
+      moves.length > 0 &&
+      newMove.stoneId == null &&
+      moves[moves.length - 1].firstMove.boardId === newMove.boardId
+    ) {
       setMoves((prev) => {
         prev.pop();
         return prev;
@@ -175,6 +179,7 @@ export default function Game() {
       setBoards(
         boards.map((board) => ({
           ...board,
+          restrictedMove: null,
           MoveCondition:
             board.playerHome === playerTurn
               ? MoveCondition.ISPASSIVE
@@ -182,17 +187,7 @@ export default function Game() {
         })),
       );
 
-      return;
-    }
-
-    if (newMove.changePassive) {
-      setMoves((prev) => {
-        return [
-          ...prev.slice(0, prev.length - 1),
-          { playerColor: playerTurn, firstMove: newMove },
-        ];
-      });
-      return;
+      return null;
     }
 
     // passive move
@@ -227,6 +222,7 @@ export default function Game() {
       );
       setMoves((prev) => {
         const copy = prev.slice();
+        // @ts-ignore
         copy.push({ playerColor: playerTurn, firstMove: newMove });
         return copy;
       });
@@ -251,6 +247,7 @@ export default function Game() {
         return color;
       });
       setMoves((prev) => {
+        // @ts-ignore
         prev[prev.length - 1].secondMove = newMove;
         return prev;
       });

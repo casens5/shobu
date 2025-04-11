@@ -360,7 +360,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     return true;
   }
 
-  function checkWin() {
+  function checkWin(board: GridType) {
     if (
       !board.some((row) => row.some((cell) => cell && cell.color === "black"))
     ) {
@@ -415,44 +415,38 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
   // should pass stoneId too maybe?
   function playMove(oldCoords: BoardCoordinates, newCoords: BoardCoordinates) {
-    // moved to the starting place.  de-select.
-    if (isEqual(oldCoords, newCoords)) {
-      onMessage(BoardMessage.MOVECLEARERROR);
-      return null;
-    }
     onMessage(BoardMessage.MOVECLEARERROR);
 
-    const newBoard = [...board];
-    let stone = { ...board[oldCoords[0]][oldCoords[1]] };
+    const newBoard = board.map((row) => [...row]) as GridType;
+    let stone = { ...newBoard[oldCoords[0]][oldCoords[1]] };
     if (stone == null) {
       console.error("no stone exists: ${oldCoords}");
       return null;
     }
     stone = stone as StoneObject;
 
-    if (moveCondition === MoveCondition.CHANGEPASSIVE) {
-      oldCoords =
-        stone.color === "white"
-          ? (lastMoveWhite.from as BoardCoordinates)
-          : (lastMoveBlack.from as BoardCoordinates);
-
-      const deleteCoords =
-        stone.color === "white"
-          ? (lastMoveWhite.to as BoardCoordinates)
-          : (lastMoveBlack.to as BoardCoordinates);
-
-      stone = { ...board[deleteCoords[0]][deleteCoords[1]] };
-      newBoard[deleteCoords[0]][deleteCoords[1]] = null;
-
-      if (isEqual(oldCoords, newCoords)) {
-        clearLastMove(stone.color!);
-        // @ts-expect-error ontehuntoeh
-        newBoard[newCoords[0]][newCoords[1]] = stone;
-        // @ts-expect-error ontehuntoeh
-        setBoard(newBoard);
-        onMove({ boardId: 0, direction: 0, length: 1, undoPassive: true });
-        return;
-      }
+    // moved to the starting place.  de-select.
+    if (
+      (moveCondition === MoveCondition.CHANGEPASSIVE &&
+        stone.color === "black" &&
+        isEqual(lastMoveBlack.from, newCoords) &&
+        isEqual(lastMoveBlack.to, oldCoords)) ||
+      (stone.color === "white" &&
+        isEqual(lastMoveWhite.from, newCoords) &&
+        isEqual(lastMoveWhite.to, oldCoords))
+    ) {
+      newBoard[oldCoords[0]][oldCoords[1]] = null;
+      // @ts-expect-error ontehuntoeh
+      newBoard[newCoords[0]][newCoords[1]] = stone;
+      clearLastMove(stone.color);
+      setBoard(newBoard);
+      onMove({
+        boardId: id,
+        direction: null,
+        length: null,
+        stoneId: null,
+      });
+      return null;
     }
 
     const direction = getDirection(oldCoords, newCoords);
@@ -515,6 +509,9 @@ const Board = forwardRef((props: BoardProps, ref) => {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
 
+      // @ts-ignore
+      checkWin(newBoard);
+
       if (stone.color === "white") {
         setLastMoveWhite((prev) => ({
           ...prev,
@@ -527,8 +524,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
         }));
       }
     }
-
-    checkWin();
 
     // move is successful
     if (stone.color === "white") {
@@ -550,14 +545,15 @@ const Board = forwardRef((props: BoardProps, ref) => {
     newBoard[oldCoords[0]][oldCoords[1]] = null;
     // @ts-expect-error typescript is bad and ugly
     newBoard[newCoords[0]][newCoords[1]] = stone;
-    // @ts-expect-error typescript is bad and ugly
     setBoard(newBoard);
 
     onMove({
       boardId: id,
-      direction,
-      length,
-      changePassive: moveCondition === MoveCondition.CHANGEPASSIVE,
+      direction: direction,
+      length: length,
+      // ???
+      // @ts-expect-error typescript is bad and ugly
+      stoneId: stone.id,
     });
   }
 

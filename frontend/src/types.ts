@@ -68,11 +68,13 @@ export type MoveRecord = {
     boardId: BoardId;
     direction: Direction;
     length: Length;
+    stoneId: StoneId;
   };
   secondMove?: {
     boardId: BoardId;
     direction: Direction;
     length: Length;
+    stoneId: StoneId;
   };
 };
 export type Move = { direction: Direction; length: Length };
@@ -86,10 +88,9 @@ export enum MoveCondition {
 }
 export type NewMove = {
   boardId: BoardId;
-  direction: Direction;
-  length: Length;
-  changePassive?: boolean;
-  undoPassive?: boolean;
+  direction: Direction | null;
+  length: Length | null;
+  stoneId: StoneId | null;
 };
 
 export enum BoardMessage {
