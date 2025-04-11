@@ -14,7 +14,7 @@ import {
   StoneId,
   StoneObject,
   BoardMessage,
-  Move,
+  MoveType,
   MoveCondition,
   BoardCoordinates,
   NewMove,
@@ -163,7 +163,7 @@ type BoardProps = {
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
   onMove: (newMove: NewMove) => void;
-  restrictedMove: Move | null;
+  restrictedMove: MoveType | null;
   moveCondition: MoveCondition;
   onMessage: (message: BoardMessage) => void;
 };
@@ -524,14 +524,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     // move is successful
     if (stone.color === "white") {
-      // @ts-ignore
       setLastMoveWhite((prev) => ({
         ...prev,
         from: oldCoords,
         to: newCoords,
       }));
     } else {
-      // @ts-ignore
       setLastMoveBlack((prev) => ({
         ...prev,
         from: oldCoords,
@@ -596,24 +594,25 @@ const Board = forwardRef((props: BoardProps, ref) => {
         },
       )}
     >
-      {/* @ts-expect-error typescript is bad and ugly */}
-      {board.map((col, colIndex: Coord) => {
+      {board.map((col, colIndex) => {
         // the padding is a weird hack that fixes the spacing for the top
         // right corner of the board
         const rightBorder =
           colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
-        // @ts-expect-error onetuhnoethunht
-        return col.map((cell, rowIndex: Coord) => {
+        return col.map((cell, rowIndex) => {
           const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
-          const moveColor = getMoveColor(rowIndex, colIndex);
-          const cornerBorder = getCornerBorder(rowIndex, colIndex);
+          const moveColor = getMoveColor(rowIndex as Coord, colIndex as Coord);
+          const cornerBorder = getCornerBorder(
+            rowIndex as Coord,
+            colIndex as Coord,
+          );
 
           return (
             <Cell
               key={4 * rowIndex + colIndex}
-              row={rowIndex}
-              col={colIndex}
+              row={rowIndex as Coord}
+              col={colIndex as Coord}
               cell={cell}
               handleStoneMove={handleStoneMove}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}

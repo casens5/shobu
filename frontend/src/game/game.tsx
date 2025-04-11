@@ -3,15 +3,13 @@ import Board from "./board";
 import { useState, useRef, ReactNode } from "react";
 import {
   MoveRecord,
+  BoardRef,
   PlayerColor,
   BoardMessage,
+  BoardType,
   NewMove,
   MoveCondition,
 } from "../types";
-
-export interface BoardRef {
-  clearLastMove: (playerColor: "white" | "black") => void;
-}
 
 type TurnIndicatorProps = {
   playerTurn: PlayerColor;
@@ -86,7 +84,7 @@ export default function Game() {
     useRef<BoardRef | null>(null),
     useRef<BoardRef | null>(null),
   ];
-  const [boards, setBoards] = useState([
+  const [boards, setBoards] = useState<BoardType[]>([
     {
       id: 0,
       ref: boardRefs[0],
@@ -194,7 +192,6 @@ export default function Game() {
     if (moves.length === 0 || moves[moves.length - 1].secondMove != null) {
       const color = boards[newMove.boardId].boardColor;
       setBoards(
-        //@ts-expect-error notehunothe
         boards.map((board) => {
           if (board.id === newMove.boardId) {
             return {
@@ -212,8 +209,8 @@ export default function Game() {
             return {
               ...board,
               restrictedMove: {
-                direction: newMove.direction,
-                length: newMove.length,
+                direction: newMove.direction!,
+                length: newMove.length!,
               },
               moveCondition: MoveCondition.ISACTIVE,
             };
@@ -222,7 +219,7 @@ export default function Game() {
       );
       setMoves((prev) => {
         const copy = prev.slice();
-        // @ts-ignore
+        //@ts-expect-error baba
         copy.push({ playerColor: playerTurn, firstMove: newMove });
         return copy;
       });
@@ -247,7 +244,7 @@ export default function Game() {
         return color;
       });
       setMoves((prev) => {
-        // @ts-ignore
+        // @ts-expect-error baba
         prev[prev.length - 1].secondMove = newMove;
         return prev;
       });
@@ -270,15 +267,11 @@ export default function Game() {
       )}
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <HomeArea color="black">
-          {/* @ts-expect-error onetunheot */}
           <Board {...boards[0]} onMove={handleMove} onMessage={handleMessage} />
-          {/* @ts-expect-error onetunheot */}
           <Board {...boards[1]} onMove={handleMove} onMessage={handleMessage} />
         </HomeArea>
         <HomeArea color="white">
-          {/* @ts-expect-error onetunheot */}
           <Board {...boards[2]} onMove={handleMove} onMessage={handleMessage} />
-          {/* @ts-expect-error onetunheot */}
           <Board {...boards[3]} onMove={handleMove} onMessage={handleMessage} />
         </HomeArea>
       </div>

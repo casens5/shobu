@@ -1,4 +1,4 @@
-import { BoardRef } from "./game/game";
+import { RefObject } from "react";
 
 export type BoardCoordinates = [Coord, Coord];
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -36,13 +36,16 @@ export type GridType = [
 ];
 export type BoardType = {
   id: BoardId;
-  ref: BoardRef;
+  ref: RefObject<BoardRef | null>;
   boardColor: BoardColor;
   playerTurn: PlayerColor;
   playerHome: PlayerColor;
-  restrictedMove: Move | null;
+  restrictedMove: MoveType | null;
   moveCondition: MoveCondition;
 };
+export interface BoardRef {
+  clearLastMove: (playerColor: "white" | "black") => void;
+}
 export type LastMoveType = {
   from: BoardCoordinates | [null, null];
   to: BoardCoordinates | [null, null];
@@ -77,7 +80,7 @@ export type MoveRecord = {
     stoneId: StoneId;
   };
 };
-export type Move = { direction: Direction; length: Length };
+export type MoveType = { direction: Direction; length: Length };
 export enum MoveCondition {
   ISACTIVE,
   ISPASSIVE,
