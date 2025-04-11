@@ -418,12 +418,11 @@ const Board = forwardRef((props: BoardProps, ref) => {
     onMessage(BoardMessage.MOVECLEARERROR);
 
     const newBoard = board.map((row) => [...row]) as GridType;
-    let stone = { ...newBoard[oldCoords[0]][oldCoords[1]] };
+    let stone = newBoard[oldCoords[0]][oldCoords[1]];
     if (stone == null) {
       console.error("no stone exists: ${oldCoords}");
       return null;
     }
-    stone = stone as StoneObject;
 
     // moved to the starting place.  de-select.
     if (
@@ -436,7 +435,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
         isEqual(lastMoveWhite.to, oldCoords))
     ) {
       newBoard[oldCoords[0]][oldCoords[1]] = null;
-      // @ts-expect-error ontehuntoeh
       newBoard[newCoords[0]][newCoords[1]] = stone;
       clearLastMove(stone.color);
       setBoard(newBoard);
@@ -543,7 +541,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     newBoard[oldCoords[0]][oldCoords[1]] = null;
-    // @ts-expect-error typescript is bad and ugly
     newBoard[newCoords[0]][newCoords[1]] = stone;
     setBoard(newBoard);
 
@@ -551,8 +548,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
       boardId: id,
       direction: direction,
       length: length,
-      // ???
-      // @ts-expect-error typescript is bad and ugly
       stoneId: stone.id,
     });
   }
