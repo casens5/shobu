@@ -3,8 +3,6 @@ import "./stone.css";
 import React, {
   MouseEventHandler,
   TouchEventHandler,
-  MouseEvent,
-  TouchEvent,
   useState,
   useEffect,
   useCallback,
@@ -26,32 +24,34 @@ export default function Stone({
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState([0, 0]);
 
-  const getEventPosition = (e: MouseEvent | TouchEvent): [number, number] => {
+  function getEventPosition(
+    e: globalThis.MouseEvent | globalThis.TouchEvent,
+  ): [number, number] {
     if ("touches" in e) {
       const touch = e.touches[0];
       return [touch.clientX, touch.clientY];
     } else {
       return [e.clientX, e.clientY];
     }
-  };
+  }
 
-  const handleStart = (
-    e: MouseEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>,
-  ) => {
-    if ("button" in e && e.button !== 0) return;
-    if (!canMove) return;
+  function handleStart(
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+  ) {
+    if ("button" in e && e.button !== 0) return null;
+    if (!canMove) return null;
 
     e.preventDefault();
     setIsDragging(true);
-    const position = getEventPosition(e);
+    const position = getEventPosition(e.nativeEvent);
     setPosition([
       position[0] - containerWidth / 2,
       position[1] - containerWidth / 2,
     ]);
-  };
+  }
 
   const handleEnd = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
+    (e: globalThis.MouseEvent | globalThis.TouchEvent) => {
       e.preventDefault();
       setIsDragging(false);
       handleStoneMove(id, getEventPosition(e));
@@ -60,7 +60,7 @@ export default function Stone({
   );
 
   const handleMove = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
+    (e: globalThis.MouseEvent | globalThis.TouchEvent) => {
       if (!isDragging) return;
       e.preventDefault();
       const position = getEventPosition(e);
@@ -74,24 +74,16 @@ export default function Stone({
 
   useEffect(() => {
     if (isDragging) {
-      // @ts-expect-error anoetuhn
       window.addEventListener("mousemove", handleMove);
-      // @ts-expect-error anoetuhn
       window.addEventListener("mouseup", handleEnd);
-      // @ts-expect-error anoetuhn
       window.addEventListener("touchmove", handleMove);
-      // @ts-expect-error anoetuhn
       window.addEventListener("touchend", handleEnd);
     }
 
     return () => {
-      // @ts-expect-error anoetuhn
       window.removeEventListener("mousemove", handleMove);
-      // @ts-expect-error anoetuhn
       window.removeEventListener("mouseup", handleEnd);
-      // @ts-expect-error anoetuhn
       window.removeEventListener("touchmove", handleMove);
-      // @ts-expect-error anoetuhn
       window.removeEventListener("touchend", handleEnd);
     };
   }, [isDragging, handleMove, handleEnd]);
