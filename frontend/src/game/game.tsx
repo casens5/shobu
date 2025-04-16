@@ -166,7 +166,7 @@ export default function Game() {
     // undo the passive move
     if (
       moves.length > 0 &&
-      newMove.stoneId == null &&
+      newMove.type === "undo" &&
       moves[moves.length - 1].firstMove.boardId === newMove.boardId
     ) {
       setMoves((prev) => {
@@ -188,12 +188,24 @@ export default function Game() {
       return null;
     }
 
+    if (newMove.type === "undo") {
+      console.log("something weird and bad just happened");
+      return null;
+    }
+
+    const validatedMove = {
+      boardId: newMove.boardId,
+      direction: newMove.direction,
+      length: newMove.length,
+      stoneId: newMove.stoneId,
+    };
+
     // passive move
     if (moves.length === 0 || moves[moves.length - 1].secondMove != null) {
-      const color = boards[newMove.boardId].boardColor;
+      const color = boards[validatedMove.boardId].boardColor;
       setBoards(
         boards.map((board) => {
-          if (board.id === newMove.boardId) {
+          if (board.id === validatedMove.boardId) {
             return {
               ...board,
               restrictedMove: null,
@@ -209,8 +221,8 @@ export default function Game() {
             return {
               ...board,
               restrictedMove: {
-                direction: newMove.direction!,
-                length: newMove.length!,
+                direction: validatedMove.direction,
+                length: validatedMove.length,
               },
               moveCondition: MoveCondition.ISACTIVE,
             };
@@ -219,8 +231,7 @@ export default function Game() {
       );
       setMoves((prev) => {
         const copy = prev.slice();
-        //@ts-expect-error baba
-        copy.push({ playerColor: playerTurn, firstMove: newMove });
+        copy.push({ playerColor: playerTurn, firstMove: validatedMove });
         return copy;
       });
     } else {
@@ -244,8 +255,7 @@ export default function Game() {
         return color;
       });
       setMoves((prev) => {
-        // @ts-expect-error baba
-        prev[prev.length - 1].secondMove = newMove;
+        prev[prev.length - 1].secondMove = validatedMove;
         return prev;
       });
     }

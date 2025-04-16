@@ -89,11 +89,19 @@ export enum MoveCondition {
   WRONGCOLOR,
   CHANGEPASSIVE,
 }
-export type NewMove = {
+export type NewMove = MoveContent | MoveUndo;
+
+type MoveContent = {
+  type: "move"; 
   boardId: BoardId;
-  direction: Direction | null;
-  length: Length | null;
-  stoneId: StoneId | null;
+  direction: Direction;
+  length: Length;
+  stoneId: StoneId;
+};
+
+type MoveUndo = {
+  type: "undo"; 
+  boardId: BoardId;
 };
 
 export enum BoardMessage {

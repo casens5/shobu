@@ -318,37 +318,42 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return false;
     }
 
+    const destinationSquare = board[newCoords[0]][newCoords[1]];
+    const pushDestination = nextCoords
+      ? board[nextCoords[0]][nextCoords[1]]
+      : null;
+    const intermediarySquare = betweenCoords
+      ? board[betweenCoords[0]][betweenCoords[1]]
+      : null;
     if (length === 1) {
       // detect push
-      if (board[newCoords[0]][newCoords[1]]) {
+      if (destinationSquare != null) {
         // can't push your own stone
-        if (board[newCoords[0]][newCoords[1]]!.color === playerTurn) {
+        if (destinationSquare.color === playerTurn) {
           onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
           return false;
         }
         // can't push 2 stones in a row
-        if (nextCoords && board[nextCoords[0]][nextCoords[1]]) {
+        if (pushDestination != null) {
           onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
           return false;
         }
       }
-      // unnecessary but legible if (length === 2) and betweenCoords check
-    } else if (length === 2 && betweenCoords) {
+      // unnecessary but legible if check
+    } else if (length === 2 && intermediarySquare != null) {
       // can't push your own stone(s)
       if (
-        (board[newCoords[0]][newCoords[1]] &&
-          board[newCoords[0]][newCoords[1]]!.color === playerTurn) ||
-        (board[betweenCoords[0]][betweenCoords[1]] &&
-          board[betweenCoords[0]][betweenCoords[1]]!.color === playerTurn)
+        (destinationSquare != null && destinationSquare.color === playerTurn) ||
+        (intermediarySquare != null && intermediarySquare.color === playerTurn)
       ) {
         onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
         return false;
       }
       // can't push 2 stones in a row
       if (
-        Number(board[betweenCoords[0]][betweenCoords[1]] != null) +
-          Number(board[newCoords[0]][newCoords[1]] != null) +
-          Number(nextCoords && board[nextCoords[0]][nextCoords[1]] != null) >
+        Number(intermediarySquare != null) +
+          Number(destinationSquare != null) +
+          Number(pushDestination != null) >
         1
       ) {
         onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
@@ -439,10 +444,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
       clearLastMove(stone.color);
       setBoard(newBoard);
       onMove({
+        type: "undo",
         boardId: id,
-        direction: null,
-        length: null,
-        stoneId: null,
       });
       return null;
     }
@@ -546,6 +549,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     onMove({
+      type: "move",
       boardId: id,
       direction: direction,
       length: length,
