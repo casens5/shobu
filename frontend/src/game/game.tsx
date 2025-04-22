@@ -32,28 +32,26 @@ type ErrorMessageProps = {
 };
 
 function ErrorMessage({ message }: ErrorMessageProps) {
-  return (
-    <div className="mb-4 text-center">
-      {message === BoardMessage.MOVEUNEQUALTOPASSIVEMOVE &&
-        "your active move must be the same direction and distance as the passive move"}
-      {message === BoardMessage.MOVETOOLONG &&
-        "you can only move a stone by a distance of 1 or 2 squares"}
-      {message === BoardMessage.MOVEOUTOFBOUNDS && "move is out of bounds"}
-      {message === BoardMessage.MOVESAMECOLORBLOCKING &&
-        "you can't push stones of your own color"}
-      {message === BoardMessage.MOVETWOSTONESBLOCKING &&
-        "you can't push two stones in a row"}
-      {message === BoardMessage.MOVEKNIGHT &&
-        "you can only move orthogonally or diagonally (no knight moves)"}
-      {message === BoardMessage.MOVEPASSIVECANTPUSH &&
-        "your first move must be passive (can't push a stone)"}
-      {message === BoardMessage.MOVENOTINHOMEAREA &&
-        "your first move must be passive (in your home area)"}
-      {message === BoardMessage.MOVEWRONGCOLOR &&
-        "you must play on a opposite color board from your first move"}
-      {message === BoardMessage.MOVECLEARERROR && ""}
-    </div>
-  );
+  const messages: { [key in BoardMessage]?: string } = {
+    [BoardMessage.MOVEUNEQUALTOPASSIVEMOVE]:
+      "your active move must be the same direction and distance as the passive move",
+    [BoardMessage.MOVETOOLONG]:
+      "you can only move a stone by a distance of 1 or 2 squares",
+    [BoardMessage.MOVEOUTOFBOUNDS]: "move is out of bounds",
+    [BoardMessage.MOVESAMECOLORBLOCKING]:
+      "you can't push stones of your own color",
+    [BoardMessage.MOVETWOSTONESBLOCKING]: "you can't push two stones in a row",
+    [BoardMessage.MOVEKNIGHT]:
+      "you can only move orthogonally or diagonally (no knight moves)",
+    [BoardMessage.MOVEPASSIVECANTPUSH]:
+      "your first move must be passive (can't push a stone)",
+    [BoardMessage.MOVENOTINHOMEAREA]:
+      "your first move must be passive (in your home area)",
+    [BoardMessage.MOVEWRONGCOLOR]:
+      "you must play on a opposite color board from your first move",
+    [BoardMessage.MOVECLEARERROR]: "",
+  };
+  return <div className="mb-4 text-center">{messages[message] || ""}</div>;
 }
 
 type HomeAreaProps = {
@@ -170,8 +168,7 @@ export default function Game() {
       moves[moves.length - 1].firstMove.boardId === newMove.boardId
     ) {
       setMoves((prev) => {
-        prev.pop();
-        return prev;
+        return prev.slice(0, -1);
       });
 
       setBoards(
@@ -189,7 +186,7 @@ export default function Game() {
     }
 
     if (newMove.type === "undo") {
-      console.log("something weird and bad just happened");
+      console.error("attempted to undo a move in an invalid state");
       return null;
     }
 

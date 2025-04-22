@@ -68,7 +68,7 @@ function getMoveDirection(
     return Direction.SW;
   }
 
-  console.error("invalid direction: ${oldCoords}, ${newCoords}");
+  console.error(`invalid direction: ${oldCoords}, ${newCoords}`);
   return Direction.N;
 }
 
@@ -480,14 +480,13 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
-    // check if we're pushing an opponent's stone
-    let isPush = false;
-    if (
+    const isPush =
       (length === 1 && board[newCoords[0]][newCoords[1]]) ||
       (length === 2 &&
         (board[betweenCoords![0]][betweenCoords![1]] ||
-          board[newCoords[0]][newCoords[1]]))
-    ) {
+          board[newCoords[0]][newCoords[1]]));
+
+    if (isPush) {
       // can't push if this is the passive move
       if (moveCondition == MoveCondition.ISPASSIVE) {
         onMessage(BoardMessage.MOVEPASSIVECANTPUSH);
@@ -522,7 +521,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
           isPush: true,
         }));
       }
-      isPush = true;
     }
 
     // move is successful
