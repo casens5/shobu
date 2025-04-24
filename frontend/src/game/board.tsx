@@ -76,28 +76,6 @@ function coordinateToId(coords: BoardCoordinates): CoordinateId {
   return (4 * coords[0] + coords[1]) as CoordinateId;
 }
 
-// this function is probably too complicated, but makes the transparecy effect
-// on LastMove squares not look weird on the corners *shrug emoji*
-function getCornerBorder(rowIndex: Coord, colIndex: Coord): string {
-  if (rowIndex === 0) {
-    if (colIndex === 0) {
-      return "rounded-tl-2xl";
-    }
-    if (colIndex === 3) {
-      return "rounded-tr-2xl";
-    }
-  }
-  if (rowIndex === 3) {
-    if (colIndex === 0) {
-      return "rounded-bl-2xl";
-    }
-    if (colIndex === 3) {
-      return "rounded-br-2xl";
-    }
-  }
-  return "";
-}
-
 function isStoneMovable(
   coords: BoardCoordinates,
   moveCondition: MoveCondition,
@@ -628,7 +606,15 @@ const Board = forwardRef((props: BoardProps, ref) => {
           const y = colIndex as Coord;
           const bottomBorder = x !== 3 ? "border-b sm:border-b-2" : "";
           const moveColor = getMoveColor(x, y);
-          const cornerBorder = getCornerBorder(x, y);
+          // makes the transparecy effect on LastMove squares not look weird
+          // on the corners
+          const cornerBorderDict: { [key: number]: string } = {
+            0: "rounded-tl-2xl",
+            3: "rounded-tr-2xl",
+            12: "rounded-bl-2xl",
+            15: "rounded-br-2xl",
+          };
+          const cornerBorder = cornerBorderDict[coordinateToId([x, y])] || "";
           const canMove =
             cell != null &&
             playerTurn === cell.color &&
