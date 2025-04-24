@@ -269,6 +269,8 @@ export default function Game() {
     }
   }
 
+  const [board0, board1, board2, board3] = boards;
+
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
       {playerWin ? (
@@ -281,12 +283,12 @@ export default function Game() {
       </div>
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
         <HomeArea color="black">
-          <Board {...boards[0]} onMove={handleMove} onMessage={handleMessage} />
-          <Board {...boards[1]} onMove={handleMove} onMessage={handleMessage} />
+          <Board {...board0} onMove={handleMove} onMessage={handleMessage} />
+          <Board {...board1} onMove={handleMove} onMessage={handleMessage} />
         </HomeArea>
         <HomeArea color="white">
-          <Board {...boards[2]} onMove={handleMove} onMessage={handleMessage} />
-          <Board {...boards[3]} onMove={handleMove} onMessage={handleMessage} />
+          <Board {...board2} onMove={handleMove} onMessage={handleMessage} />
+          <Board {...board3} onMove={handleMove} onMessage={handleMessage} />
         </HomeArea>
       </div>
       <div
