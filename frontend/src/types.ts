@@ -80,7 +80,12 @@ export type MoveRecord = {
     stoneId: StoneId;
   };
 };
-export type MoveType = { direction: Direction; length: Length };
+export type MoveType = {
+  direction: Direction;
+  length: Length;
+  origin: [Coord, Coord];
+  destination: [Coord, Coord];
+};
 export enum MoveCondition {
   ISACTIVE,
   ISPASSIVE,
@@ -92,15 +97,17 @@ export enum MoveCondition {
 export type NewMove = MoveContent | MoveUndo;
 
 type MoveContent = {
-  type: "move"; 
+  type: "move";
   boardId: BoardId;
   direction: Direction;
   length: Length;
   stoneId: StoneId;
+  origin: [Coord, Coord];
+  destination: [Coord, Coord];
 };
 
 type MoveUndo = {
-  type: "undo"; 
+  type: "undo";
   boardId: BoardId;
 };
 

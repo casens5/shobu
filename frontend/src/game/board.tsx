@@ -94,6 +94,25 @@ function getCornerBorder(rowIndex: Coord, colIndex: Coord): string {
   return "";
 }
 
+function isStoneMovable(
+  coords: BoardCoordinates,
+  moveCondition: MoveCondition,
+  restricted: MoveType | null,
+): boolean {
+  if (
+    moveCondition === MoveCondition.WRONGCOLOR ||
+    moveCondition === MoveCondition.NOTINHOMEBOARD ||
+    moveCondition === MoveCondition.GAMEOVER
+  ) {
+    return false;
+  }
+  if (moveCondition === MoveCondition.CHANGEPASSIVE) {
+    return isEqual(coords, restricted?.destination);
+  }
+
+  return true;
+}
+
 type CellProps = {
   cell: StoneObject | null;
   row: Coord;
@@ -205,25 +224,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
       { id: 7, color: "white", canMove: false },
     ],
   ]);
-
-  // change which stones can move based on turn phase
-  useEffect(() => {
-    setBoard((prevBoard) => {
-      return prevBoard.map((row) =>
-        row.map((cell: StoneObject | null) => {
-          if (cell === null) return null;
-          return {
-            ...cell,
-            canMove:
-              cell.color === playerTurn &&
-              moveCondition != MoveCondition.WRONGCOLOR &&
-              moveCondition != MoveCondition.NOTINHOMEBOARD &&
-              moveCondition != MoveCondition.GAMEOVER,
-          };
-        }),
-      ) as GridType;
-    });
-  }, [playerTurn, moveCondition]);
 
   // record the last player's moves
   const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
@@ -429,15 +429,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
       return null;
     }
 
-    // moved to the starting place.  de-select.
+    // moved to the starting place; undo
     if (
-      (moveCondition === MoveCondition.CHANGEPASSIVE &&
-        stone.color === "black" &&
-        isEqual(lastMoveBlack.from, newCoords) &&
-        isEqual(lastMoveBlack.to, oldCoords)) ||
-      (stone.color === "white" &&
-        isEqual(lastMoveWhite.from, newCoords) &&
-        isEqual(lastMoveWhite.to, oldCoords))
+      restrictedMove &&
+      moveCondition === MoveCondition.CHANGEPASSIVE &&
+      isEqual(restrictedMove.origin, newCoords) &&
+      isEqual(restrictedMove.destination, oldCoords)
     ) {
       newBoard[oldCoords[0]][oldCoords[1]] = null;
       newBoard[newCoords[0]][newCoords[1]] = stone;
@@ -454,6 +451,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     const length = getMoveLength(oldCoords, newCoords) as Length;
 
     if (
+      moveCondition === MoveCondition.ISACTIVE &&
       restrictedMove != null &&
       (restrictedMove.direction !== direction ||
         restrictedMove.length !== length)
@@ -552,6 +550,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
       direction: direction,
       length: length,
       stoneId: stone.id,
+      origin: oldCoords,
+      destination: newCoords,
     });
   }
 
@@ -603,19 +603,22 @@ const Board = forwardRef((props: BoardProps, ref) => {
           colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
         return col.map((cell, rowIndex) => {
-          const bottomBorder = rowIndex !== 3 ? "border-b sm:border-b-2" : "";
-          const moveColor = getMoveColor(rowIndex as Coord, colIndex as Coord);
-          const cornerBorder = getCornerBorder(
-            rowIndex as Coord,
-            colIndex as Coord,
-          );
+          const y = colIndex as Coord;
+          const x = rowIndex as Coord;
+          const bottomBorder = x !== 3 ? "border-b sm:border-b-2" : "";
+          const moveColor = getMoveColor(x, y);
+          const cornerBorder = getCornerBorder(x, y);
+          const canMove =
+            cell != null &&
+            playerTurn === cell.color &&
+            isStoneMovable([x, y], moveCondition, restrictedMove);
 
           return (
             <Cell
-              key={4 * rowIndex + colIndex}
-              row={rowIndex as Coord}
-              col={colIndex as Coord}
-              cell={cell}
+              key={4 * x + y}
+              row={x}
+              col={y}
+              cell={cell && { ...cell, canMove }}
               handleStoneMove={handleStoneMove}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
               onMouseDownAction={showError}
@@ -623,6 +626,11 @@ const Board = forwardRef((props: BoardProps, ref) => {
           );
         });
       })}
+      {/*<div
+        onClick={() => console.log("test baba", restrictedMove, moveCondition)}
+      >
+        baba
+      </div>*/}
     </div>
   );
 });

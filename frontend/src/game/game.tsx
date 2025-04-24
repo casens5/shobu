@@ -175,7 +175,7 @@ export default function Game() {
         boards.map((board) => ({
           ...board,
           restrictedMove: null,
-          MoveCondition:
+          moveCondition:
             board.playerHome === playerTurn
               ? MoveCondition.ISPASSIVE
               : MoveCondition.NOTINHOMEBOARD,
@@ -195,6 +195,8 @@ export default function Game() {
       direction: newMove.direction,
       length: newMove.length,
       stoneId: newMove.stoneId,
+      origin: newMove.origin,
+      destination: newMove.destination,
     };
 
     // passive move
@@ -205,7 +207,12 @@ export default function Game() {
           if (board.id === validatedMove.boardId) {
             return {
               ...board,
-              restrictedMove: null,
+              restrictedMove: {
+                direction: validatedMove.direction,
+                length: validatedMove.length,
+                origin: validatedMove.origin,
+                destination: validatedMove.destination,
+              },
               moveCondition: MoveCondition.CHANGEPASSIVE,
             };
           } else if (board.boardColor === color) {
@@ -220,6 +227,8 @@ export default function Game() {
               restrictedMove: {
                 direction: validatedMove.direction,
                 length: validatedMove.length,
+                origin: validatedMove.origin,
+                destination: validatedMove.destination,
               },
               moveCondition: MoveCondition.ISACTIVE,
             };
@@ -237,8 +246,8 @@ export default function Game() {
       // you would really think that you don't have to shove all this logic inside the setPlayerTurn function, but react doesn't handle state as well as we wish it would.  so in it goes.
       setPlayerTurn((prev) => {
         const color = prev === "white" ? "black" : "white";
-        setBoards(
-          boards.map((board) => ({
+        setBoards((prev) =>
+          prev.map((board) => ({
             ...board,
             playerTurn: color,
             restrictedMove: null,
@@ -248,13 +257,15 @@ export default function Game() {
                 : MoveCondition.NOTINHOMEBOARD,
           })),
         );
+
         clearMoves(color);
         return color;
       });
-      setMoves((prev) => {
-        prev[prev.length - 1].secondMove = validatedMove;
-        return prev;
-      });
+
+      setMoves((prev) => [
+        ...prev.slice(0, -1),
+        { ...prev[prev.length - 1], secondMove: validatedMove },
+      ]);
     }
   }
 
