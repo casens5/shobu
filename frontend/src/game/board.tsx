@@ -413,7 +413,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     const newBoard = board.map((row) => [...row]) as GridType;
     let stone = newBoard[oldCoords[0]][oldCoords[1]];
     if (stone == null) {
-      console.error("no stone exists: ${oldCoords}");
+      console.error(`no stone exists: ${oldCoords}`);
       return null;
     }
 
@@ -440,7 +440,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
 
     if ([0, 1, 2, 3].includes(length) !== true) {
       console.error(
-        "move length is some kind of crazy value.  value: ${length}",
+        `move length is some kind of crazy value.  value: ${length}`,
       );
       return null;
     }
