@@ -14,6 +14,17 @@ type StoneProps = StoneObject & {
   handleStoneMove: (id: StoneId, newPosition: [number, number]) => void;
 };
 
+function getEventPosition(
+  e: globalThis.MouseEvent | globalThis.TouchEvent,
+): [number, number] {
+  if ("touches" in e) {
+    const touch = e.touches[0];
+    return [touch.clientX, touch.clientY];
+  } else {
+    return [e.clientX, e.clientY];
+  }
+}
+
 export default function Stone({
   id,
   color,
@@ -23,17 +34,6 @@ export default function Stone({
 }: StoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState([0, 0]);
-
-  function getEventPosition(
-    e: globalThis.MouseEvent | globalThis.TouchEvent,
-  ): [number, number] {
-    if ("touches" in e) {
-      const touch = e.touches[0];
-      return [touch.clientX, touch.clientY];
-    } else {
-      return [e.clientX, e.clientY];
-    }
-  }
 
   function handleStart(
     e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,

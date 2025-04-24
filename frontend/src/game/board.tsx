@@ -113,6 +113,79 @@ function isStoneMovable(
   return true;
 }
 
+function isMoveLegal(
+  oldCoords: BoardCoordinates,
+  newCoords: BoardCoordinates,
+  length: number,
+  playerTurn: PlayerColor,
+  destinationSquare: StoneObject | null,
+  pushDestination: StoneObject | null,
+  intermediarySquare: StoneObject | null,
+): BoardMessage | "LEGAL" {
+  // move must be 1 or 2 spaces long
+  if (length < 1 || length > 2) {
+    return BoardMessage.MOVETOOLONG;
+  }
+
+  // only allow orthogonal or diagonal moves, no knight moves
+  const xMove = Math.abs(oldCoords[0] - newCoords[0]);
+  const yMove = Math.abs(oldCoords[1] - newCoords[1]);
+  if (
+    !(xMove === 0 || xMove === length) ||
+    !(yMove === 0 || yMove === length)
+  ) {
+    return BoardMessage.MOVEKNIGHT;
+  }
+
+  if (length === 1) {
+    // detect push
+    if (destinationSquare != null) {
+      // can't push your own stone
+      if (destinationSquare.color === playerTurn) {
+        return BoardMessage.MOVESAMECOLORBLOCKING;
+      }
+      // can't push 2 stones in a row
+      if (pushDestination != null) {
+        return BoardMessage.MOVETWOSTONESBLOCKING;
+      }
+    }
+    // unnecessary but legible if check
+  } else if (length === 2 && intermediarySquare != null) {
+    // can't push your own stone(s)
+    if (
+      (destinationSquare != null && destinationSquare.color === playerTurn) ||
+      (intermediarySquare != null && intermediarySquare.color === playerTurn)
+    ) {
+      return BoardMessage.MOVESAMECOLORBLOCKING;
+    }
+    // can't push 2 stones in a row
+    if (
+      Number(intermediarySquare != null) +
+        Number(destinationSquare != null) +
+        Number(pushDestination != null) >
+      1
+    ) {
+      return BoardMessage.MOVETWOSTONESBLOCKING;
+    }
+  }
+
+  return "LEGAL";
+}
+
+function checkWin(board: GridType): "WHITE" | "BLACK" | null {
+  if (
+    !board.some((row) => row.some((cell) => cell && cell.color === "black"))
+  ) {
+    return "WHITE";
+  }
+  if (
+    !board.some((row) => row.some((cell) => cell && cell.color === "white"))
+  ) {
+    return "BLACK";
+  }
+  return null;
+}
+
 type CellProps = {
   cell: StoneObject | null;
   row: Coord;
@@ -294,90 +367,6 @@ const Board = forwardRef((props: BoardProps, ref) => {
     right: 0,
   });
 
-  function isMoveLegal(
-    oldCoords: BoardCoordinates,
-    newCoords: BoardCoordinates,
-    length: number,
-    betweenCoords?: BoardCoordinates,
-    nextCoords?: BoardCoordinates,
-  ): boolean {
-    // move must be 1 or 2 spaces long
-    if (length < 1 || length > 2) {
-      onMessage(BoardMessage.MOVETOOLONG);
-      return false;
-    }
-
-    // only allow orthogonal or diagonal moves, no knight moves
-    const xMove = Math.abs(oldCoords[0] - newCoords[0]);
-    const yMove = Math.abs(oldCoords[1] - newCoords[1]);
-    if (
-      !(xMove === 0 || xMove === length) ||
-      !(yMove === 0 || yMove === length)
-    ) {
-      onMessage(BoardMessage.MOVEKNIGHT);
-      return false;
-    }
-
-    const destinationSquare = board[newCoords[0]][newCoords[1]];
-    const pushDestination = nextCoords
-      ? board[nextCoords[0]][nextCoords[1]]
-      : null;
-    const intermediarySquare = betweenCoords
-      ? board[betweenCoords[0]][betweenCoords[1]]
-      : null;
-    if (length === 1) {
-      // detect push
-      if (destinationSquare != null) {
-        // can't push your own stone
-        if (destinationSquare.color === playerTurn) {
-          onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
-          return false;
-        }
-        // can't push 2 stones in a row
-        if (pushDestination != null) {
-          onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
-          return false;
-        }
-      }
-      // unnecessary but legible if check
-    } else if (length === 2 && intermediarySquare != null) {
-      // can't push your own stone(s)
-      if (
-        (destinationSquare != null && destinationSquare.color === playerTurn) ||
-        (intermediarySquare != null && intermediarySquare.color === playerTurn)
-      ) {
-        onMessage(BoardMessage.MOVESAMECOLORBLOCKING);
-        return false;
-      }
-      // can't push 2 stones in a row
-      if (
-        Number(intermediarySquare != null) +
-          Number(destinationSquare != null) +
-          Number(pushDestination != null) >
-        1
-      ) {
-        onMessage(BoardMessage.MOVETWOSTONESBLOCKING);
-        return false;
-      }
-    }
-
-    // move is legal
-    return true;
-  }
-
-  function checkWin(board: GridType) {
-    if (
-      !board.some((row) => row.some((cell) => cell && cell.color === "black"))
-    ) {
-      onMessage(BoardMessage.WINWHITE);
-    }
-    if (
-      !board.some((row) => row.some((cell) => cell && cell.color === "white"))
-    ) {
-      onMessage(BoardMessage.WINBLACK);
-    }
-  }
-
   function handleStoneMove(stoneId: StoneId, newPosition: [number, number]) {
     const newCoords = [
       Math.floor(
@@ -474,15 +463,29 @@ const Board = forwardRef((props: BoardProps, ref) => {
         ? ([nextX, nextY] as [Coord, Coord])
         : undefined;
 
-    if (!isMoveLegal(oldCoords, newCoords, length, betweenCoords, nextCoords)) {
+    const destinationSquare = board[newCoords[0]][newCoords[1]];
+    const pushDestination = nextCoords
+      ? board[nextCoords[0]][nextCoords[1]]
+      : null;
+    const intermediarySquare = betweenCoords
+      ? board[betweenCoords[0]][betweenCoords[1]]
+      : null;
+
+    const moveLegalMessage = isMoveLegal(
+      oldCoords,
+      newCoords,
+      length,
+      playerTurn,
+      destinationSquare,
+      pushDestination,
+      intermediarySquare,
+    );
+    if (moveLegalMessage !== "LEGAL") {
+      onMessage(moveLegalMessage);
       return null;
     }
 
-    const isPush =
-      (length === 1 && board[newCoords[0]][newCoords[1]]) ||
-      (length === 2 &&
-        (board[betweenCoords![0]][betweenCoords![1]] ||
-          board[newCoords[0]][newCoords[1]]));
+    const isPush = destinationSquare || intermediarySquare;
 
     if (isPush) {
       // can't push if this is the passive move
@@ -491,20 +494,18 @@ const Board = forwardRef((props: BoardProps, ref) => {
         return null;
       }
 
-      const pushedStone =
-        length === 1
-          ? ({
-              ...board[newCoords[0]][newCoords[1]],
-            } as StoneObject)
-          : ({
-              ...(board[betweenCoords![0]][betweenCoords![1]] ||
-                board[newCoords[0]][newCoords[1]]),
-            } as StoneObject);
+      const pushedStone = destinationSquare
+        ? ({
+            ...destinationSquare,
+          } as StoneObject)
+        : ({
+            ...intermediarySquare,
+          } as StoneObject);
       if (nextCoords) {
         newBoard[nextCoords[0]][nextCoords[1]] = pushedStone;
       }
 
-      if (length === 2 && board[betweenCoords![0]][betweenCoords![1]]) {
+      if (intermediarySquare) {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
 
@@ -541,7 +542,12 @@ const Board = forwardRef((props: BoardProps, ref) => {
     setBoard(newBoard);
 
     if (isPush) {
-      checkWin(newBoard);
+      const isWin = checkWin(newBoard);
+      if (isWin === "WHITE") {
+        onMessage(BoardMessage.WINWHITE);
+      } else if (isWin === "BLACK") {
+        onMessage(BoardMessage.WINBLACK);
+      }
     }
 
     onMove({
@@ -603,8 +609,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
           colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
         return col.map((cell, rowIndex) => {
-          const y = colIndex as Coord;
           const x = rowIndex as Coord;
+          const y = colIndex as Coord;
           const bottomBorder = x !== 3 ? "border-b sm:border-b-2" : "";
           const moveColor = getMoveColor(x, y);
           const cornerBorder = getCornerBorder(x, y);
