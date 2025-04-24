@@ -122,11 +122,6 @@ function isMoveLegal(
   pushDestination: StoneObject | null,
   intermediarySquare: StoneObject | null,
 ): BoardMessage | "LEGAL" {
-  // move must be 1 or 2 spaces long
-  if (length < 1 || length > 2) {
-    return BoardMessage.MOVETOOLONG;
-  }
-
   // only allow orthogonal or diagonal moves, no knight moves
   const xMove = Math.abs(oldCoords[0] - newCoords[0]);
   const yMove = Math.abs(oldCoords[1] - newCoords[1]);
@@ -437,27 +432,43 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     const direction = getMoveDirection(oldCoords, newCoords);
-    const length = getMoveLength(oldCoords, newCoords) as Length;
+    const length = getMoveLength(oldCoords, newCoords);
+
+    if ([0, 1, 2, 3].includes(length) !== true) {
+      console.error(
+        "move length is some kind of crazy value.  value: ${length}",
+      );
+      return null;
+    }
+    // player selected and de-selected the stone
+    if (length === 0) {
+      return null;
+    }
+    if (length === 3) {
+      onMessage(BoardMessage.MOVETOOLONG);
+      return null;
+    }
+    const moveLength = length as Length;
 
     if (
       moveCondition === MoveCondition.ISACTIVE &&
       restrictedMove != null &&
       (restrictedMove.direction !== direction ||
-        restrictedMove.length !== length)
+        restrictedMove.length !== moveLength)
     ) {
       onMessage(BoardMessage.MOVEUNEQUALTOPASSIVEMOVE);
       return null;
     }
 
     const betweenCoords =
-      length === 2
+      moveLength === 2
         ? ([
             oldCoords[0] + (newCoords[0] - oldCoords[0]) / 2,
             oldCoords[1] + (newCoords[1] - oldCoords[1]) / 2,
           ] as [Coord, Coord])
         : undefined;
-    const nextX = newCoords[0] + (newCoords[0] - oldCoords[0]) / length;
-    const nextY = newCoords[1] + (newCoords[1] - oldCoords[1]) / length;
+    const nextX = newCoords[0] + (newCoords[0] - oldCoords[0]) / moveLength;
+    const nextY = newCoords[1] + (newCoords[1] - oldCoords[1]) / moveLength;
     const nextCoords =
       nextX >= 0 && nextX <= 3 && nextY >= 0 && nextY <= 3
         ? ([nextX, nextY] as [Coord, Coord])
@@ -474,7 +485,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     const moveLegalMessage = isMoveLegal(
       oldCoords,
       newCoords,
-      length,
+      moveLength,
       playerTurn,
       destinationSquare,
       pushDestination,
@@ -509,7 +520,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
         newBoard[betweenCoords![0]][betweenCoords![1]] = null;
       }
 
-      if (stone.color === "white") {
+      if (playerTurn === "white") {
         setLastMoveWhite((prev) => ({
           ...prev,
           isPush: true,
@@ -523,7 +534,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
     }
 
     // move is successful
-    if (stone.color === "white") {
+    if (playerTurn === "white") {
       setLastMoveWhite((prev) => ({
         ...prev,
         from: oldCoords,
@@ -554,7 +565,7 @@ const Board = forwardRef((props: BoardProps, ref) => {
       type: "move",
       boardId: id,
       direction: direction,
-      length: length,
+      length: moveLength,
       stoneId: stone.id,
       origin: oldCoords,
       destination: newCoords,
