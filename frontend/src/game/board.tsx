@@ -1,4 +1,3 @@
-import { isEqual } from "lodash-es";
 import clsx from "clsx";
 import "./board.css";
 import Stone from "./stone";
@@ -7,6 +6,7 @@ import {
   BoardColor,
   BoardId,
   Length,
+  CoordinateId,
   Direction,
   Coord,
   GridType,
@@ -72,6 +72,10 @@ function getMoveDirection(
   return Direction.N;
 }
 
+function coordinateToId(coords: BoardCoordinates): CoordinateId {
+  return (4 * coords[0] + coords[1]) as CoordinateId;
+}
+
 // this function is probably too complicated, but makes the transparecy effect
 // on LastMove squares not look weird on the corners *shrug emoji*
 function getCornerBorder(rowIndex: Coord, colIndex: Coord): string {
@@ -107,7 +111,7 @@ function isStoneMovable(
     return false;
   }
   if (moveCondition === MoveCondition.CHANGEPASSIVE) {
-    return isEqual(coords, restricted?.destination);
+    return coordinateToId(coords) === coordinateToId(restricted!.destination);
   }
 
   return true;
@@ -417,8 +421,8 @@ const Board = forwardRef((props: BoardProps, ref) => {
     if (
       restrictedMove &&
       moveCondition === MoveCondition.CHANGEPASSIVE &&
-      isEqual(restrictedMove.origin, newCoords) &&
-      isEqual(restrictedMove.destination, oldCoords)
+      coordinateToId(restrictedMove.origin) === coordinateToId(newCoords) &&
+      coordinateToId(restrictedMove.destination) === coordinateToId(oldCoords)
     ) {
       newBoard[oldCoords[0]][oldCoords[1]] = null;
       newBoard[newCoords[0]][newCoords[1]] = stone;

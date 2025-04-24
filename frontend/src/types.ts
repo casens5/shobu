@@ -1,6 +1,7 @@
 import { RefObject } from "react";
 
 export type BoardCoordinates = [Coord, Coord];
+export type CoordinateId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StoneObject = {
   id: StoneId;
