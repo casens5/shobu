@@ -44,9 +44,6 @@ export type BoardType = {
   restrictedMove: MoveType | null;
   moveCondition: MoveCondition;
 };
-export interface BoardRef {
-  clearLastMove: (playerColor: "white" | "black") => void;
-}
 export type LastMoveType = {
   from: BoardCoordinates | [null, null];
   to: BoardCoordinates | [null, null];
@@ -113,8 +110,6 @@ type MoveUndo = {
 };
 
 export enum BoardMessage {
-  WINBLACK,
-  WINWHITE,
   MOVETOOLONG,
   MOVEOUTOFBOUNDS,
   MOVEKNIGHT,
@@ -125,4 +120,5 @@ export enum BoardMessage {
   MOVEPASSIVECANTPUSH,
   MOVENOTINHOMEAREA,
   MOVEWRONGCOLOR,
+  MOVEILLEGAL,
 }

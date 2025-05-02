@@ -54,6 +54,7 @@ export default function Stone({
     (e: globalThis.MouseEvent | globalThis.TouchEvent) => {
       e.preventDefault();
       setIsDragging(false);
+      console.log('what up', id, getEventPosition(e))
       handleStoneMove(id, getEventPosition(e));
     },
     [id, handleStoneMove],
