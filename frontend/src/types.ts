@@ -37,16 +37,10 @@ export type GridType = [
 ];
 export type BoardType = {
   id: BoardId;
-  ref: RefObject<BoardRef | null>;
   boardColor: BoardColor;
-  playerTurn: PlayerColor;
   playerHome: PlayerColor;
-  restrictedMove: MoveType | null;
-  moveCondition: MoveCondition;
+  grid: GridType;
 };
-export interface BoardRef {
-  clearLastMove: (playerColor: "white" | "black") => void;
-}
 export type LastMoveType = {
   from: BoardCoordinates | [null, null];
   to: BoardCoordinates | [null, null];
@@ -113,8 +107,6 @@ type MoveUndo = {
 };
 
 export enum BoardMessage {
-  WINBLACK,
-  WINWHITE,
   MOVETOOLONG,
   MOVEOUTOFBOUNDS,
   MOVEKNIGHT,
@@ -125,4 +117,5 @@ export enum BoardMessage {
   MOVEPASSIVECANTPUSH,
   MOVENOTINHOMEAREA,
   MOVEWRONGCOLOR,
+  MOVEILLEGAL,
 }
