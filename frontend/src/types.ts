@@ -40,10 +40,11 @@ export type BoardType = {
   boardColor: BoardColor;
   playerHome: PlayerColor;
   grid: GridType;
+  lastMove: LastMoveType | null;
 };
 export type LastMoveType = {
-  from: BoardCoordinates | [null, null];
-  to: BoardCoordinates | [null, null];
+  from: BoardCoordinates;
+  to: BoardCoordinates;
   isPush: boolean;
 };
 export type PlayerColor = "black" | "white";

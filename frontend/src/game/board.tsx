@@ -8,7 +8,6 @@ import {
   CoordinateId,
   Coord,
   GridType,
-  LastMoveType,
   StoneId,
   StoneObject,
   BoardMessage,
@@ -92,61 +91,9 @@ type BoardProps = {
 
 export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
   // record the last player's moves
-  const [lastMoveWhite, setLastMoveWhite] = useState<LastMoveType>({
-    from: [null, null],
-    to: [null, null],
-    isPush: false,
-  });
-  const [lastMoveBlack, setLastMoveBlack] = useState<LastMoveType>({
-    from: [null, null],
-    to: [null, null],
-    isPush: false,
-  });
 
-  function getMoveColor(rowIndex: Coord, colIndex: Coord): string {
-    if (
-      (lastMoveWhite.from[0] === colIndex &&
-        lastMoveWhite.from[1] === rowIndex) ||
-      (lastMoveBlack.from[0] === colIndex && lastMoveBlack.from[1] === rowIndex)
-    ) {
-      return "dark-transparent";
-    }
-    if (
-      (lastMoveWhite.isPush &&
-        lastMoveWhite.to[0] === colIndex &&
-        lastMoveWhite.to[1] === rowIndex) ||
-      (lastMoveBlack.isPush &&
-        lastMoveBlack.to[0] === colIndex &&
-        lastMoveBlack.to[1] === rowIndex)
-    ) {
-      return "red-transparent";
-    }
-    if (
-      (lastMoveWhite.to[0] === colIndex && lastMoveWhite.to[1] === rowIndex) ||
-      (lastMoveBlack.to[0] === colIndex && lastMoveBlack.to[1] === rowIndex)
-    ) {
-      return "dark-transparent";
-    }
-    return "";
-  }
-
-  function clearLastMove(playerColor: PlayerColor) {
-    if (playerColor === "white") {
-      setLastMoveWhite({
-        from: [null, null],
-        to: [null, null],
-        isPush: false,
-      });
-    } else {
-      setLastMoveBlack({
-        from: [null, null],
-        to: [null, null],
-        isPush: false,
-      });
-    }
-  }
   if (id > 10) {
-    clearLastMove("white");
+    console.log("hi");
   }
 
   // handle board resizing
@@ -252,7 +199,7 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
           const x = rowIndex as Coord;
           const y = colIndex as Coord;
           const bottomBorder = x !== 3 ? "border-b sm:border-b-2" : "";
-          const moveColor = getMoveColor(x, y);
+          const moveColor = ""; //getMoveColor(x, y);
           // makes the transparecy effect on LastMove squares not look weird
           // on the corners
           const cornerBorderDict: { [key: number]: string } = {

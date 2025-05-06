@@ -102,24 +102,28 @@ export default function Game() {
       boardColor: "dark",
       playerHome: "black",
       grid: [...initialGrid],
+      lastMove: null,
     },
     {
       id: 1,
       boardColor: "light",
       playerHome: "black",
       grid: [...initialGrid],
+      lastMove: null,
     },
     {
       id: 2,
       boardColor: "light",
       playerHome: "white",
       grid: [...initialGrid],
+      lastMove: null,
     },
     {
       id: 3,
       boardColor: "dark",
       playerHome: "white",
       grid: [...initialGrid],
+      lastMove: null,
     },
   ];
 
