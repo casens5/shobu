@@ -69,7 +69,10 @@ export type LastMoveType = {
   to: BoardCoordinates;
   isPush: boolean;
 };
-export type PlayerColor = "black" | "white";
+export enum PlayerColor {
+  BLACK,
+  WHITE,
+}
 export type BoardColor = "dark" | "light";
 export type BoardId = 0 | 1 | 2 | 3;
 export enum Direction {
@@ -112,22 +115,44 @@ export enum MoveCondition {
   WRONGCOLOR,
   CHANGEPASSIVE,
 }
-export type NewMove = MoveContent | MoveUndo;
+export type GameEngineAction =
+  | MoveStoneAction
+  | DisplayErrorAction
+  | DrawAction
+  | ConcedeAction;
 
-type MoveContent = {
-  type: "move";
+export type MoveStoneAction = {
+  type: ActionType.MOVESTONE;
   boardId: BoardId;
-  direction: Direction;
-  length: Length;
-  stoneId: StoneId;
-  origin: [Coord, Coord];
-  destination: [Coord, Coord];
+  color: PlayerColor;
+  origin: BoardCoordinates;
+  destination: BoardCoordinates;
 };
 
-type MoveUndo = {
-  type: "undo";
-  boardId: BoardId;
+export type DisplayErrorAction = {
+  type: ActionType.DISPLAYERROR;
+  color: PlayerColor;
+  boardMessage: BoardMessage;
 };
+
+export type DrawAction = {
+  type: ActionType.DRAW;
+  color: PlayerColor;
+  boardMessage: BoardMessage;
+};
+
+export type ConcedeAction = {
+  type: ActionType.CONCEDE;
+  color: PlayerColor;
+  boardMessage: BoardMessage;
+};
+
+export enum ActionType {
+  MOVESTONE,
+  DISPLAYERROR,
+  DRAW,
+  CONCEDE,
+}
 
 export enum BoardMessage {
   MOVETOOLONG,

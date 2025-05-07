@@ -7,11 +7,15 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { StoneId, StoneObject } from "../types";
+import { StoneId, PlayerColor, StoneObject } from "../types";
 
 type StoneProps = StoneObject & {
   containerWidth: number;
-  handleStoneMove: (id: StoneId, newPosition: [number, number]) => void;
+  handleStoneMove: (
+    id: StoneId,
+    color: PlayerColor,
+    newPosition: [number, number],
+  ) => void;
 };
 
 function getEventPosition(
@@ -54,9 +58,9 @@ export default function Stone({
     (e: globalThis.MouseEvent | globalThis.TouchEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      handleStoneMove(id, getEventPosition(e));
+      handleStoneMove(id, color, getEventPosition(e));
     },
-    [id, handleStoneMove],
+    [id, color, handleStoneMove],
   );
 
   const handleMove = useCallback(
@@ -109,8 +113,8 @@ export default function Stone({
         className={clsx(
           "aspect-square h-auto max-h-20 w-full max-w-20 touch-none rounded-full shadow-lg",
           {
-            "stone-black": color === "black",
-            "stone-white": color === "white",
+            "stone-black": color === PlayerColor.BLACK,
+            "stone-white": color === PlayerColor.WHITE,
           },
         )}
       />

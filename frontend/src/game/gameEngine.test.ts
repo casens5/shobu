@@ -7,15 +7,18 @@ import gameEngine, {
   switchPlayer,
   isMoveLegal,
   gameStateCopy,
+  blankGrid,
+  initialGrid,
+  initialGameState,
 } from "./gameEngine";
 import {
+  ActionType,
   BoardCoordinates,
   BoardId,
   BoardMessage,
-  BoardsType,
   Direction,
-  GameStateType,
-  GridType,
+  DisplayErrorAction,
+  MoveStoneAction,
   PlayerColor,
   StoneObject,
 } from "../types";
@@ -31,8 +34,8 @@ test("getMoveLength works", () => {
 });
 
 test("switchPlayer works", () => {
-  expect(switchPlayer("white")).toBe("black");
-  expect(switchPlayer("black")).toBe("white");
+  expect(switchPlayer(PlayerColor.WHITE)).toBe(PlayerColor.BLACK);
+  expect(switchPlayer(PlayerColor.BLACK)).toBe(PlayerColor.WHITE);
 });
 
 test("getMoveDirection works", () => {
@@ -49,107 +52,41 @@ test("getMoveDirection works", () => {
   expect(() => getMoveDirection(origin, destination)).toThrow();
 });
 
-const blankGrid = [
-  [null, null, null, null],
-  [null, null, null, null],
-  [null, null, null, null],
-  [null, null, null, null],
-] as GridType;
-const initialGrid = [
-  [
-    { id: 0, color: "black", canMove: false },
-    null,
-    null,
-    { id: 4, color: "white", canMove: false },
-  ],
-  [
-    { id: 1, color: "black", canMove: false },
-    null,
-    null,
-    { id: 5, color: "white", canMove: false },
-  ],
-  [
-    { id: 2, color: "black", canMove: false },
-    null,
-    null,
-    { id: 6, color: "white", canMove: false },
-  ],
-  [
-    { id: 3, color: "black", canMove: false },
-    null,
-    null,
-    { id: 7, color: "white", canMove: false },
-  ],
-] as GridType;
-const initialBoards = [
-  {
-    id: 0,
-    boardColor: "dark",
-    playerHome: "black",
-    grid: [...initialGrid],
-    lastMove: null,
-  },
-  {
-    id: 1,
-    boardColor: "light",
-    playerHome: "black",
-    grid: [...initialGrid],
-    lastMove: null,
-  },
-  {
-    id: 2,
-    boardColor: "light",
-    playerHome: "white",
-    grid: [...initialGrid],
-    lastMove: null,
-  },
-  {
-    id: 3,
-    boardColor: "dark",
-    playerHome: "white",
-    grid: [...initialGrid],
-    lastMove: null,
-  },
-] as BoardsType;
-const initialGameState = {
-  boards: initialBoards,
-  moves: [],
-  playerTurn: "black",
-  winner: null,
-  boardMessage: null,
-} as GameStateType;
-
 test("isMoveLegal works", () => {
-  expect(isMoveLegal([0, 0], [0, 1], initialGrid, "black")).toBe("LEGAL");
-  expect(isMoveLegal([0, 3], [0, 3], initialGrid, "white")).toBe("LEGAL");
+  expect(isMoveLegal([0, 0], [0, 1], initialGrid, PlayerColor.BLACK)).toBe(
+    "LEGAL",
+  );
+  expect(isMoveLegal([0, 3], [0, 3], initialGrid, PlayerColor.WHITE)).toBe(
+    "LEGAL",
+  );
 
   let grid = gridCopy(initialGrid);
   let stone = { ...grid[0][0] } as StoneObject;
   grid[0][0] = null;
   grid[0][1] = stone;
-  expect(isMoveLegal([0, 1], [3, 1], grid, "black")).toBe(
+  expect(isMoveLegal([0, 1], [3, 1], grid, PlayerColor.BLACK)).toBe(
     BoardMessage.MOVETOOLONG,
   );
 
-  expect(isMoveLegal([0, 3], [1, 1], initialGrid, "white")).toBe(
+  expect(isMoveLegal([0, 3], [1, 1], initialGrid, PlayerColor.WHITE)).toBe(
     BoardMessage.MOVEKNIGHT,
   );
 
-  expect(isMoveLegal([1, 0], [0, 1], grid, "black")).toBe(
+  expect(isMoveLegal([1, 0], [0, 1], grid, PlayerColor.BLACK)).toBe(
     BoardMessage.MOVESAMECOLORBLOCKING,
   );
 
   stone = { ...grid[3][3] } as StoneObject;
   grid[3][3] = null;
   grid[0][2] = stone;
-  expect(isMoveLegal([0, 1], [0, 2], grid, "black")).toBe(
+  expect(isMoveLegal([0, 1], [0, 2], grid, PlayerColor.BLACK)).toBe(
     BoardMessage.MOVETWOSTONESBLOCKING,
   );
 
-  // @ts-expect-error intentionally disobeying the BoardCoordinates type
-  expect(() => isMoveLegal([0, 0], [0, 4], initialGrid, "black")).toThrow(
-    "move length is some kind of crazy value: 4",
-  );
+  expect(() =>
+    // @ts-expect-error intentionally disobeying the BoardCoordinates type
+    isMoveLegal([0, 0], [0, 4], initialGrid, PlayerColor.BLACK),
+  ).toThrow("move length is some kind of crazy value: 4");
 });
 
 test("checkWin works", () => {
@@ -159,7 +96,7 @@ test("checkWin works", () => {
   let stone0 = { ...initialGrid[0][0] } as StoneObject;
   grid[3][1] = stone0;
 
-  expect(checkWin(grid)).toBe("black");
+  expect(checkWin(grid)).toBe(PlayerColor.BLACK);
 
   grid = gridCopy(blankGrid);
   stone0 = { ...initialGrid[3][3] } as StoneObject;
@@ -167,13 +104,13 @@ test("checkWin works", () => {
   grid[3][3] = stone0;
   grid[3][0] = stone1;
 
-  expect(checkWin(grid)).toBe("white");
+  expect(checkWin(grid)).toBe(PlayerColor.WHITE);
 });
 
 test("gameEngine renders error messages", () => {
-  const action = {
-    type: "displayError",
-    boardId: 1,
+  const action: DisplayErrorAction = {
+    type: ActionType.DISPLAYERROR,
+    color: PlayerColor.WHITE,
     boardMessage: BoardMessage.MOVEOUTOFBOUNDS,
   };
   expect(gameEngine(initialGameState, action)).toStrictEqual({
@@ -191,10 +128,10 @@ test("gameEngine handles moveStone actions", () => {
   let gameState = gameStateCopy(initialGameState);
   gameState.boards[1].grid = gridCopy(grid);
 
-  let action = {
-    type: "moveStone",
+  let action: MoveStoneAction = {
+    type: ActionType.MOVESTONE,
     boardId: 1,
-    color: "black",
+    color: PlayerColor.BLACK,
     origin: [1, 2],
     destination: [1, 1],
   };
@@ -213,7 +150,7 @@ test("gameEngine handles moveStone actions", () => {
         origin: [1, 2] as BoardCoordinates,
         destination: [1, 1] as BoardCoordinates,
       },
-      player: "black" as PlayerColor,
+      player: PlayerColor.BLACK,
     },
   ];
   resultGameState.moves = [...moves];
@@ -223,9 +160,9 @@ test("gameEngine handles moveStone actions", () => {
   });
 
   action = {
-    type: "moveStone",
+    type: ActionType.MOVESTONE,
     boardId: 2,
-    color: "white",
+    color: PlayerColor.WHITE,
     origin: [0, 3],
     destination: [0, 3],
   };

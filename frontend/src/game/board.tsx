@@ -12,6 +12,7 @@ import {
   StoneObject,
   BoardMessage,
   BoardCoordinates,
+  ActionType,
 } from "../types";
 import { useState, useEffect, useRef } from "react";
 
@@ -24,7 +25,11 @@ type CellProps = {
   row: Coord;
   col: Coord;
   onMouseDownAction: () => void;
-  handleStoneMove: (id: StoneId, newPosition: [number, number]) => void;
+  handleStoneMove: (
+    id: StoneId,
+    color: PlayerColor,
+    newPosition: [number, number],
+  ) => void;
   className?: string;
 };
 
@@ -103,7 +108,11 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
     right: 0,
   });
 
-  function handleStoneMove(stoneId: StoneId, newPosition: [number, number]) {
+  function handleStoneMove(
+    stoneId: StoneId,
+    color: PlayerColor,
+    newPosition: [number, number],
+  ) {
     const destination = [
       Math.floor(
         (4 * (newPosition[0] - boardDimensions.left)) /
@@ -121,8 +130,8 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
       destination[1] < 0
     ) {
       dispatch({
-        type: "displayError",
-        boardId: id,
+        type: ActionType.DISPLAYERROR,
+        playerColor: color,
         boardMessage: BoardMessage.MOVEOUTOFBOUNDS,
       });
       return null; // exit; move is out of bounds
@@ -130,12 +139,10 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
 
     // get previous stone coordinates by its id
     let origin = null;
-    let color = null;
     for (let colIndex = 0; colIndex < grid.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < grid[colIndex].length; rowIndex++) {
         if (grid[colIndex][rowIndex]?.id === stoneId) {
           origin = [colIndex, rowIndex] as BoardCoordinates;
-          color = grid[colIndex][rowIndex]?.color as PlayerColor;
           break;
         }
       }
@@ -147,9 +154,9 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
       return null;
     }
     dispatch({
-      type: "moveStone",
+      type: ActionType.MOVESTONE,
       boardId: id,
-      color: color!,
+      color: color,
       origin: origin as BoardCoordinates,
       destination: destination,
     });
@@ -224,8 +231,9 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
               onMouseDownAction={() => {
                 dispatch({
-                  type: "displayError",
-                  boardMessage: "baba",
+                  type: ActionType.DISPLAYERROR,
+                  color: cell?.color,
+                  boardMessage: BoardMessage.MOVECLEARERROR,
                 });
               }}
             />

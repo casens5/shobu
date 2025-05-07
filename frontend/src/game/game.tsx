@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Board from "./board";
-import GameEngine from "./gameEngine";
+import GameEngine, { initialBoards } from "./gameEngine";
 import { useReducer, ReactNode } from "react";
 import { PlayerColor, BoardMessage } from "../types";
 
@@ -9,7 +9,11 @@ type TurnIndicatorProps = {
 };
 
 function TurnIndicator({ playerTurn }: TurnIndicatorProps) {
-  return <div className="mb-4 text-center">{playerTurn}&apos;s turn</div>;
+  return (
+    <div className="mb-4 text-center">
+      {playerTurn === PlayerColor.BLACK ? "black" : "white"}&apos;s turn
+    </div>
+  );
 }
 
 type WinIndicatorProps = {
@@ -21,10 +25,12 @@ function WinIndicator({ playerWin }: WinIndicatorProps) {
 }
 
 type ErrorMessageProps = {
-  message: BoardMessage;
+  message: BoardMessage | null;
 };
 
 function ErrorMessage({ message }: ErrorMessageProps) {
+  const recievedMessage =
+    message == null ? BoardMessage.MOVECLEARERROR : message;
   const messages: { [key in BoardMessage]?: string } = {
     [BoardMessage.MOVEUNEQUALTOPASSIVEMOVE]:
       "your active move must be the same direction and distance as the passive move",
@@ -44,7 +50,11 @@ function ErrorMessage({ message }: ErrorMessageProps) {
       "you must play on a opposite color board from your first move",
     [BoardMessage.MOVECLEARERROR]: "",
   };
-  return <div className="mb-4 h-10 text-center">{messages[message] || ""}</div>;
+  return (
+    <div className="mb-4 h-10 text-center">
+      {messages[recievedMessage] || ""}
+    </div>
+  );
 }
 
 type HomeAreaProps = {
@@ -58,8 +68,8 @@ function HomeArea({ color, children }: HomeAreaProps) {
       className={clsx(
         "grid grid-cols-2 gap-x-7 py-[23px] sm:gap-x-8 sm:p-[26px]",
         {
-          "bg-[#00000088] sm:rounded-t-3xl": color === "black",
-          "bg-[#ffffff22] sm:rounded-b-3xl": color === "white",
+          "bg-[#00000088] sm:rounded-t-3xl": color === PlayerColor.BLACK,
+          "bg-[#ffffff22] sm:rounded-b-3xl": color === PlayerColor.WHITE,
         },
       )}
     >
@@ -69,76 +79,16 @@ function HomeArea({ color, children }: HomeAreaProps) {
 }
 
 export default function Game() {
-  const initialGrid = [
-    [
-      { id: 0, color: "black", canMove: false },
-      null,
-      null,
-      { id: 4, color: "white", canMove: false },
-    ],
-    [
-      { id: 1, color: "black", canMove: false },
-      null,
-      null,
-      { id: 5, color: "white", canMove: false },
-    ],
-    [
-      { id: 2, color: "black", canMove: false },
-      null,
-      null,
-      { id: 6, color: "white", canMove: false },
-    ],
-    [
-      { id: 3, color: "black", canMove: false },
-      null,
-      null,
-      { id: 7, color: "white", canMove: false },
-    ],
-  ];
-
-  const initialBoards = [
-    {
-      id: 0,
-      boardColor: "dark",
-      playerHome: "black",
-      grid: [...initialGrid],
-      lastMove: null,
-    },
-    {
-      id: 1,
-      boardColor: "light",
-      playerHome: "black",
-      grid: [...initialGrid],
-      lastMove: null,
-    },
-    {
-      id: 2,
-      boardColor: "light",
-      playerHome: "white",
-      grid: [...initialGrid],
-      lastMove: null,
-    },
-    {
-      id: 3,
-      boardColor: "dark",
-      playerHome: "white",
-      grid: [...initialGrid],
-      lastMove: null,
-    },
-  ];
-
   const [{ boards, moves, playerTurn, winner, boardMessage }, dispatch] =
     useReducer(GameEngine, {
       boards: initialBoards,
       moves: [],
-      playerTurn: "black",
+      playerTurn: PlayerColor.BLACK,
       winner: null,
       boardMessage: null,
     });
 
   const [board0, board1, board2, board3] = boards;
-
-  //console.log("what", gameEngine, boards);
 
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
@@ -149,11 +99,11 @@ export default function Game() {
       )}
       <ErrorMessage message={boardMessage} />
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
-        <HomeArea color="black">
+        <HomeArea color={PlayerColor.BLACK}>
           <Board {...board0} dispatch={dispatch} />
           <Board {...board1} dispatch={dispatch} />
         </HomeArea>
-        <HomeArea color="white">
+        <HomeArea color={PlayerColor.WHITE}>
           <Board {...board2} dispatch={dispatch} />
           <Board {...board3} dispatch={dispatch} />
         </HomeArea>

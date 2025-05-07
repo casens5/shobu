@@ -2,15 +2,88 @@ import { coordinateToId } from "./board";
 import {
   PlayerColor,
   BoardMessage,
-  Coord,
   GridType,
   BoardCoordinates,
   Direction,
   Length,
-  BoardType,
   BoardsType,
   GameStateType,
+  GameEngineAction,
+  ActionType,
 } from "../types";
+
+export const blankGrid = [
+  [null, null, null, null],
+  [null, null, null, null],
+  [null, null, null, null],
+  [null, null, null, null],
+] as GridType;
+
+export const initialGrid = [
+  [
+    { id: 0, color: PlayerColor.BLACK, canMove: false },
+    null,
+    null,
+    { id: 4, color: PlayerColor.WHITE, canMove: false },
+  ],
+  [
+    { id: 1, color: PlayerColor.BLACK, canMove: false },
+    null,
+    null,
+    { id: 5, color: PlayerColor.WHITE, canMove: false },
+  ],
+  [
+    { id: 2, color: PlayerColor.BLACK, canMove: false },
+    null,
+    null,
+    { id: 6, color: PlayerColor.WHITE, canMove: false },
+  ],
+  [
+    { id: 3, color: PlayerColor.BLACK, canMove: false },
+    null,
+    null,
+    { id: 7, color: PlayerColor.WHITE, canMove: false },
+  ],
+] as GridType;
+
+export const initialBoards = [
+  {
+    id: 0,
+    boardColor: "dark",
+    playerHome: PlayerColor.BLACK,
+    grid: [...initialGrid],
+    lastMove: null,
+  },
+  {
+    id: 1,
+    boardColor: "light",
+    playerHome: PlayerColor.BLACK,
+    grid: [...initialGrid],
+    lastMove: null,
+  },
+  {
+    id: 2,
+    boardColor: "light",
+    playerHome: PlayerColor.WHITE,
+    grid: [...initialGrid],
+    lastMove: null,
+  },
+  {
+    id: 3,
+    boardColor: "dark",
+    playerHome: PlayerColor.WHITE,
+    grid: [...initialGrid],
+    lastMove: null,
+  },
+] as BoardsType;
+
+export const initialGameState = {
+  boards: initialBoards,
+  moves: [],
+  playerTurn: PlayerColor.BLACK,
+  winner: null,
+  boardMessage: null,
+} as GameStateType;
 
 export function getMoveLength(
   a: BoardCoordinates,
@@ -41,7 +114,7 @@ export function gameStateCopy(gameState: GameStateType) {
 }
 
 export function switchPlayer(player: PlayerColor) {
-  return player === "white" ? "black" : "white";
+  return player === PlayerColor.WHITE ? PlayerColor.BLACK : PlayerColor.WHITE;
 }
 
 export function getMoveDirection(
@@ -166,26 +239,32 @@ export function isMoveLegal(
 
 export function checkWin(boardGrid: GridType): PlayerColor | null {
   if (
-    !boardGrid.some((row) => row.some((cell) => cell && cell.color === "black"))
+    !boardGrid.some((row) =>
+      row.some((cell) => cell && cell.color === PlayerColor.BLACK),
+    )
   ) {
-    return "white";
+    return PlayerColor.WHITE;
   }
   if (
-    !boardGrid.some((row) => row.some((cell) => cell && cell.color === "white"))
+    !boardGrid.some((row) =>
+      row.some((cell) => cell && cell.color === PlayerColor.WHITE),
+    )
   ) {
-    return "black";
+    return PlayerColor.BLACK;
   }
   return null;
 }
 
-//@ts-ignore
-export default function GameEngine(gameState, action) {
+export default function GameEngine(
+  gameState: GameStateType,
+  action: GameEngineAction,
+) {
   // default to clearing the boardMessage
   const newGameState = { ...gameState, boardMessage: null };
   const newMoves = gameState.moves.slice();
 
   switch (action.type) {
-    case "moveStone": {
+    case ActionType.MOVESTONE: {
       const isLegalMessage = isMoveLegal(
         action.origin,
         action.destination,
@@ -194,12 +273,15 @@ export default function GameEngine(gameState, action) {
       );
 
       if (isLegalMessage !== "LEGAL") {
-        return { ...newGameState, boardMessage: isLegalMessage };
+        return {
+          ...newGameState,
+          boardMessage: isLegalMessage as BoardMessage,
+        };
       }
 
       if (
-        (newMoves.length % 2 === 0 && action.color === "white") ||
-        (newMoves.length % 2 === 1 && action.color === "black")
+        (newMoves.length % 2 === 0 && action.color === PlayerColor.WHITE) ||
+        (newMoves.length % 2 === 1 && action.color === PlayerColor.BLACK)
       ) {
         // can't move the other color stones / turn error
         return { ...newGameState };
@@ -272,10 +354,7 @@ export default function GameEngine(gameState, action) {
       newGrid[action.origin[0]][action.origin[1]] = null;
       newGrid[action.destination[0]][action.destination[1]] = stone;
 
-      const newBoards = gameState.boards.map(
-        (board: BoardType, index: Coord) =>
-          index === action.boardId ? { ...board, grid: newGrid } : board,
-      );
+      const newBoards = boardsCopy(gameState.boards);
       newBoards[action.boardId].grid = newGrid;
       const move = {
         player: action.color,
@@ -296,7 +375,7 @@ export default function GameEngine(gameState, action) {
       } else {
         // active
         if (checkWin(newGrid)) {
-          return { ...newGameState, boardMessage: "baba" };
+          return { ...newGameState, boardMessage: BoardMessage.MOVECLEARERROR };
         }
         return {
           ...newGameState,
@@ -310,16 +389,19 @@ export default function GameEngine(gameState, action) {
       //return { ...newGameState };
     }
 
-    case "displayError": {
-      return { ...newGameState, boardMessage: action.boardMessage };
+    case ActionType.DISPLAYERROR: {
+      return {
+        ...newGameState,
+        boardMessage: action.boardMessage as BoardMessage,
+      };
     }
 
-    case "draw": {
-      return { ...newGameState, boardMessage: "baba" };
+    case ActionType.DRAW: {
+      return { ...newGameState, boardMessage: null };
     }
 
-    case "concede": {
-      return { ...newGameState, boardMessage: "baba" };
+    case ActionType.CONCEDE: {
+      return { ...newGameState, boardMessage: null };
     }
 
     default: {
