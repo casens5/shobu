@@ -90,8 +90,6 @@ type BoardProps = {
 };
 
 export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
-  // record the last player's moves
-
   if (id > 10) {
     console.log("hi");
   }

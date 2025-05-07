@@ -10,7 +10,6 @@ import {
   BoardType,
   BoardsType,
   GameStateType,
-  StoneObject,
 } from "../types";
 
 export function getMoveLength(
@@ -21,7 +20,7 @@ export function getMoveLength(
 }
 
 export function gridCopy(grid: GridType) {
-  return grid.map((row) => [ ...row, ]) as GridType
+  return grid.map((row) => [...row]) as GridType;
 }
 
 export function boardsCopy(boards: BoardsType) {
@@ -29,12 +28,16 @@ export function boardsCopy(boards: BoardsType) {
     { ...boards[0], grid: gridCopy(boards[0].grid) },
     { ...boards[1], grid: gridCopy(boards[1].grid) },
     { ...boards[2], grid: gridCopy(boards[2].grid) },
-    { ...boards[3], grid: gridCopy(boards[3].grid) }
-  ] as BoardsType
+    { ...boards[3], grid: gridCopy(boards[3].grid) },
+  ] as BoardsType;
 }
 
 export function gameStateCopy(gameState: GameStateType) {
-  return { ...gameState, boards: boardsCopy(gameState.boards), moves: [...gameState.moves]}
+  return {
+    ...gameState,
+    boards: boardsCopy(gameState.boards),
+    moves: [...gameState.moves],
+  };
 }
 
 export function switchPlayer(player: PlayerColor) {
@@ -47,7 +50,10 @@ export function getMoveDirection(
 ): Direction {
   const xMove = Math.abs(origin[0] - destination[0]);
   const yMove = Math.abs(origin[1] - destination[1]);
-  if ((xMove === 0 && yMove === 0) || (xMove > 0 && yMove > 0 && xMove !== yMove)) {
+  if (
+    (xMove === 0 && yMove === 0) ||
+    (xMove > 0 && yMove > 0 && xMove !== yMove)
+  ) {
     // only allow pure othogonal / diagonal moves
     throw new Error(`invalid direction: ${origin}, ${destination}`);
   }
@@ -109,7 +115,7 @@ export function isMoveLegal(
   const moveLength = length as Length;
 
   try {
-    (getMoveDirection(origin, destination))
+    getMoveDirection(origin, destination);
   } catch (error) {
     // only allow orthogonal or diagonal moves, no knight moves
     return BoardMessage.MOVEKNIGHT;
@@ -230,7 +236,7 @@ export default function GameEngine(gameState, action) {
       }
 
       //@ts-ignore
-      const newGrid = gridCopy(gameState.boards[action.boardId].grid)
+      const newGrid = gridCopy(gameState.boards[action.boardId].grid);
 
       const stone = newGrid[action.origin[0]][action.origin[1]];
 
