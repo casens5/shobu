@@ -17,6 +17,10 @@ export function getMoveLength(
   return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
 }
 
+export function gridCopy(grid: GridType) {
+  return grid.map((row) => [ ...row, ]) as GridType
+}
+
 export function switchPlayer(player: PlayerColor) {
   return player === "white" ? "black" : "white";
 }
@@ -25,8 +29,15 @@ export function getMoveDirection(
   origin: BoardCoordinates,
   destination: BoardCoordinates,
 ): Direction {
+  const xMove = Math.abs(origin[0] - destination[0]);
+  const yMove = Math.abs(origin[1] - destination[1]);
+  if ((xMove === 0 && yMove === 0) || (xMove > 0 && yMove > 0 && xMove !== yMove)) {
+    // only allow pure othogonal / diagonal moves
+    throw new Error(`invalid direction: ${origin}, ${destination}`);
+  }
+
   // north/south movement
-  if (origin[0] === destination[0]) {
+  if (xMove === 0) {
     if (origin[1] > destination[1]) {
       return Direction.N;
     } else {
@@ -34,7 +45,7 @@ export function getMoveDirection(
     }
   }
   // east/west movement
-  if (origin[1] === destination[1]) {
+  if (yMove === 0) {
     if (origin[0] < destination[0]) {
       return Direction.E;
     } else {
@@ -52,12 +63,14 @@ export function getMoveDirection(
     return Direction.SW;
   }
 
-  console.error(`invalid direction: ${origin}, ${destination}`);
-  return Direction.N;
+  // this shouldn't even be possible
+  throw new Error(
+    `extremely cursed invalid direction: ${origin}, ${destination}`,
+  );
 }
 
 // checks that a move is legal locally on board, including direction, length, and pushing stones
-function isMoveLegal(
+export function isMoveLegal(
   origin: BoardCoordinates,
   destination: BoardCoordinates,
   boardGrid: GridType,
@@ -66,11 +79,11 @@ function isMoveLegal(
   const length = getMoveLength(origin, destination);
 
   if ([0, 1, 2, 3].includes(length) !== true) {
-    console.error(`move length is some kind of crazy value.  value: ${length}`);
-    return BoardMessage.MOVEILLEGAL;
+    throw new Error(`move length is some kind of crazy value: ${length}`);
   }
-  // player selected and de-selected the stone
+
   if (length === 0) {
+    // player selected and de-selected the stone
     return "LEGAL";
   }
   if (length === 3) {
@@ -78,16 +91,11 @@ function isMoveLegal(
   }
 
   const moveLength = length as Length;
-  const direction = getMoveDirection(origin, destination);
-  direction;
 
-  // only allow orthogonal or diagonal moves, no knight moves
-  const xMove = Math.abs(origin[0] - destination[0]);
-  const yMove = Math.abs(origin[1] - destination[1]);
-  if (
-    !(xMove === 0 || xMove === moveLength) ||
-    !(yMove === 0 || yMove === moveLength)
-  ) {
+  try {
+    (getMoveDirection(origin, destination))
+  } catch (error) {
+    // only allow orthogonal or diagonal moves, no knight moves
     return BoardMessage.MOVEKNIGHT;
   }
 
@@ -113,28 +121,28 @@ function isMoveLegal(
     ? boardGrid[betweenCoords[0]][betweenCoords[1]]
     : null;
 
-  // can't push your own stone(s)
   if (
     (destinationSquare != null && destinationSquare.color === playerTurn) ||
     (intermediarySquare != null && intermediarySquare.color === playerTurn)
   ) {
+    // can't push your own stone(s)
     return BoardMessage.MOVESAMECOLORBLOCKING;
   }
 
-  // can't push 2 stones in a row
   if (
     Number(intermediarySquare != null) +
       Number(destinationSquare != null) +
       Number(pushDestination != null) >
     1
   ) {
+    // can't push 2 stones in a row
     return BoardMessage.MOVETWOSTONESBLOCKING;
   }
 
   return "LEGAL";
 }
 
-function checkWin(boardGrid: GridType): PlayerColor | null {
+export function checkWin(boardGrid: GridType): PlayerColor | null {
   if (
     !boardGrid.some((row) => row.some((cell) => cell && cell.color === "black"))
   ) {
@@ -206,9 +214,7 @@ export default function GameEngine(gameState, action) {
       }
 
       //@ts-ignore
-      const newGrid = gameState.boards[action.boardId].grid.map((row) => [
-        ...row,
-      ]);
+      const newGrid = gridCopy(gameState.boards[action.boardId].grid)
 
       const stone = newGrid[action.origin[0]][action.origin[1]];
 
@@ -264,7 +270,6 @@ export default function GameEngine(gameState, action) {
         gameState.moves.length === 0 ||
         gameState.moves[gameState.moves.length - 1].secondMove
       ) {
-        console.log("hello my baby", newMoves);
         return { ...newGameState, boards: newBoards, moves: newMoves };
       } else {
         // active
