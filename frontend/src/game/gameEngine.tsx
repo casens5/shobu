@@ -8,6 +8,9 @@ import {
   Direction,
   Length,
   BoardType,
+  BoardsType,
+  GameStateType,
+  StoneObject,
 } from "../types";
 
 export function getMoveLength(
@@ -19,6 +22,19 @@ export function getMoveLength(
 
 export function gridCopy(grid: GridType) {
   return grid.map((row) => [ ...row, ]) as GridType
+}
+
+export function boardsCopy(boards: BoardsType) {
+  return [
+    { ...boards[0], grid: gridCopy(boards[0].grid) },
+    { ...boards[1], grid: gridCopy(boards[1].grid) },
+    { ...boards[2], grid: gridCopy(boards[2].grid) },
+    { ...boards[3], grid: gridCopy(boards[3].grid) }
+  ] as BoardsType
+}
+
+export function gameStateCopy(gameState: GameStateType) {
+  return { ...gameState, boards: boardsCopy(gameState.boards), moves: [...gameState.moves]}
 }
 
 export function switchPlayer(player: PlayerColor) {

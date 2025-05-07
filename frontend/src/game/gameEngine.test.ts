@@ -6,12 +6,17 @@ import gameEngine, {
   checkWin,
   switchPlayer,
   isMoveLegal,
+  gameStateCopy,
 } from "./gameEngine";
 import {
   BoardCoordinates,
+  BoardId,
   BoardMessage,
+  BoardsType,
   Direction,
+  GameStateType,
   GridType,
+  PlayerColor,
   StoneObject,
 } from "../types";
 
@@ -105,14 +110,14 @@ const initialBoards = [
     grid: [...initialGrid],
     lastMove: null,
   },
-];
-const gameState = {
+] as BoardsType;
+const initialGameState = {
   boards: initialBoards,
   moves: [],
   playerTurn: "black",
   winner: null,
   boardMessage: null,
-};
+} as GameStateType;
 
 test("isMoveLegal works", () => {
   expect(isMoveLegal([0, 0], [0, 1], initialGrid, "black")).toBe("LEGAL");
@@ -171,8 +176,61 @@ test("gameEngine renders error messages", () => {
     boardId: 1,
     boardMessage: BoardMessage.MOVEOUTOFBOUNDS,
   };
-  expect(gameEngine(gameState, action)).toStrictEqual({
-    ...gameState,
+  expect(gameEngine(initialGameState, action)).toStrictEqual({
+    ...initialGameState,
     boardMessage: BoardMessage.MOVEOUTOFBOUNDS,
+  });
+});
+
+test("gameEngine handles moveStone actions", () => {
+  let grid = gridCopy(blankGrid);
+  let stone0 = { ...initialGrid[2][0] } as StoneObject;
+  let stone1 = { ...initialGrid[3][3] } as StoneObject;
+  grid[1][2] = stone0;
+  grid[1][0] = stone1;
+  let gameState = gameStateCopy(initialGameState);
+  gameState.boards[1].grid = gridCopy(grid);
+
+  let action = {
+    type: "moveStone",
+    boardId: 1,
+    color: "black",
+    origin: [1, 2],
+    destination: [1, 1],
+  };
+
+  let resultGrid = gridCopy(grid);
+  resultGrid[1][1] = resultGrid[1][2];
+  resultGrid[1][2] = null;
+  let resultGameState = gameStateCopy(gameState);
+  resultGameState.boards[1].grid = gridCopy(resultGrid);
+
+  let moves = [
+    {
+      firstMove: {
+        boardId: 1 as BoardId,
+        isPush: false,
+        origin: [1, 2] as BoardCoordinates,
+        destination: [1, 1] as BoardCoordinates,
+      },
+      player: "black" as PlayerColor,
+    },
+  ];
+  resultGameState.moves = [...moves];
+
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...resultGameState,
+  });
+
+  action = {
+    type: "moveStone",
+    boardId: 2,
+    color: "white",
+    origin: [0, 3],
+    destination: [0, 3],
+  };
+
+  expect(gameEngine(initialGameState, action)).toStrictEqual({
+    ...initialGameState,
   });
 });

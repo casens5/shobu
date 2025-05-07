@@ -1,7 +1,21 @@
-import { RefObject } from "react";
-
 export type BoardCoordinates = [Coord, Coord];
-export type CoordinateId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+export type CoordinateId =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15;
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StoneObject = {
   id: StoneId;
@@ -42,6 +56,14 @@ export type BoardType = {
   grid: GridType;
   lastMove: LastMoveType | null;
 };
+export type BoardsType = [BoardType, BoardType, BoardType, BoardType];
+export type GameStateType = {
+  boards: BoardsType;
+  moves: MoveRecord[];
+  playerTurn: PlayerColor;
+  winner: PlayerColor | null;
+  boardMessage: BoardMessage | null;
+};
 export type LastMoveType = {
   from: BoardCoordinates;
   to: BoardCoordinates;
@@ -62,25 +84,25 @@ export enum Direction {
 }
 export type Length = 1 | 2;
 export type MoveRecord = {
-  playerColor: PlayerColor;
+  player: PlayerColor;
   firstMove: {
     boardId: BoardId;
-    direction: Direction;
-    length: Length;
-    stoneId: StoneId;
+    isPush: boolean;
+    origin: BoardCoordinates;
+    destination: BoardCoordinates;
   };
   secondMove?: {
     boardId: BoardId;
-    direction: Direction;
-    length: Length;
-    stoneId: StoneId;
+    isPush: boolean;
+    origin: BoardCoordinates;
+    destination: BoardCoordinates;
   };
 };
 export type MoveType = {
-  direction: Direction;
-  length: Length;
-  origin: [Coord, Coord];
-  destination: [Coord, Coord];
+  boardId: BoardId;
+  isPush: boolean;
+  origin: BoardCoordinates;
+  destination: BoardCoordinates;
 };
 export enum MoveCondition {
   ISACTIVE,
