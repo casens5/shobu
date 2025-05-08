@@ -2,11 +2,9 @@ import { expect, test } from "vitest";
 import gameEngine, {
   getMoveDirection,
   getMoveLength,
-  gridCopy,
   checkWin,
   switchPlayer,
   isMoveLegal,
-  gameStateCopy,
   blankGrid,
   initialGrid,
   initialGameState,
@@ -60,8 +58,8 @@ test("isMoveLegal works", () => {
     "LEGAL",
   );
 
-  let grid = gridCopy(initialGrid);
-  let stone = { ...grid[0][0] } as StoneObject;
+  let grid = structuredClone(initialGrid);
+  let stone = structuredClone(grid[0][0]) as StoneObject;
   grid[0][0] = null;
   grid[0][1] = stone;
   expect(isMoveLegal([0, 1], [3, 1], grid, PlayerColor.BLACK)).toBe(
@@ -76,7 +74,7 @@ test("isMoveLegal works", () => {
     BoardMessage.MOVESAMECOLORBLOCKING,
   );
 
-  stone = { ...grid[3][3] } as StoneObject;
+  stone = structuredClone(grid[3][3]) as StoneObject;
   grid[3][3] = null;
   grid[0][2] = stone;
   expect(isMoveLegal([0, 1], [0, 2], grid, PlayerColor.BLACK)).toBe(
@@ -92,15 +90,15 @@ test("isMoveLegal works", () => {
 test("checkWin works", () => {
   expect(checkWin(initialGrid)).toBe(null);
 
-  let grid = gridCopy(blankGrid);
-  let stone0 = { ...initialGrid[0][0] } as StoneObject;
+  let grid = structuredClone(blankGrid);
+  let stone0 = structuredClone(initialGrid[0][0]) as StoneObject;
   grid[3][1] = stone0;
 
   expect(checkWin(grid)).toBe(PlayerColor.BLACK);
 
-  grid = gridCopy(blankGrid);
-  stone0 = { ...initialGrid[3][3] } as StoneObject;
-  let stone1 = { ...initialGrid[0][3] } as StoneObject;
+  grid = structuredClone(blankGrid);
+  stone0 = structuredClone(initialGrid[3][3]) as StoneObject;
+  let stone1 = structuredClone(initialGrid[0][3]) as StoneObject;
   grid[3][3] = stone0;
   grid[3][0] = stone1;
 
@@ -120,13 +118,13 @@ test("gameEngine renders error messages", () => {
 });
 
 test("gameEngine handles moveStone actions", () => {
-  let grid = gridCopy(blankGrid);
-  let stone0 = { ...initialGrid[2][0] } as StoneObject;
-  let stone1 = { ...initialGrid[3][3] } as StoneObject;
+  let grid = structuredClone(blankGrid);
+  let stone0 = structuredClone(initialGrid[2][0]) as StoneObject;
+  let stone1 = structuredClone(initialGrid[3][3]) as StoneObject;
   grid[1][2] = stone0;
   grid[1][0] = stone1;
-  let gameState = gameStateCopy(initialGameState);
-  gameState.boards[1].grid = gridCopy(grid);
+  let gameState = structuredClone(initialGameState);
+  gameState.boards[1].grid = structuredClone(grid);
 
   let action: MoveStoneAction = {
     type: ActionType.MOVESTONE,
@@ -136,11 +134,11 @@ test("gameEngine handles moveStone actions", () => {
     destination: [1, 1],
   };
 
-  let resultGrid = gridCopy(grid);
+  let resultGrid = structuredClone(grid);
   resultGrid[1][1] = resultGrid[1][2];
   resultGrid[1][2] = null;
-  let resultGameState = gameStateCopy(gameState);
-  resultGameState.boards[1].grid = gridCopy(resultGrid);
+  let resultGameState = structuredClone(gameState);
+  resultGameState.boards[1].grid = structuredClone(resultGrid);
 
   let moves = [
     {
@@ -153,7 +151,7 @@ test("gameEngine handles moveStone actions", () => {
       player: PlayerColor.BLACK,
     },
   ];
-  resultGameState.moves = [...moves];
+  resultGameState.moves = structuredClone(moves);
 
   // standard legal move
   expect(gameEngine(gameState, action)).toStrictEqual({
@@ -188,7 +186,7 @@ test("gameEngine handles moveStone actions", () => {
     boardMessage: BoardMessage.MOVENOTYOURPIECE,
   });
 
-  let gameState1 = gameStateCopy(initialGameState);
+  let gameState1 = structuredClone(initialGameState);
   gameState1.playerTurn = switchPlayer(gameState1.playerTurn);
 
   action = {

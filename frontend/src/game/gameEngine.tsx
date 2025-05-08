@@ -52,60 +52,39 @@ export const initialBoards = [
     id: 0,
     boardColor: "dark",
     playerHome: PlayerColor.BLACK,
-    grid: [...initialGrid],
+    grid: structuredClone(initialGrid),
     lastMove: null,
   },
   {
     id: 1,
     boardColor: "light",
     playerHome: PlayerColor.BLACK,
-    grid: [...initialGrid],
+    grid: structuredClone(initialGrid),
     lastMove: null,
   },
   {
     id: 2,
     boardColor: "light",
     playerHome: PlayerColor.WHITE,
-    grid: [...initialGrid],
+    grid: structuredClone(initialGrid),
     lastMove: null,
   },
   {
     id: 3,
     boardColor: "dark",
     playerHome: PlayerColor.WHITE,
-    grid: [...initialGrid],
+    grid: structuredClone(initialGrid),
     lastMove: null,
   },
 ] as BoardsType;
 
 export const initialGameState = {
-  boards: initialBoards,
+  boards: structuredClone(initialBoards),
   moves: [],
   playerTurn: PlayerColor.BLACK,
   winner: null,
   boardMessage: null,
 } as GameStateType;
-
-export function gridCopy(grid: GridType) {
-  return grid.map((row) => [...row]) as GridType;
-}
-
-export function boardsCopy(boards: BoardsType) {
-  return [
-    { ...boards[0], grid: gridCopy(boards[0].grid) },
-    { ...boards[1], grid: gridCopy(boards[1].grid) },
-    { ...boards[2], grid: gridCopy(boards[2].grid) },
-    { ...boards[3], grid: gridCopy(boards[3].grid) },
-  ] as BoardsType;
-}
-
-export function gameStateCopy(gameState: GameStateType) {
-  return {
-    ...gameState,
-    boards: boardsCopy(gameState.boards),
-    moves: [...gameState.moves],
-  };
-}
 
 export function switchPlayer(player: PlayerColor) {
   return player === PlayerColor.WHITE ? PlayerColor.BLACK : PlayerColor.WHITE;
@@ -261,7 +240,8 @@ export default function GameEngine(
   action: GameEngineAction,
 ) {
   // default to clearing the boardMessage
-  const newGameState = { ...gameState, boardMessage: null };
+  const newGameState = structuredClone(gameState);
+  newGameState.boardMessage = null;
   const newMoves = gameState.moves.slice();
 
   switch (action.type) {
@@ -285,11 +265,11 @@ export default function GameEngine(
         return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURTURN };
       }
 
-      const stone = {
-        ...gameState.boards[action.boardId].grid[action.origin[0]][
+      const stone = structuredClone(
+        gameState.boards[action.boardId].grid[action.origin[0]][
           action.origin[1]
         ],
-      };
+      );
       if (stone == null) {
         throw new Error(`stone does not exist at origin ${action.origin}`);
       }
@@ -331,7 +311,7 @@ export default function GameEngine(
       }
 
       //@ts-ignore
-      const newGrid = gridCopy(gameState.boards[action.boardId].grid);
+      const newGrid = structuredClone(gameState.boards[action.boardId].grid);
 
       const moveLength = getMoveLength(action.origin, action.destination);
       const betweenCoords =
@@ -365,7 +345,7 @@ export default function GameEngine(
       newGrid[action.origin[0]][action.origin[1]] = null;
       newGrid[action.destination[0]][action.destination[1]] = movedStone;
 
-      const newBoards = boardsCopy(gameState.boards);
+      const newBoards = structuredClone(gameState.boards);
       newBoards[action.boardId].grid = newGrid;
       const move = {
         player: action.color,
