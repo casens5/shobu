@@ -85,13 +85,6 @@ export const initialGameState = {
   boardMessage: null,
 } as GameStateType;
 
-export function getMoveLength(
-  a: BoardCoordinates,
-  b: BoardCoordinates,
-): number {
-  return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
-}
-
 export function gridCopy(grid: GridType) {
   return grid.map((row) => [...row]) as GridType;
 }
@@ -115,6 +108,13 @@ export function gameStateCopy(gameState: GameStateType) {
 
 export function switchPlayer(player: PlayerColor) {
   return player === PlayerColor.WHITE ? PlayerColor.BLACK : PlayerColor.WHITE;
+}
+
+export function getMoveLength(
+  a: BoardCoordinates,
+  b: BoardCoordinates,
+): number {
+  return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
 }
 
 export function getMoveDirection(
