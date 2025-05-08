@@ -11,6 +11,7 @@ import {
   GameEngineAction,
   ActionType,
   StoneObject,
+  MoveStoneAction,
 } from "../types";
 
 export const blankGrid = [
@@ -384,26 +385,34 @@ export default function GameEngine(
 
       const newBoards = structuredClone(gameState.boards);
       newBoards[action.boardId].grid = newGrid;
-      const move = {
-        player: action.color,
-        firstMove: {
-          boardId: action.boardId,
-          origin: action.origin,
-          destination: action.destination,
-          isPush: pushedStone !== null,
-        },
+      const newMove = {
+        boardId: action.boardId,
+        origin: action.origin,
+        destination: action.destination,
+        isPush: pushedStone != null,
       };
-      newMoves.push(move);
 
       if (
         gameState.moves.length === 0 ||
         gameState.moves[gameState.moves.length - 1].secondMove
       ) {
+        // passive move
+        newMoves.push({
+          player: action.color,
+          firstMove: newMove,
+        });
         return { ...newGameState, boards: newBoards, moves: newMoves };
       } else {
-        // active
-        if (checkWin(newGrid)) {
-          return { ...newGameState, boardMessage: BoardMessage.MOVECLEARERROR };
+        // active move
+        newMoves[newMoves.length - 1].secondMove = newMove;
+        const winner = checkWin(newGrid);
+        if (winner != null) {
+          return {
+            ...newGameState,
+            boards: newBoards,
+            moves: newMoves,
+            winner: winner,
+          };
         }
         return {
           ...newGameState,
@@ -412,9 +421,6 @@ export default function GameEngine(
           playerTurn: switchPlayer(gameState.playerTurn),
         };
       }
-
-      // some kind of crazy error?
-      //return { ...newGameState };
     }
 
     case ActionType.DISPLAYERROR: {
@@ -425,11 +431,11 @@ export default function GameEngine(
     }
 
     case ActionType.DRAW: {
-      return { ...newGameState, boardMessage: null };
+      return { ...newGameState, winner: "DRAW" };
     }
 
     case ActionType.CONCEDE: {
-      return { ...newGameState, boardMessage: null };
+      return { ...newGameState, winner: switchPlayer(gameState.playerTurn) };
     }
 
     default: {
