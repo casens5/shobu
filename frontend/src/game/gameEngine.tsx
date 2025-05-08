@@ -10,6 +10,7 @@ import {
   GameStateType,
   GameEngineAction,
   ActionType,
+  StoneObject,
 } from "../types";
 
 export const blankGrid = [
@@ -279,12 +280,24 @@ export default function GameEngine(
         };
       }
 
-      if (
-        (newMoves.length % 2 === 0 && action.color === PlayerColor.WHITE) ||
-        (newMoves.length % 2 === 1 && action.color === PlayerColor.BLACK)
-      ) {
-        // can't move the other color stones / turn error
-        return { ...newGameState };
+      if (gameState.playerTurn !== action.color) {
+        // can't move when it's not your turn
+        return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURTURN };
+      }
+
+      const stone = {
+        ...gameState.boards[action.boardId].grid[action.origin[0]][
+          action.origin[1]
+        ],
+      };
+      if (stone == null) {
+        throw new Error(`stone does not exist at origin ${action.origin}`);
+      }
+
+      const movedStone = stone as StoneObject;
+      if (gameState.playerTurn !== movedStone.color) {
+        // can't move the other player's color stones 
+        return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
       }
 
       // clicked but didn't move stone
@@ -320,8 +333,6 @@ export default function GameEngine(
       //@ts-ignore
       const newGrid = gridCopy(gameState.boards[action.boardId].grid);
 
-      const stone = newGrid[action.origin[0]][action.origin[1]];
-
       const moveLength = getMoveLength(action.origin, action.destination);
       const betweenCoords =
         moveLength === 2
@@ -352,7 +363,7 @@ export default function GameEngine(
         newGrid[nextCoords[0]][nextCoords[1]] = pushedStone;
       }
       newGrid[action.origin[0]][action.origin[1]] = null;
-      newGrid[action.destination[0]][action.destination[1]] = stone;
+      newGrid[action.destination[0]][action.destination[1]] = movedStone;
 
       const newBoards = boardsCopy(gameState.boards);
       newBoards[action.boardId].grid = newGrid;

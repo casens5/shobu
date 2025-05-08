@@ -46,8 +46,12 @@ function ErrorMessage({ message }: ErrorMessageProps) {
       "your first move must be passive (can't push a stone)",
     [BoardMessage.MOVENOTINHOMEAREA]:
       "your first move must be passive (in your home area)",
-    [BoardMessage.MOVEWRONGCOLOR]:
+    [BoardMessage.MOVEWRONGCOLORBOARD]:
       "you must play on a opposite color board from your first move",
+    [BoardMessage.MOVENOTYOURPIECE]:
+      "you can only move pieces of your color",
+    [BoardMessage.MOVENOTYOURTURN]:
+      "it's not your turn",
     [BoardMessage.MOVECLEARERROR]: "",
   };
   return (

@@ -155,9 +155,13 @@ test("gameEngine handles moveStone actions", () => {
   ];
   resultGameState.moves = [...moves];
 
+  // standard legal move
   expect(gameEngine(gameState, action)).toStrictEqual({
     ...resultGameState,
   });
+
+  let gameState1 = gameStateCopy(initialGameState);
+  gameState1.playerTurn = switchPlayer(gameState1.playerTurn);
 
   action = {
     type: ActionType.MOVESTONE,
@@ -167,7 +171,36 @@ test("gameEngine handles moveStone actions", () => {
     destination: [0, 3],
   };
 
-  expect(gameEngine(initialGameState, action)).toStrictEqual({
-    ...initialGameState,
+  // click and de-select stone
+  expect(gameEngine(gameState1, action)).toStrictEqual({
+    ...gameState1,
+  });
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.WHITE,
+    origin: [1, 0],
+    destination: [1, 1],
+  };
+
+  // wrong player's turn
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVENOTYOURTURN,
+  });
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 0],
+    destination: [1, 1],
+  };
+
+  // black can't move white's pieces
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVENOTYOURPIECE,
   });
 });
