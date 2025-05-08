@@ -160,22 +160,6 @@ test("gameEngine handles moveStone actions", () => {
     ...resultGameState,
   });
 
-  let gameState1 = gameStateCopy(initialGameState);
-  gameState1.playerTurn = switchPlayer(gameState1.playerTurn);
-
-  action = {
-    type: ActionType.MOVESTONE,
-    boardId: 2,
-    color: PlayerColor.WHITE,
-    origin: [0, 3],
-    destination: [0, 3],
-  };
-
-  // click and de-select stone
-  expect(gameEngine(gameState1, action)).toStrictEqual({
-    ...gameState1,
-  });
-
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
@@ -202,5 +186,21 @@ test("gameEngine handles moveStone actions", () => {
   expect(gameEngine(gameState, action)).toStrictEqual({
     ...gameState,
     boardMessage: BoardMessage.MOVENOTYOURPIECE,
+  });
+
+  let gameState1 = gameStateCopy(initialGameState);
+  gameState1.playerTurn = switchPlayer(gameState1.playerTurn);
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 2,
+    color: PlayerColor.WHITE,
+    origin: [0, 3],
+    destination: [0, 3],
+  };
+
+  // click and de-select stone
+  expect(gameEngine(gameState1, action)).toStrictEqual({
+    ...gameState1,
   });
 });
