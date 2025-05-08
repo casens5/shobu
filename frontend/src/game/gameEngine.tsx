@@ -217,6 +217,32 @@ export function isMoveLegal(
   return "LEGAL";
 }
 
+export function isInputValid(
+  gameState: GameStateType,
+  action: MoveStoneAction,
+) {
+  const newGameState = structuredClone(gameState);
+  if (gameState.playerTurn !== action.color) {
+    // can't move when it's not your turn
+    return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURTURN };
+  }
+
+  const stone = structuredClone(
+    gameState.boards[action.boardId].grid[action.origin[0]][action.origin[1]],
+  );
+  if (stone == null) {
+    throw new Error(`stone does not exist at origin ${action.origin}`);
+  }
+
+  const movedStone = stone as StoneObject;
+  if (gameState.playerTurn !== movedStone.color) {
+    // can't move the other player's color stones
+    return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
+  }
+
+  return "VALID";
+}
+
 export function checkWin(boardGrid: GridType): PlayerColor | null {
   if (
     !boardGrid.some((row) =>
@@ -246,6 +272,11 @@ export default function GameEngine(
 
   switch (action.type) {
     case ActionType.MOVESTONE: {
+      const isInputValidResult = isInputValid(gameState, action);
+      if (isInputValidResult !== "VALID") {
+        return isInputValidResult;
+      }
+
       const isLegalMessage = isMoveLegal(
         action.origin,
         action.destination,
@@ -260,32 +291,19 @@ export default function GameEngine(
         };
       }
 
-      if (gameState.playerTurn !== action.color) {
-        // can't move when it's not your turn
-        return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURTURN };
-      }
-
-      const stone = structuredClone(
-        gameState.boards[action.boardId].grid[action.origin[0]][
-          action.origin[1]
-        ],
-      );
-      if (stone == null) {
-        throw new Error(`stone does not exist at origin ${action.origin}`);
-      }
-
-      const movedStone = stone as StoneObject;
-      if (gameState.playerTurn !== movedStone.color) {
-        // can't move the other player's color stones
-        return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
-      }
-
       // clicked but didn't move stone
       if (
         coordinateToId(action.origin) === coordinateToId(action.destination)
       ) {
         return { ...newGameState };
       }
+
+      // movedStone exists, checked in isInputValid
+      const movedStone = structuredClone(
+        newGameState.boards[action.boardId].grid[action.origin[0]][
+          action.origin[1]
+        ],
+      ) as StoneObject;
 
       // undo passive move
       if (
