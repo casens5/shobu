@@ -276,7 +276,7 @@ export default function GameEngine(
 
       const movedStone = stone as StoneObject;
       if (gameState.playerTurn !== movedStone.color) {
-        // can't move the other player's color stones 
+        // can't move the other player's color stones
         return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
       }
 
@@ -288,23 +288,42 @@ export default function GameEngine(
       }
 
       // undo passive move
-      if (newMoves.length > 0 && newMoves[newMoves.length - 1].secondMove) {
+      if (
+        newMoves.length > 0 &&
+        newMoves[newMoves.length - 1].secondMove == null
+      ) {
         const lastMove = newMoves[newMoves.length - 1].firstMove;
 
         if (lastMove.boardId === action.boardId) {
+          // selected the stone that moved last move
           if (
-            coordinateToId(lastMove.origin) ===
-              coordinateToId(action.destination) &&
             coordinateToId(lastMove.destination) ===
-              coordinateToId(action.origin)
+            coordinateToId(action.origin)
           ) {
-            return {
-              ...newGameState,
-              moves: newMoves.slice(0, -1),
-            };
+            // moved the stone to the last move's origin
+            if (
+              coordinateToId(lastMove.origin) ===
+              coordinateToId(action.destination)
+            ) {
+              const grid = newGameState.boards[action.boardId].grid;
+              grid[action.destination[0]][action.destination[1]] = movedStone;
+              grid[action.origin[0]][action.origin[1]] = null;
+
+              return {
+                ...newGameState,
+                moves: newMoves.slice(0, -1),
+              };
+
+              // moved the stone somewhere else
+            } else {
+              throw new Error(
+                "you must undo the passive move by returning the stone to its origin square",
+              );
+            }
           } else {
-            // invalid undo attempt, probably need a more clear error message
-            return { ...newGameState };
+            throw new Error(
+              "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
+            );
           }
         }
         // else, not an undo move

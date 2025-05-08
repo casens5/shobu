@@ -161,6 +161,20 @@ test("gameEngine handles moveStone actions", () => {
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 2],
+    destination: [3, 1],
+  };
+
+  // illegal move caught by isMoveLegal
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEKNIGHT,
+  });
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
     color: PlayerColor.WHITE,
     origin: [1, 0],
     destination: [1, 1],
@@ -201,4 +215,32 @@ test("gameEngine handles moveStone actions", () => {
   expect(gameEngine(gameState1, action)).toStrictEqual({
     ...gameState1,
   });
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 1],
+    destination: [1, 2],
+  };
+
+  // successful undo move
+  expect(gameEngine(resultGameState, action)).toStrictEqual({
+    ...gameState,
+  });
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 1],
+    destination: [2, 1],
+  };
+
+  // invalid undo move
+  expect(() => gameEngine(resultGameState, action)).toThrow(
+    new Error(
+      "you must undo the passive move by returning the stone to its origin square",
+    ),
+  );
 });
