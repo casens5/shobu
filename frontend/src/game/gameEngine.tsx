@@ -398,6 +398,12 @@ export default function GameEngine(
           throw new Error("can't push stones with passive move");
         }
 
+        if (action.color !== gameState.boards[action.boardId].playerHome) {
+          throw new Error(
+            "can't make the first (passive) move outside the player's home area",
+          );
+        }
+
         newMoves.push({
           player: action.color,
           firstMove: newMove,

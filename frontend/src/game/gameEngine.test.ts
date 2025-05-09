@@ -310,4 +310,21 @@ test("gameEngine handles passive moves", () => {
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error("can't push stones with passive move"),
   );
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 2,
+    color: PlayerColor.BLACK,
+    origin: [1, 0],
+    destination: [2, 1],
+  };
+
+  //console.log("what", action, gameState.boards[2]);
+
+  // can't move outside the home area
+  expect(() => gameEngine(gameState, action)).toThrow(
+    new Error(
+      "can't make the first (passive) move outside the player's home area",
+    ),
+  );
 });
