@@ -269,7 +269,7 @@ export default function GameEngine(
   // default to clearing the boardMessage
   const newGameState = structuredClone(gameState);
   newGameState.boardMessage = null;
-  const newMoves = gameState.moves.slice();
+  const newMoves = structuredClone(gameState.moves);
 
   switch (action.type) {
     case ActionType.MOVESTONE: {
@@ -411,7 +411,12 @@ export default function GameEngine(
         return { ...newGameState, boards: newBoards, moves: newMoves };
       } else {
         // active move
-        newMoves[newMoves.length - 1].secondMove = newMove;
+        if (lastMove.boardId + action.boardId === 3) {
+          throw new Error(
+            "can't play active move on the same color board as the passive move",
+          );
+        }
+
         const winner = checkWin(newGrid);
         if (winner != null) {
           return {
@@ -421,6 +426,8 @@ export default function GameEngine(
             winner: winner,
           };
         }
+
+        newMoves[newMoves.length - 1].secondMove = newMove;
         return {
           ...newGameState,
           moves: newMoves,

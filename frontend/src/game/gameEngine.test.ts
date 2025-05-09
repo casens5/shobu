@@ -16,6 +16,7 @@ import {
   BoardMessage,
   Direction,
   DisplayErrorAction,
+  MoveRecord,
   MoveStoneAction,
   PlayerColor,
   StoneObject,
@@ -319,12 +320,79 @@ test("gameEngine handles passive moves", () => {
     destination: [2, 1],
   };
 
-  //console.log("what", action, gameState.boards[2]);
-
   // can't move outside the home area
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error(
       "can't make the first (passive) move outside the player's home area",
+    ),
+  );
+});
+
+test("gameEngine handles active moves", () => {
+  const activeGameState = structuredClone(resultGameState);
+
+  const stone0 = structuredClone(initialGrid[3][0]);
+  const stone1 = structuredClone(initialGrid[0][0]);
+  const stone2 = structuredClone(initialGrid[0][3]);
+  const stone3 = structuredClone(initialGrid[1][3]);
+  const grid0 = structuredClone(blankGrid);
+  grid0[2][0] = stone0;
+  grid0[0][1] = stone1;
+  grid0[0][2] = stone2;
+  grid0[2][3] = stone3;
+
+  activeGameState.boards[0].grid = grid0;
+  resultGameState = structuredClone(activeGameState);
+
+  const resultGrid = structuredClone(grid0);
+  resultGrid[0][1] = null;
+  resultGrid[0][2] = stone1;
+  resultGrid[0][3] = stone2;
+
+  moves = [
+    {
+      player: PlayerColor.BLACK,
+      firstMove: {
+        boardId: 1,
+        isPush: false,
+        origin: [1, 2],
+        destination: [1, 1],
+      },
+      secondMove: {
+        boardId: 0,
+        origin: [0, 1],
+        destination: [0, 2],
+        isPush: true,
+      },
+    } as MoveRecord,
+  ];
+
+  resultGameState.playerTurn = switchPlayer(resultGameState.playerTurn);
+  resultGameState.boards[0].grid = resultGrid;
+  resultGameState.moves = moves;
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [0, 1],
+    destination: [0, 2],
+  };
+
+  // push but no stone removal
+  expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 2,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [3, 1],
+  };
+
+  expect(() => gameEngine(activeGameState, action)).toThrow(
+    new Error(
+      "can't play active move on the same color board as the passive move",
     ),
   );
 });
