@@ -278,3 +278,36 @@ test("gameEngine handles undo moves", () => {
     ),
   );
 });
+
+test("gameEngine handles passive moves", () => {
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 2],
+    destination: [1, 1],
+  };
+
+  resultGrid = structuredClone(gameState.boards[1].grid);
+  let stone = structuredClone(resultGrid[1][2]);
+  resultGrid[1][1] = stone;
+  resultGrid[1][2] = null;
+
+  // successful passive move
+  expect(gameEngine(gameState, action).boards[1].grid).toStrictEqual(
+    resultGrid,
+  );
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 2],
+    destination: [1, 0],
+  };
+
+  // can't push stones in passive move
+  expect(() => gameEngine(gameState, action)).toThrow(
+    new Error("can't push stones with passive move"),
+  );
+});

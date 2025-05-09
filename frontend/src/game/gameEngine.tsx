@@ -394,6 +394,10 @@ export default function GameEngine(
         gameState.moves[gameState.moves.length - 1].secondMove
       ) {
         // passive move
+        if (pushedStone) {
+          throw new Error("can't push stones with passive move");
+        }
+
         newMoves.push({
           player: action.color,
           firstMove: newMove,
