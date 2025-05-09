@@ -306,44 +306,41 @@ export default function GameEngine(
         ],
       ) as StoneObject;
 
+      const lastMove =
+        newMoves.length > 0 && newMoves[newMoves.length - 1].secondMove == null
+          ? newMoves[newMoves.length - 1].firstMove
+          : null;
+
       // undo passive move
-      if (
-        newMoves.length > 0 &&
-        newMoves[newMoves.length - 1].secondMove == null
-      ) {
-        const lastMove = newMoves[newMoves.length - 1].firstMove;
-
-        if (lastMove.boardId === action.boardId) {
-          // selected the stone that moved last move
+      if (lastMove && lastMove.boardId === action.boardId) {
+        // selected the stone that moved last move
+        if (
+          coordinateToId(lastMove.destination) === coordinateToId(action.origin)
+        ) {
+          // moved the stone to the last move's origin
           if (
-            coordinateToId(lastMove.destination) ===
-            coordinateToId(action.origin)
+            coordinateToId(lastMove.origin) ===
+            coordinateToId(action.destination)
           ) {
-            // moved the stone to the last move's origin
-            if (
-              coordinateToId(lastMove.origin) ===
-              coordinateToId(action.destination)
-            ) {
-              const grid = newGameState.boards[action.boardId].grid;
-              grid[action.destination[0]][action.destination[1]] = movedStone;
-              grid[action.origin[0]][action.origin[1]] = null;
+            const grid = newGameState.boards[action.boardId].grid;
+            grid[action.destination[0]][action.destination[1]] = movedStone;
+            grid[action.origin[0]][action.origin[1]] = null;
 
-              return {
-                ...newGameState,
-                moves: newMoves.slice(0, -1),
-              };
+            return {
+              ...newGameState,
+              moves: newMoves.slice(0, -1),
+            };
 
-              // moved the stone somewhere else
-            } else {
-              throw new Error(
-                "you must undo the passive move by returning the stone to its origin square",
-              );
-            }
+            // moved the stone somewhere else
           } else {
             throw new Error(
-              "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
+              "you must undo the passive move by returning the stone to its origin square",
             );
           }
+        } else {
+          throw new Error(
+            "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
+          );
         }
         // else, not an undo move
       }

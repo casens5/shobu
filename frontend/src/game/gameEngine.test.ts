@@ -117,42 +117,42 @@ test("gameEngine renders error messages", () => {
   });
 });
 
-test("gameEngine handles moveStone actions", () => {
-  let grid = structuredClone(blankGrid);
-  let stone0 = structuredClone(initialGrid[2][0]) as StoneObject;
-  let stone1 = structuredClone(initialGrid[3][3]) as StoneObject;
-  grid[1][2] = stone0;
-  grid[1][0] = stone1;
-  let gameState = structuredClone(initialGameState);
-  gameState.boards[1].grid = structuredClone(grid);
+let grid = structuredClone(blankGrid);
+let stone0 = structuredClone(initialGrid[2][0]) as StoneObject;
+let stone1 = structuredClone(initialGrid[3][3]) as StoneObject;
+grid[1][2] = stone0;
+grid[1][0] = stone1;
+let gameState = structuredClone(initialGameState);
+gameState.boards[1].grid = structuredClone(grid);
 
-  let action: MoveStoneAction = {
-    type: ActionType.MOVESTONE,
-    boardId: 1,
-    color: PlayerColor.BLACK,
-    origin: [1, 2],
-    destination: [1, 1],
-  };
+let action: MoveStoneAction = {
+  type: ActionType.MOVESTONE,
+  boardId: 1,
+  color: PlayerColor.BLACK,
+  origin: [1, 2],
+  destination: [1, 1],
+};
 
-  let resultGrid = structuredClone(grid);
-  resultGrid[1][1] = resultGrid[1][2];
-  resultGrid[1][2] = null;
-  let resultGameState = structuredClone(gameState);
-  resultGameState.boards[1].grid = structuredClone(resultGrid);
+let resultGrid = structuredClone(grid);
+resultGrid[1][1] = resultGrid[1][2];
+resultGrid[1][2] = null;
+let resultGameState = structuredClone(gameState);
+resultGameState.boards[1].grid = structuredClone(resultGrid);
 
-  let moves = [
-    {
-      firstMove: {
-        boardId: 1 as BoardId,
-        isPush: false,
-        origin: [1, 2] as BoardCoordinates,
-        destination: [1, 1] as BoardCoordinates,
-      },
-      player: PlayerColor.BLACK,
+let moves = [
+  {
+    firstMove: {
+      boardId: 1 as BoardId,
+      isPush: false,
+      origin: [1, 2] as BoardCoordinates,
+      destination: [1, 1] as BoardCoordinates,
     },
-  ];
-  resultGameState.moves = structuredClone(moves);
+    player: PlayerColor.BLACK,
+  },
+];
+resultGameState.moves = structuredClone(moves);
 
+test("gameEngine handles invalid/illegal moveStone actions", () => {
   // standard legal move
   expect(gameEngine(gameState, action)).toStrictEqual({
     ...resultGameState,
@@ -228,7 +228,9 @@ test("gameEngine handles moveStone actions", () => {
   expect(gameEngine(gameState1, action)).toStrictEqual({
     ...gameState1,
   });
+});
 
+test("gameEngine handles undo moves", () => {
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
@@ -254,6 +256,25 @@ test("gameEngine handles moveStone actions", () => {
   expect(() => gameEngine(resultGameState, action)).toThrow(
     new Error(
       "you must undo the passive move by returning the stone to its origin square",
+    ),
+  );
+
+  let stone2 = structuredClone(initialGrid[1][0]) as StoneObject;
+  let gameState1 = structuredClone(resultGameState);
+  gameState1.boards[1].grid[1][3] = stone2;
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 3],
+    destination: [2, 2],
+  };
+
+  // invalid undo move
+  expect(() => gameEngine(gameState1, action)).toThrow(
+    new Error(
+      "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
     ),
   );
 });
