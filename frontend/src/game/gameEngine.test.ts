@@ -161,20 +161,6 @@ test("gameEngine handles moveStone actions", () => {
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
-    color: PlayerColor.BLACK,
-    origin: [1, 2],
-    destination: [3, 1],
-  };
-
-  // illegal move caught by isMoveLegal
-  expect(gameEngine(gameState, action)).toStrictEqual({
-    ...gameState,
-    boardMessage: BoardMessage.MOVEKNIGHT,
-  });
-
-  action = {
-    type: ActionType.MOVESTONE,
-    boardId: 1,
     color: PlayerColor.WHITE,
     origin: [1, 0],
     destination: [1, 1],
@@ -198,6 +184,33 @@ test("gameEngine handles moveStone actions", () => {
   expect(gameEngine(gameState, action)).toStrictEqual({
     ...gameState,
     boardMessage: BoardMessage.MOVENOTYOURPIECE,
+  });
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [3, 2],
+    destination: [3, 1],
+  };
+
+  // stone doesn't exist at origin
+  expect(() => gameEngine(gameState, action)).toThrow(
+    new Error("stone does not exist at origin 3,2"),
+  );
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 2],
+    destination: [3, 1],
+  };
+
+  // illegal move caught by isMoveLegal
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEKNIGHT,
   });
 
   let gameState1 = structuredClone(initialGameState);
