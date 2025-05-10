@@ -382,6 +382,44 @@ test("gameEngine handles active moves", () => {
   // push but no stone removal
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
 
+  resultGrid[0][1] = stone1;
+  resultGrid[0][2] = stone2;
+  resultGrid[0][3] = null;
+  resultGrid[2][2] = stone0;
+  resultGrid[2][0] = null;
+
+  moves = [
+    {
+      player: 0,
+      firstMove: {
+        boardId: 1,
+        isPush: false,
+        origin: [1, 2],
+        destination: [1, 1],
+      },
+      secondMove: {
+        boardId: 0,
+        origin: [2, 0],
+        destination: [2, 2],
+        isPush: false,
+      },
+    } as MoveRecord,
+  ];
+
+  resultGameState.boards[0].grid = resultGrid;
+  resultGameState.moves = moves;
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [2, 2],
+  };
+
+  // move with no push
+  expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
+
   action = {
     type: ActionType.MOVESTONE,
     boardId: 2,
