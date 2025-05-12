@@ -195,7 +195,6 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
     destination: [3, 1],
   };
 
-  // stone doesn't exist at origin
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error("stone does not exist at origin 3,2"),
   );
@@ -253,7 +252,6 @@ test("gameEngine handles undo moves", () => {
     destination: [2, 1],
   };
 
-  // invalid undo move
   expect(() => gameEngine(resultGameState, action)).toThrow(
     new Error(
       "you must undo the passive move by returning the stone to its origin square",
@@ -272,7 +270,6 @@ test("gameEngine handles undo moves", () => {
     destination: [2, 2],
   };
 
-  // invalid undo move
   expect(() => gameEngine(gameState1, action)).toThrow(
     new Error(
       "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
@@ -307,7 +304,6 @@ test("gameEngine handles passive moves", () => {
     destination: [1, 0],
   };
 
-  // can't push stones in passive move
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error("can't push stones with passive move"),
   );
@@ -320,7 +316,6 @@ test("gameEngine handles passive moves", () => {
     destination: [2, 1],
   };
 
-  // can't move outside the home area
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error(
       "can't make the first (passive) move outside the player's home area",
@@ -385,6 +380,7 @@ test("gameEngine handles active moves", () => {
   resultGrid[0][1] = stone1;
   resultGrid[0][2] = stone2;
   resultGrid[0][3] = null;
+
   resultGrid[2][2] = stone0;
   resultGrid[2][0] = null;
 
@@ -418,6 +414,42 @@ test("gameEngine handles active moves", () => {
   };
 
   // move with no push
+  expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [0, 2],
+  };
+
+  resultGrid[2][2] = null;
+
+  resultGrid[0][2] = stone0;
+  resultGrid[2][0] = null;
+  resultGameState.boards[0].grid = resultGrid;
+
+  moves = [
+    {
+      player: 0,
+      firstMove: {
+        boardId: 1,
+        isPush: false,
+        origin: [1, 2],
+        destination: [1, 1],
+      },
+      secondMove: {
+        boardId: 0,
+        origin: [2, 0],
+        destination: [0, 2],
+        isPush: true,
+      },
+    } as MoveRecord,
+  ];
+  resultGameState.moves = moves;
+
+  // push and remove opponent's stone
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
 
   action = {
