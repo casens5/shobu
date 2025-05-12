@@ -61,9 +61,10 @@ export type GameStateType = {
   boards: BoardsType;
   moves: MoveRecord[];
   playerTurn: PlayerColor;
-  winner: PlayerColor | "DRAW" | null;
+  winner: GameWinnerType | null;
   boardMessage: BoardMessage | null;
 };
+export type GameWinnerType = PlayerColor | "DRAW";
 export type LastMoveType = {
   from: BoardCoordinates;
   to: BoardCoordinates;

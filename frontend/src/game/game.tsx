@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import Board from "./board";
-import GameEngine, { initialBoards } from "./gameEngine";
+import gameEngine, { initialBoards } from "./gameEngine";
 import { useReducer, ReactNode } from "react";
-import { PlayerColor, BoardMessage } from "../types";
+import { PlayerColor, BoardMessage, GameWinnerType } from "../types";
 
 type TurnIndicatorProps = {
   playerTurn: PlayerColor;
@@ -17,11 +17,20 @@ function TurnIndicator({ playerTurn }: TurnIndicatorProps) {
 }
 
 type WinIndicatorProps = {
-  playerWin: PlayerColor;
+  playerWin: GameWinnerType;
 };
 
 function WinIndicator({ playerWin }: WinIndicatorProps) {
-  return <div className="mb-4 text-center">{playerWin} is the winner</div>;
+  const winnerText = {
+    0: "black",
+    1: "white",
+    DRAW: "draw",
+  };
+  return (
+    <div className="mb-4 text-center">
+      {winnerText[playerWin]} is the winner
+    </div>
+  );
 }
 
 type ErrorMessageProps = {
@@ -48,10 +57,8 @@ function ErrorMessage({ message }: ErrorMessageProps) {
       "your first move must be passive (in your home area)",
     [BoardMessage.MOVEWRONGCOLORBOARD]:
       "you must play on a opposite color board from your first move",
-    [BoardMessage.MOVENOTYOURPIECE]:
-      "you can only move pieces of your color",
-    [BoardMessage.MOVENOTYOURTURN]:
-      "it's not your turn",
+    [BoardMessage.MOVENOTYOURPIECE]: "you can only move pieces of your color",
+    [BoardMessage.MOVENOTYOURTURN]: "it's not your turn",
     [BoardMessage.MOVECLEARERROR]: "",
   };
   return (
@@ -84,7 +91,7 @@ function HomeArea({ color, children }: HomeAreaProps) {
 
 export default function Game() {
   const [{ boards, moves, playerTurn, winner, boardMessage }, dispatch] =
-    useReducer(GameEngine, {
+    useReducer(gameEngine, {
       boards: initialBoards,
       moves: [],
       playerTurn: PlayerColor.BLACK,

@@ -12,6 +12,7 @@ import {
   ActionType,
   StoneObject,
   MoveStoneAction,
+  GameWinnerType,
 } from "../types";
 
 export const blankGrid = [
@@ -262,7 +263,7 @@ export function checkWin(boardGrid: GridType): PlayerColor | null {
   return null;
 }
 
-export default function GameEngine(
+export default function gameEngine(
   gameState: GameStateType,
   action: GameEngineAction,
 ) {
@@ -306,20 +307,24 @@ export default function GameEngine(
         ],
       ) as StoneObject;
 
-      const lastMove =
+      const currentPlayerFirstMove =
         newMoves.length > 0 && newMoves[newMoves.length - 1].secondMove == null
           ? newMoves[newMoves.length - 1].firstMove
           : null;
 
       // undo passive move
-      if (lastMove && lastMove.boardId === action.boardId) {
+      if (
+        currentPlayerFirstMove &&
+        currentPlayerFirstMove.boardId === action.boardId
+      ) {
         // selected the stone that moved last move
         if (
-          coordinateToId(lastMove.destination) === coordinateToId(action.origin)
+          coordinateToId(currentPlayerFirstMove.destination) ===
+          coordinateToId(action.origin)
         ) {
           // moved the stone to the last move's origin
           if (
-            coordinateToId(lastMove.origin) ===
+            coordinateToId(currentPlayerFirstMove.origin) ===
             coordinateToId(action.destination)
           ) {
             const grid = newGameState.boards[action.boardId].grid;
@@ -411,7 +416,7 @@ export default function GameEngine(
         return { ...newGameState, boards: newBoards, moves: newMoves };
       } else {
         // active move
-        if (lastMove.boardId + action.boardId === 3) {
+        if (currentPlayerFirstMove!.boardId + action.boardId === 3) {
           throw new Error(
             "can't play active move on the same color board as the passive move",
           );
@@ -445,7 +450,7 @@ export default function GameEngine(
     }
 
     case ActionType.DRAW: {
-      return { ...newGameState, winner: "DRAW" };
+      return { ...newGameState, winner: "DRAW" as GameWinnerType };
     }
 
     case ActionType.CONCEDE: {
