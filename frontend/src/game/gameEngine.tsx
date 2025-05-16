@@ -422,22 +422,15 @@ export default function gameEngine(
           );
         }
 
-        const winner = checkWin(newGrid);
-        if (winner != null) {
-          return {
-            ...newGameState,
-            boards: newBoards,
-            moves: newMoves,
-            winner: winner,
-          };
-        }
-
         newMoves[newMoves.length - 1].secondMove = newMove;
+        const winner = checkWin(newGrid);
+
         return {
           ...newGameState,
           moves: newMoves,
           boards: newBoards,
           playerTurn: switchPlayer(gameState.playerTurn),
+          winner: winner,
         };
       }
     }
