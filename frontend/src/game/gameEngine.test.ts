@@ -22,6 +22,10 @@ import {
   StoneObject,
 } from "../types";
 
+function fullPrint(json: object) {
+  return JSON.stringify(json, null, 2);
+}
+
 test("getMoveLength works", () => {
   expect(getMoveLength([0, 0], [0, 2])).toBe(2);
   expect(getMoveLength([3, 3], [1, 3])).toBe(2);
@@ -324,7 +328,21 @@ test("gameEngine handles passive moves", () => {
 });
 
 test("gameEngine handles active moves", () => {
-  const activeGameState = structuredClone(resultGameState);
+  gameState = structuredClone(initialGameState);
+  const grid1 = structuredClone(blankGrid);
+  grid1[1][0] = structuredClone(initialGrid[2][0]);
+  grid1[1][2] = structuredClone(initialGrid[3][3]);
+  gameState.boards[1].grid = grid1;
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 0],
+    destination: [1, 1],
+  };
+
+  let activeGameState = gameEngine(gameState, action);
 
   const stone0 = structuredClone(initialGrid[3][0]);
   const stone1 = structuredClone(initialGrid[0][0]);
@@ -349,9 +367,9 @@ test("gameEngine handles active moves", () => {
       player: PlayerColor.BLACK,
       firstMove: {
         boardId: 1,
-        isPush: false,
-        origin: [1, 2],
+        origin: [1, 0],
         destination: [1, 1],
+        isPush: false,
       },
       secondMove: {
         boardId: 0,
@@ -377,21 +395,42 @@ test("gameEngine handles active moves", () => {
   // push but no stone removal
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
 
-  resultGrid[0][1] = stone1;
-  resultGrid[0][2] = stone2;
-  resultGrid[0][3] = null;
+  let blackStone = grid1[1][0];
+  let whiteStone = grid1[1][2];
+  grid1[1][2] = null;
+  grid1[1][1] = blackStone;
+  grid1[1][0] = whiteStone;
 
-  resultGrid[2][2] = stone0;
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 1],
+    destination: [1, 3],
+  };
+
+  gameState.boards[1].grid = grid1;
+
+  activeGameState = gameEngine(gameState, action);
+  activeGameState.boards[0].grid = structuredClone(resultGrid);
+
+  resultGameState = structuredClone(activeGameState);
+
+  let stone = resultGrid[2][0];
+  resultGrid[2][2] = stone;
   resultGrid[2][0] = null;
+
+  resultGameState.boards[0].grid = structuredClone(resultGrid);
+  resultGameState.playerTurn = PlayerColor.WHITE;
 
   moves = [
     {
       player: 0,
       firstMove: {
         boardId: 1,
+        origin: [1, 1],
+        destination: [1, 3],
         isPush: false,
-        origin: [1, 2],
-        destination: [1, 1],
       },
       secondMove: {
         boardId: 0,
@@ -402,7 +441,6 @@ test("gameEngine handles active moves", () => {
     } as MoveRecord,
   ];
 
-  resultGameState.boards[0].grid = resultGrid;
   resultGameState.moves = moves;
 
   action = {
