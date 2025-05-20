@@ -329,7 +329,7 @@ test("gameEngine handles passive moves", () => {
 
 test("gameEngine handles active moves", () => {
   gameState = structuredClone(initialGameState);
-  const grid1 = structuredClone(blankGrid);
+  let grid1 = structuredClone(blankGrid);
   grid1[1][0] = structuredClone(initialGrid[2][0]);
   grid1[1][2] = structuredClone(initialGrid[3][3]);
   gameState.boards[1].grid = grid1;
@@ -344,11 +344,11 @@ test("gameEngine handles active moves", () => {
 
   let activeGameState = gameEngine(gameState, action);
 
-  const stone0 = structuredClone(initialGrid[3][0]);
-  const stone1 = structuredClone(initialGrid[0][0]);
-  const stone2 = structuredClone(initialGrid[0][3]);
-  const stone3 = structuredClone(initialGrid[1][3]);
-  const grid0 = structuredClone(blankGrid);
+  let stone0 = structuredClone(initialGrid[3][0]);
+  let stone1 = structuredClone(initialGrid[0][0]);
+  let stone2 = structuredClone(initialGrid[0][3]);
+  let stone3 = structuredClone(initialGrid[1][3]);
+  let grid0 = structuredClone(blankGrid);
   grid0[2][0] = stone0;
   grid0[0][1] = stone1;
   grid0[0][2] = stone2;
@@ -357,7 +357,7 @@ test("gameEngine handles active moves", () => {
   activeGameState.boards[0].grid = grid0;
   resultGameState = structuredClone(activeGameState);
 
-  const resultGrid = structuredClone(grid0);
+  resultGrid = structuredClone(grid0);
   resultGrid[0][1] = null;
   resultGrid[0][2] = stone1;
   resultGrid[0][3] = stone2;
@@ -454,19 +454,39 @@ test("gameEngine handles active moves", () => {
   // move with no push
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
 
+  grid1 = structuredClone(gameState.boards[1].grid);
+
+  stone = grid1[1][1];
+  grid1[2][0] = stone;
+  grid1[1][1] = null;
+
+  gameState.boards[1].grid = structuredClone(grid1);
+
+  stone0 = resultGrid[0][2];
+  resultGrid[0][1] = stone0;
+  stone1 = resultGrid[0][3];
+  resultGrid[0][2] = stone1;
+  resultGrid[0][3] = null;
+  stone2 = resultGrid[2][2];
+  resultGrid[2][0] = stone2;
+  resultGrid[2][2] = null;
+
+  gameState.boards[0].grid = structuredClone(resultGrid);
+
   action = {
     type: ActionType.MOVESTONE,
-    boardId: 0,
+    boardId: 1,
     color: PlayerColor.BLACK,
     origin: [2, 0],
     destination: [0, 2],
   };
 
-  resultGrid[2][2] = null;
+  activeGameState = gameEngine(gameState, action);
 
-  resultGrid[0][2] = stone0;
-  resultGrid[2][0] = null;
-  resultGameState.boards[0].grid = resultGrid;
+  resultGameState = structuredClone(activeGameState);
+
+  grid1 = activeGameState.boards[1].grid;
+  grid0 = activeGameState.boards[0].grid;
 
   moves = [
     {
@@ -474,8 +494,8 @@ test("gameEngine handles active moves", () => {
       firstMove: {
         boardId: 1,
         isPush: false,
-        origin: [1, 2],
-        destination: [1, 1],
+        origin: [2, 0],
+        destination: [0, 2],
       },
       secondMove: {
         boardId: 0,
@@ -486,6 +506,20 @@ test("gameEngine handles active moves", () => {
     } as MoveRecord,
   ];
   resultGameState.moves = moves;
+
+  resultGrid[0][2] = stone2;
+  resultGrid[2][0] = null;
+
+  resultGameState.boards[0].grid = structuredClone(resultGrid);
+  resultGameState.playerTurn = PlayerColor.WHITE;
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [0, 2],
+  };
 
   // push and remove opponent's stone
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
@@ -503,4 +537,22 @@ test("gameEngine handles active moves", () => {
       "can't play active move on the same color board as the passive move",
     ),
   );
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 3,
+    color: PlayerColor.BLACK,
+    origin: [3, 0],
+    destination: [2, 1],
+  };
+
+  let errorGameState = {
+    ...activeGameState,
+    boardMessage: BoardMessage.MOVEUNEQUALTOPASSIVEMOVE,
+  };
+
+  // active direction must be the same as passive direction
+  expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
 });
+
+console.log(fullPrint({ hi: "all done now" }));

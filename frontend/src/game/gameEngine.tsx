@@ -422,6 +422,29 @@ export default function gameEngine(
           );
         }
 
+        const passiveDirection = getMoveDirection(
+          currentPlayerFirstMove!.origin,
+          currentPlayerFirstMove!.destination,
+        );
+        const passiveLength = getMoveLength(
+          currentPlayerFirstMove!.origin,
+          currentPlayerFirstMove!.destination,
+        );
+        const moveDirection = getMoveDirection(
+          action.origin,
+          action.destination,
+        );
+        if (
+          passiveLength !== moveLength ||
+          passiveDirection !== moveDirection
+        ) {
+          //console.log("cookie!!!", JSON.stringify(newGameState, null, 2));
+          return {
+            ...newGameState,
+            boardMessage: BoardMessage.MOVEUNEQUALTOPASSIVEMOVE,
+          };
+        }
+
         newMoves[newMoves.length - 1].secondMove = newMove;
         const winner = checkWin(newGrid);
 
