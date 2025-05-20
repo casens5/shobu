@@ -96,14 +96,14 @@ test("checkWin works", () => {
   expect(checkWin(initialGrid)).toBe(null);
 
   let grid = structuredClone(blankGrid);
-  let stone0 = structuredClone(initialGrid[0][0]) as StoneObject;
+  let stone0 = initialGrid[0][0];
   grid[3][1] = stone0;
 
   expect(checkWin(grid)).toBe(PlayerColor.BLACK);
 
   grid = structuredClone(blankGrid);
-  stone0 = structuredClone(initialGrid[3][3]) as StoneObject;
-  let stone1 = structuredClone(initialGrid[0][3]) as StoneObject;
+  stone0 = initialGrid[3][3];
+  let stone1 = initialGrid[0][3];
   grid[3][3] = stone0;
   grid[3][0] = stone1;
 
@@ -262,7 +262,7 @@ test("gameEngine handles undo moves", () => {
     ),
   );
 
-  let stone2 = structuredClone(initialGrid[1][0]) as StoneObject;
+  let stone2 = initialGrid[1][0];
   let gameState1 = structuredClone(resultGameState);
   gameState1.boards[1].grid[1][3] = stone2;
 
@@ -291,7 +291,7 @@ test("gameEngine handles passive moves", () => {
   };
 
   resultGrid = structuredClone(gameState.boards[1].grid);
-  let stone = structuredClone(resultGrid[1][2]);
+  let stone = resultGrid[1][2];
   resultGrid[1][1] = stone;
   resultGrid[1][2] = null;
 
@@ -329,10 +329,10 @@ test("gameEngine handles passive moves", () => {
 
 test("gameEngine handles active moves", () => {
   gameState = structuredClone(initialGameState);
-  let grid1 = structuredClone(blankGrid);
-  grid1[1][0] = structuredClone(initialGrid[2][0]);
-  grid1[1][2] = structuredClone(initialGrid[3][3]);
-  gameState.boards[1].grid = grid1;
+  let passiveGrid = structuredClone(blankGrid);
+  passiveGrid[1][0] = initialGrid[2][0];
+  passiveGrid[1][2] = initialGrid[3][3];
+  gameState.boards[1].grid = passiveGrid;
 
   action = {
     type: ActionType.MOVESTONE,
@@ -344,20 +344,20 @@ test("gameEngine handles active moves", () => {
 
   let activeGameState = gameEngine(gameState, action);
 
-  let stone0 = structuredClone(initialGrid[3][0]);
-  let stone1 = structuredClone(initialGrid[0][0]);
-  let stone2 = structuredClone(initialGrid[0][3]);
-  let stone3 = structuredClone(initialGrid[1][3]);
-  let grid0 = structuredClone(blankGrid);
-  grid0[2][0] = stone0;
-  grid0[0][1] = stone1;
-  grid0[0][2] = stone2;
-  grid0[2][3] = stone3;
+  let stone0 = initialGrid[3][0];
+  let stone1 = initialGrid[0][0];
+  let stone2 = initialGrid[0][3];
+  let stone3 = initialGrid[1][3];
+  let activeGrid = structuredClone(blankGrid);
+  activeGrid[2][0] = stone0;
+  activeGrid[0][1] = stone1;
+  activeGrid[0][2] = stone2;
+  activeGrid[2][3] = stone3;
 
-  activeGameState.boards[0].grid = grid0;
+  activeGameState.boards[0].grid = activeGrid;
   resultGameState = structuredClone(activeGameState);
 
-  resultGrid = structuredClone(grid0);
+  resultGrid = structuredClone(activeGrid);
   resultGrid[0][1] = null;
   resultGrid[0][2] = stone1;
   resultGrid[0][3] = stone2;
@@ -394,6 +394,8 @@ test("gameEngine handles active moves", () => {
 
   // push but no stone removal
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
+
+  let grid1 = passiveGrid;
 
   let blackStone = grid1[1][0];
   let whiteStone = grid1[1][2];
@@ -486,7 +488,6 @@ test("gameEngine handles active moves", () => {
   resultGameState = structuredClone(activeGameState);
 
   grid1 = activeGameState.boards[1].grid;
-  grid0 = activeGameState.boards[0].grid;
 
   moves = [
     {
