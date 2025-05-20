@@ -438,7 +438,6 @@ export default function gameEngine(
           passiveLength !== moveLength ||
           passiveDirection !== moveDirection
         ) {
-          //console.log("cookie!!!", JSON.stringify(newGameState, null, 2));
           return {
             ...newGameState,
             boardMessage: BoardMessage.MOVEUNEQUALTOPASSIVEMOVE,

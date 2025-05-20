@@ -546,6 +546,63 @@ test("gameEngine handles active moves", () => {
 
   // active direction must be the same as passive direction
   expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [2, 1],
+  };
+
+  stone = activeGrid[0][1];
+  activeGrid[2][1] = stone;
+
+  gameState.boards[1].grid = structuredClone(passiveGrid);
+  gameState.boards[0].grid = structuredClone(activeGrid);
+
+  activeGameState = gameEngine(gameState, action);
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [2, 1],
+  };
+
+  errorGameState = {
+    ...activeGameState,
+    boardMessage: BoardMessage.MOVESAMECOLORBLOCKING,
+  };
+
+  // can't push your own stone
+  expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
+
+  stone = activeGrid[2][1];
+  activeGrid[0][1] = stone;
+  stone = activeGrid[0][2];
+  activeGrid[2][1] = stone;
+  stone = activeGrid[2][3];
+  activeGrid[2][2] = stone;
+
+  activeGameState.boards[0].grid = structuredClone(activeGrid);
+
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [2, 0],
+    destination: [2, 1],
+  };
+
+  errorGameState = {
+    ...activeGameState,
+    boardMessage: BoardMessage.MOVETWOSTONESBLOCKING,
+  };
+
+  // can't push 2 stones in a row
+  expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
 });
 
 console.log(fullPrint({ hi: "all done now" }));
