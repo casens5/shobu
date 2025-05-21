@@ -14,6 +14,7 @@ import {
   MoveStoneAction,
   GameWinnerType,
   InitializeGameAction,
+  BoardShade,
 } from "../types";
 
 export const blankGrid = [
@@ -53,7 +54,7 @@ const gridTemplate = [
 const boardsTemplate = [
   {
     id: 0,
-    boardColor: "dark",
+    boardShade: BoardShade.DARK,
     playerHome: PlayerColor.BLACK,
     grid: structuredClone(gridTemplate),
     lastMoveBlack: null,
@@ -61,7 +62,7 @@ const boardsTemplate = [
   },
   {
     id: 1,
-    boardColor: "light",
+    boardShade: BoardShade.LIGHT,
     playerHome: PlayerColor.BLACK,
     grid: structuredClone(gridTemplate),
     lastMoveBlack: null,
@@ -69,7 +70,7 @@ const boardsTemplate = [
   },
   {
     id: 2,
-    boardColor: "light",
+    boardShade: BoardShade.LIGHT,
     playerHome: PlayerColor.WHITE,
     grid: structuredClone(gridTemplate),
     lastMoveBlack: null,
@@ -77,7 +78,7 @@ const boardsTemplate = [
   },
   {
     id: 3,
-    boardColor: "dark",
+    boardShade: BoardShade.DARK,
     playerHome: PlayerColor.WHITE,
     grid: structuredClone(gridTemplate),
     lastMoveBlack: null,

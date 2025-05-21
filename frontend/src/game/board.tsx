@@ -3,7 +3,6 @@ import "./board.css";
 import Stone from "./stone";
 import {
   PlayerColor,
-  BoardColor,
   BoardId,
   CoordinateId,
   Coord,
@@ -13,6 +12,7 @@ import {
   BoardMessage,
   BoardCoordinates,
   ActionType,
+  BoardShade,
 } from "../types";
 import { useState, useEffect, useRef } from "react";
 
@@ -89,12 +89,12 @@ function Cell({
 
 type BoardProps = {
   id: BoardId;
-  boardColor: BoardColor;
+  boardShade: BoardShade;
   grid: GridType;
   dispatch: any;
 };
 
-export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
+export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
   // handle board resizing
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardDimensions, setBoardDimensions] = useState({
@@ -185,8 +185,8 @@ export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
       className={clsx(
         "grid aspect-square h-auto w-full touch-none grid-cols-4 rounded-2xl",
         {
-          "board-dark": boardColor === "dark",
-          "board-light": boardColor === "light",
+          "board-dark": boardShade === BoardShade.DARK,
+          "board-light": boardShade === BoardShade.LIGHT,
         },
       )}
     >

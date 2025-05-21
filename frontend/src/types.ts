@@ -51,7 +51,7 @@ export type GridType = [
 ];
 export type BoardType = {
   id: BoardId;
-  boardColor: BoardColor;
+  boardShade: BoardShade;
   playerHome: PlayerColor;
   grid: GridType;
   lastMoveBlack: LastMoveType | null;
@@ -75,7 +75,10 @@ export enum PlayerColor {
   BLACK,
   WHITE,
 }
-export type BoardColor = "dark" | "light";
+export enum BoardShade {
+  DARK,
+  LIGHT,
+}
 export type BoardId = 0 | 1 | 2 | 3;
 export enum Direction {
   N,
