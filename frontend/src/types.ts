@@ -118,6 +118,7 @@ export enum MoveCondition {
 }
 export type GameEngineAction =
   | MoveStoneAction
+  | InitializeGameAction
   | DisplayErrorAction
   | DrawAction
   | ConcedeAction;
@@ -130,6 +131,10 @@ export type MoveStoneAction = {
   destination: BoardCoordinates;
 };
 
+export type InitializeGameAction = {
+  type: ActionType.INITIALIZEGAME;
+};
+
 export type DisplayErrorAction = {
   type: ActionType.DISPLAYERROR;
   color: PlayerColor;
@@ -139,17 +144,16 @@ export type DisplayErrorAction = {
 export type DrawAction = {
   type: ActionType.DRAW;
   color: PlayerColor;
-  boardMessage: BoardMessage;
 };
 
 export type ConcedeAction = {
   type: ActionType.CONCEDE;
   color: PlayerColor;
-  boardMessage: BoardMessage;
 };
 
 export enum ActionType {
   MOVESTONE,
+  INITIALIZEGAME,
   DISPLAYERROR,
   DRAW,
   CONCEDE,

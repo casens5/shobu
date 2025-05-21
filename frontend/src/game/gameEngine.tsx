@@ -472,6 +472,21 @@ export default function gameEngine(
       }
     }
 
+    case ActionType.INITIALIZEGAME: {
+      const initializedGameState = structuredClone(initialGameState);
+      initializedGameState.boards = initializedGameState.boards.map((board) => {
+        if (board.id < 2) {
+          board.grid = setCanMove(board.grid, PlayerColor.BLACK, true);
+        } else {
+          board.grid = setCanMove(board.grid, PlayerColor.BLACK, false);
+        }
+        board.grid = setCanMove(board.grid, PlayerColor.WHITE, false);
+
+        return board;
+      }) as unknown as BoardsType;
+      return initializedGameState;
+    }
+
     case ActionType.DISPLAYERROR: {
       return {
         ...newGameState,

@@ -17,6 +17,7 @@ import {
   BoardMessage,
   Direction,
   DisplayErrorAction,
+  InitializeGameAction,
   MoveRecord,
   MoveStoneAction,
   PlayerColor,
@@ -209,8 +210,36 @@ let moves = [
 ];
 resultGameState.moves = structuredClone(moves);
 
+test("gameEngine initializes the boards", () => {
+  let initializedGameState = structuredClone(initialGameState);
+  let grid0 = structuredClone(initializedGameState.boards[0].grid);
+  let grid1 = structuredClone(initializedGameState.boards[1].grid);
+  grid0 = setCanMove(grid0, PlayerColor.BLACK, true);
+  grid0 = setCanMove(grid0, PlayerColor.WHITE, false);
+  grid1 = setCanMove(grid1, PlayerColor.BLACK, true);
+  grid1 = setCanMove(grid1, PlayerColor.WHITE, false);
+  initializedGameState.boards[0].grid = grid0;
+  initializedGameState.boards[1].grid = grid1;
+
+  let initializeAction: InitializeGameAction = {
+    type: ActionType.INITIALIZEGAME,
+  };
+
+  expect(gameEngine(gameState, initializeAction)).toStrictEqual(
+    initializedGameState,
+  );
+});
+
 test("gameEngine handles invalid/illegal moveStone actions", () => {
   // standard legal move
+  action = {
+    type: ActionType.MOVESTONE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+    origin: [1, 2],
+    destination: [1, 1],
+  };
+
   expect(gameEngine(gameState, action)).toStrictEqual({
     ...resultGameState,
   });
