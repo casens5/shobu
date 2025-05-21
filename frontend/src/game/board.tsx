@@ -95,10 +95,6 @@ type BoardProps = {
 };
 
 export default function Board({ id, boardColor, grid, dispatch }: BoardProps) {
-  if (id > 10) {
-    console.log("hi");
-  }
-
   // handle board resizing
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardDimensions, setBoardDimensions] = useState({

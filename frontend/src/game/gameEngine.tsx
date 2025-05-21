@@ -146,6 +146,21 @@ export function getMoveDirection(
   );
 }
 
+export function setCanMove(
+  grid: GridType,
+  playerColor: PlayerColor,
+  canMove: boolean,
+) {
+  return grid.map((col) => {
+    return col.map((cell) => {
+      if (cell && cell.color === playerColor) {
+        return { ...cell, canMove: canMove };
+      }
+      return cell;
+    });
+  }) as GridType;
+}
+
 // checks that a move is legal locally on board, including direction, length, and pushing stones
 export function isMoveLegal(
   origin: BoardCoordinates,

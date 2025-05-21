@@ -8,6 +8,7 @@ import gameEngine, {
   blankGrid,
   initialGrid,
   initialGameState,
+  setCanMove,
 } from "./gameEngine";
 import {
   ActionType,
@@ -108,6 +109,57 @@ test("checkWin works", () => {
   grid[3][0] = stone1;
 
   expect(checkWin(grid)).toBe(PlayerColor.WHITE);
+});
+
+test("setCanMove works", () => {
+  grid = structuredClone(blankGrid);
+  let blackStone = initialGrid[3][0]!;
+  blackStone.canMove = false;
+  grid[3][2] = blackStone;
+
+  resultGrid = structuredClone(grid);
+  resultGrid[3][2]!.canMove = true;
+
+  // flips canMove on a single stone
+  expect(setCanMove(grid, PlayerColor.BLACK, true)).toStrictEqual(resultGrid);
+
+  let whiteStone = initialGrid[1][3]!;
+  whiteStone.canMove = false;
+  grid[3][0] = whiteStone;
+  grid[3][2].canMove = false;
+
+  resultGrid = structuredClone(grid);
+
+  resultGrid[3][0]!.canMove = true;
+  resultGrid[3][2]!.canMove = false;
+
+  // flips canMove on a single stone, doesn't affect other color stones
+  expect(setCanMove(grid, PlayerColor.WHITE, true)).toStrictEqual(resultGrid);
+
+  grid = structuredClone(initialGrid);
+  grid[2][3]!.canMove = true;
+  grid[3][3]!.canMove = true;
+
+  resultGrid = structuredClone(grid);
+  resultGrid[2][3]!.canMove = false;
+  resultGrid[3][3]!.canMove = false;
+
+  // flips canMove when stones are a mix of true and false
+  expect(setCanMove(grid, PlayerColor.WHITE, false)).toStrictEqual(resultGrid);
+
+  grid[0][0]!.canMove = true;
+  grid[1][0]!.canMove = true;
+  grid[2][0]!.canMove = true;
+  grid[3][0]!.canMove = true;
+
+  resultGrid = structuredClone(grid);
+  resultGrid[0][0]!.canMove = false;
+  resultGrid[1][0]!.canMove = false;
+  resultGrid[2][0]!.canMove = false;
+  resultGrid[3][0]!.canMove = false;
+
+  // flips canMove for black and doesn't affect white
+  expect(setCanMove(grid, PlayerColor.BLACK, false)).toStrictEqual(resultGrid);
 });
 
 test("gameEngine renders error messages", () => {
