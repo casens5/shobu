@@ -6,9 +6,9 @@ import gameEngine, {
   switchPlayer,
   isMoveLegal,
   blankGrid,
-  initialGrid,
   initialGameState,
   setCanMove,
+  gameStateTemplate,
 } from "./gameEngine";
 import {
   ActionType,
@@ -127,7 +127,7 @@ test("setCanMove works", () => {
   let whiteStone = initialGrid[1][3]!;
   whiteStone.canMove = false;
   grid[3][0] = whiteStone;
-  grid[3][2].canMove = false;
+  grid[3][2]!.canMove = false;
 
   resultGrid = structuredClone(grid);
 
@@ -175,12 +175,13 @@ test("gameEngine renders error messages", () => {
   });
 });
 
-let grid = structuredClone(blankGrid);
-let stone0 = structuredClone(initialGrid[2][0]) as StoneObject;
-let stone1 = structuredClone(initialGrid[3][3]) as StoneObject;
-grid[1][2] = stone0;
-grid[1][0] = stone1;
 let gameState = structuredClone(initialGameState);
+let grid = structuredClone(blankGrid);
+let initialGrid = structuredClone(gameState.boards[0].grid);
+let blackStone = structuredClone(initialGrid[2][0]) as StoneObject;
+let whiteStone = structuredClone(initialGrid[3][3]) as StoneObject;
+grid[1][2] = blackStone;
+grid[1][0] = whiteStone;
 gameState.boards[1].grid = structuredClone(grid);
 
 let action: MoveStoneAction = {
@@ -211,7 +212,7 @@ let moves = [
 resultGameState.moves = structuredClone(moves);
 
 test("gameEngine initializes the boards", () => {
-  let initializedGameState = structuredClone(initialGameState);
+  let initializedGameState = structuredClone(gameStateTemplate);
   let grid0 = structuredClone(initializedGameState.boards[0].grid);
   let grid1 = structuredClone(initializedGameState.boards[1].grid);
   grid0 = setCanMove(grid0, PlayerColor.BLACK, true);
@@ -221,13 +222,11 @@ test("gameEngine initializes the boards", () => {
   initializedGameState.boards[0].grid = grid0;
   initializedGameState.boards[1].grid = grid1;
 
-  let initializeAction: InitializeGameAction = {
+  let initAction: InitializeGameAction = {
     type: ActionType.INITIALIZEGAME,
   };
 
-  expect(gameEngine(gameState, initializeAction)).toStrictEqual(
-    initializedGameState,
-  );
+  expect(gameEngine(gameState, initAction)).toStrictEqual(initializedGameState);
 });
 
 test("gameEngine handles invalid/illegal moveStone actions", () => {

@@ -13,6 +13,7 @@ import {
   StoneObject,
   MoveStoneAction,
   GameWinnerType,
+  InitializeGameAction,
 } from "../types";
 
 export const blankGrid = [
@@ -22,7 +23,7 @@ export const blankGrid = [
   [null, null, null, null],
 ] as GridType;
 
-export const initialGrid = [
+const gridTemplate = [
   [
     { id: 0, color: PlayerColor.BLACK, canMove: false },
     null,
@@ -49,44 +50,50 @@ export const initialGrid = [
   ],
 ] as GridType;
 
-export const initialBoards = [
+const boardsTemplate = [
   {
     id: 0,
     boardColor: "dark",
     playerHome: PlayerColor.BLACK,
-    grid: structuredClone(initialGrid),
+    grid: structuredClone(gridTemplate),
     lastMove: null,
   },
   {
     id: 1,
     boardColor: "light",
     playerHome: PlayerColor.BLACK,
-    grid: structuredClone(initialGrid),
+    grid: structuredClone(gridTemplate),
     lastMove: null,
   },
   {
     id: 2,
     boardColor: "light",
     playerHome: PlayerColor.WHITE,
-    grid: structuredClone(initialGrid),
+    grid: structuredClone(gridTemplate),
     lastMove: null,
   },
   {
     id: 3,
     boardColor: "dark",
     playerHome: PlayerColor.WHITE,
-    grid: structuredClone(initialGrid),
+    grid: structuredClone(gridTemplate),
     lastMove: null,
   },
 ] as BoardsType;
 
-export const initialGameState = {
-  boards: structuredClone(initialBoards),
+export const gameStateTemplate = {
+  boards: structuredClone(boardsTemplate),
   moves: [],
   playerTurn: PlayerColor.BLACK,
   winner: null,
   boardMessage: null,
 } as GameStateType;
+
+const initAction: InitializeGameAction = {
+  type: ActionType.INITIALIZEGAME,
+};
+
+export const initialGameState = gameEngine(gameStateTemplate, initAction);
 
 export function switchPlayer(player: PlayerColor) {
   return player === PlayerColor.WHITE ? PlayerColor.BLACK : PlayerColor.WHITE;
@@ -473,7 +480,7 @@ export default function gameEngine(
     }
 
     case ActionType.INITIALIZEGAME: {
-      const initializedGameState = structuredClone(initialGameState);
+      const initializedGameState = structuredClone(gameStateTemplate);
       initializedGameState.boards = initializedGameState.boards.map((board) => {
         if (board.id < 2) {
           board.grid = setCanMove(board.grid, PlayerColor.BLACK, true);
