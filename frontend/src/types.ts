@@ -54,7 +54,8 @@ export type BoardType = {
   boardColor: BoardColor;
   playerHome: PlayerColor;
   grid: GridType;
-  lastMove: LastMoveType | null;
+  lastMoveBlack: LastMoveType | null;
+  lastMoveWhite: LastMoveType | null;
 };
 export type BoardsType = [BoardType, BoardType, BoardType, BoardType];
 export type GameStateType = {
