@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Board from "./board";
-import gameEngine, { initialBoards } from "./gameEngine";
+import gameEngine, { initialGameState } from "./gameEngine";
 import { useReducer, ReactNode } from "react";
 import { PlayerColor, BoardMessage, GameWinnerType } from "../types";
 
@@ -59,6 +59,10 @@ function ErrorMessage({ message }: ErrorMessageProps) {
       "you must play on a opposite color board from your first move",
     [BoardMessage.MOVENOTYOURPIECE]: "you can only move pieces of your color",
     [BoardMessage.MOVENOTYOURTURN]: "it's not your turn",
+    [BoardMessage.MOVEUNDO1]:
+      "you can undo this move by returning this stone to its origin square",
+    [BoardMessage.MOVEUNDO2]:
+      "you can only move 1 stone on this board.  if you want to undo, return the stone you moved to its origin square",
     [BoardMessage.MOVECLEARERROR]: "",
   };
   return (
@@ -92,7 +96,7 @@ function HomeArea({ color, children }: HomeAreaProps) {
 export default function Game() {
   const [{ boards, moves, playerTurn, winner, boardMessage }, dispatch] =
     useReducer(gameEngine, {
-      boards: initialBoards,
+      boards: initialGameState.boards,
       moves: [],
       playerTurn: PlayerColor.BLACK,
       winner: null,

@@ -364,19 +364,20 @@ export default function gameEngine(
 
             // moved the stone somewhere else
           } else {
-            throw new Error(
-              "you must undo the passive move by returning the stone to its origin square",
-            );
+            return {
+              ...newGameState,
+              boardMessage: BoardMessage.MOVEUNDO1,
+            };
           }
         } else {
-          throw new Error(
-            "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
-          );
+          return {
+            ...newGameState,
+            boardMessage: BoardMessage.MOVEUNDO2,
+          };
         }
         // else, not an undo move
       }
 
-      //@ts-ignore
       const newGrid = structuredClone(gameState.boards[action.boardId].grid);
 
       const moveLength = getMoveLength(action.origin, action.destination);

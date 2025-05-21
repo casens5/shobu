@@ -336,11 +336,10 @@ test("gameEngine handles undo moves", () => {
     destination: [2, 1],
   };
 
-  expect(() => gameEngine(resultGameState, action)).toThrow(
-    new Error(
-      "you must undo the passive move by returning the stone to its origin square",
-    ),
-  );
+  expect(gameEngine(resultGameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEUNDO1,
+  });
 
   let stone2 = initialGrid[1][0];
   let gameState1 = structuredClone(resultGameState);
@@ -354,11 +353,10 @@ test("gameEngine handles undo moves", () => {
     destination: [2, 2],
   };
 
-  expect(() => gameEngine(gameState1, action)).toThrow(
-    new Error(
-      "you can't move another stone on the board you made your passive move on.  if you're trying to undo, move the stone you moved back to its origin",
-    ),
-  );
+  expect(gameEngine(resultGameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEUNDO2,
+  });
 });
 
 test("gameEngine handles passive moves", () => {
