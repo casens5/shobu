@@ -336,7 +336,7 @@ test("gameEngine handles undo moves", () => {
   };
 
   expect(gameEngine(resultGameState, action)).toStrictEqual({
-    ...gameState,
+    ...resultGameState,
     boardMessage: BoardMessage.MOVEUNDO1,
   });
 
@@ -352,8 +352,8 @@ test("gameEngine handles undo moves", () => {
     destination: [2, 2],
   };
 
-  expect(gameEngine(resultGameState, action)).toStrictEqual({
-    ...gameState,
+  expect(gameEngine(gameState1, action)).toStrictEqual({
+    ...gameState1,
     boardMessage: BoardMessage.MOVEUNDO2,
   });
 });
