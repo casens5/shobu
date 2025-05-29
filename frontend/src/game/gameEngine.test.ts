@@ -198,6 +198,18 @@ resultGrid[1][2] = null;
 let resultGameState = structuredClone(gameState);
 resultGameState.boards[1].grid = structuredClone(resultGrid);
 
+resultGameState.boards[1].grid = setCanMove(
+  resultGameState.boards[1].grid,
+  PlayerColor.BLACK,
+  false,
+);
+resultGameState.boards[1].grid[1][1]!.canMove = true;
+resultGameState.boards[3].grid = setCanMove(
+  resultGameState.boards[3].grid,
+  PlayerColor.BLACK,
+  true,
+);
+
 let moves = [
   {
     firstMove: {
@@ -397,6 +409,8 @@ test("gameEngine handles passive moves", () => {
     destination: [2, 1],
   };
 
+  gameState.boards[2].grid[1][0]!.canMove = true;
+
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error(
       "can't make the first (passive) move outside the player's home area",
@@ -490,8 +504,14 @@ test("gameEngine handles active moves", () => {
   };
 
   activeGameState = gameEngine(gameState, action);
+  activeGameState.boards[0].grid = setCanMove(
+    activeGameState.boards[0].grid,
+    PlayerColor.BLACK,
+    true,
+  );
   resultGameState = structuredClone(activeGameState);
 
+  resultGrid = structuredClone(resultGameState.boards[0].grid);
   let stone = resultGrid[2][0];
   resultGrid[2][2] = stone;
   resultGrid[2][0] = null;
@@ -602,6 +622,8 @@ test("gameEngine handles active moves", () => {
     destination: [3, 1],
   };
 
+  activeGameState.boards[2].grid[2][0]!.canMove = true;
+
   expect(() => gameEngine(activeGameState, action)).toThrow(
     new Error(
       "can't play active move on the same color board as the passive move",
@@ -621,6 +643,11 @@ test("gameEngine handles active moves", () => {
     boardMessage: BoardMessage.MOVEUNEQUALTOPASSIVEMOVE,
   };
 
+  activeGameState.boards[3].grid = setCanMove(
+    activeGameState.boards[3].grid,
+    PlayerColor.BLACK,
+    true,
+  );
   // active direction must be the same as passive direction
   expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
 
@@ -662,6 +689,9 @@ test("gameEngine handles active moves", () => {
   activeGrid[2][1] = stone;
   stone = activeGrid[2][3];
   activeGrid[2][2] = stone;
+  activeGrid[2][3] = null;
+
+  activeGrid = setCanMove(activeGrid, PlayerColor.BLACK, true);
 
   activeGameState.boards[0].grid = structuredClone(activeGrid);
 

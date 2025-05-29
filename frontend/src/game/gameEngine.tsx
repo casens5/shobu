@@ -269,6 +269,10 @@ export function isInputValid(
     return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
   }
 
+  if (!movedStone.canMove) {
+    return { ...newGameState, boardMessage: BoardMessage.MOVEILLEGAL };
+  }
+
   return "VALID";
 }
 
@@ -358,6 +362,14 @@ export default function gameEngine(
             grid[action.destination[0]][action.destination[1]] = movedStone;
             grid[action.origin[0]][action.origin[1]] = null;
 
+            newGameState.boards.forEach((board) => {
+              board.grid = setCanMove(
+                board.grid,
+                action.color,
+                board.playerHome === action.color,
+              );
+            });
+
             return {
               ...newGameState,
               moves: newMoves.slice(0, -1),
@@ -436,6 +448,18 @@ export default function gameEngine(
             "can't make the first (passive) move outside the player's home area",
           );
         }
+        const boardShade = newGameState.boards[action.boardId].boardShade;
+        newBoards.forEach((board) => {
+          board.grid = setCanMove(
+            board.grid,
+            action.color,
+            board.boardShade !== boardShade,
+          );
+        });
+
+        newBoards[action.boardId].grid[action.destination[0]][
+          action.destination[1]
+        ]!.canMove = true;
 
         newMoves.push({
           player: action.color,
@@ -473,14 +497,25 @@ export default function gameEngine(
         }
 
         newMoves[newMoves.length - 1].secondMove = newMove;
-        const winner = checkWin(newGrid);
+        const winningPlayer = checkWin(newGrid);
+
+        newGameState.boards.forEach((board) => {
+          board.grid = setCanMove(board.grid, action.color, false);
+        });
+        newGameState.boards.forEach((board) => {
+          board.grid = setCanMove(
+            board.grid,
+            switchPlayer(action.color),
+            winningPlayer == null ? board.playerHome !== action.color : false,
+          );
+        });
 
         return {
           ...newGameState,
           moves: newMoves,
           boards: newBoards,
           playerTurn: switchPlayer(gameState.playerTurn),
-          winner: winner,
+          winner: winningPlayer,
         };
       }
     }
@@ -496,7 +531,8 @@ export default function gameEngine(
         board.grid = setCanMove(board.grid, PlayerColor.WHITE, false);
 
         return board;
-      }) as unknown as BoardsType;
+      }) as BoardsType;
+
       return initializedGameState;
     }
 
