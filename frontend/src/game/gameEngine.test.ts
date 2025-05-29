@@ -298,14 +298,13 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
   });
 
   let gameState1 = structuredClone(initialGameState);
-  gameState1.playerTurn = switchPlayer(gameState1.playerTurn);
 
   action = {
     type: ActionType.MOVESTONE,
-    boardId: 2,
-    color: PlayerColor.WHITE,
-    origin: [0, 3],
-    destination: [0, 3],
+    boardId: 0,
+    color: PlayerColor.BLACK,
+    origin: [3, 0],
+    destination: [3, 0],
   };
 
   // click and de-select stone
