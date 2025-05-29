@@ -163,6 +163,9 @@ export enum ActionType {
   CONCEDE,
 }
 
+// filler
+// so that BoardMessage indexes line up with line numbers
+
 export enum BoardMessage {
   MOVETOOLONG,
   MOVEOUTOFBOUNDS,
