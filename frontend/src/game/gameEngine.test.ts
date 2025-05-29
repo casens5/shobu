@@ -624,11 +624,10 @@ test("gameEngine handles active moves", () => {
 
   activeGameState.boards[2].grid[2][0]!.canMove = true;
 
-  expect(() => gameEngine(activeGameState, action)).toThrow(
-    new Error(
-      "can't play active move on the same color board as the passive move",
-    ),
-  );
+  expect(gameEngine(activeGameState, action)).toStrictEqual({
+    ...activeGameState,
+    boardMessage: BoardMessage.MOVEWRONGSHADEBOARD,
+  });
 
   action = {
     type: ActionType.MOVESTONE,

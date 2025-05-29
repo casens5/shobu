@@ -55,7 +55,7 @@ function ErrorMessage({ message }: ErrorMessageProps) {
       "your first move must be passive (can't push a stone)",
     [BoardMessage.MOVENOTINHOMEAREA]:
       "your first move must be passive (in your home area)",
-    [BoardMessage.MOVEWRONGCOLORBOARD]:
+    [BoardMessage.MOVEWRONGSHADEBOARD]:
       "you must play on a opposite color board from your first move",
     [BoardMessage.MOVENOTYOURPIECE]: "you can only move pieces of your color",
     [BoardMessage.MOVENOTYOURTURN]: "it's not your turn",
@@ -63,6 +63,7 @@ function ErrorMessage({ message }: ErrorMessageProps) {
       "you can undo this move by returning this stone to its origin square",
     [BoardMessage.MOVEUNDO2]:
       "you can only move 1 stone on this board.  if you want to undo, return the stone you moved to its origin square",
+    [BoardMessage.MOVEILLEGAL]: "move is illegal",
     [BoardMessage.MOVECLEARERROR]: "",
   };
   return (

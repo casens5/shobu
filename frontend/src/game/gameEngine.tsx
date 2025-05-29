@@ -269,6 +269,23 @@ export function isInputValid(
     return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
   }
 
+  const lastTurn =
+    gameState.moves.length > 0
+      ? gameState.moves[gameState.moves.length - 1]
+      : null;
+
+  // if is the active move, and the move is on the same shade board as the passive move
+  if (
+    lastTurn &&
+    lastTurn.secondMove == null &&
+    lastTurn.firstMove.boardId + action.boardId === 3
+  ) {
+    return {
+      ...newGameState,
+      boardMessage: BoardMessage.MOVEWRONGSHADEBOARD,
+    };
+  }
+
   if (!movedStone.canMove) {
     return { ...newGameState, boardMessage: BoardMessage.MOVEILLEGAL };
   }
@@ -468,12 +485,6 @@ export default function gameEngine(
         return { ...newGameState, boards: newBoards, moves: newMoves };
       } else {
         // active move
-        if (currentPlayerFirstMove!.boardId + action.boardId === 3) {
-          throw new Error(
-            "can't play active move on the same color board as the passive move",
-          );
-        }
-
         const passiveDirection = getMoveDirection(
           currentPlayerFirstMove!.origin,
           currentPlayerFirstMove!.destination,
