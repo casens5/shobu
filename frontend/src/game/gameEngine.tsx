@@ -538,7 +538,42 @@ export default function gameEngine(
           boardMessage: BoardMessage.MOVENOTYOURTURN,
         };
       }
-      return newGameState;
+
+      if (newMoves.length === 0 || newMoves[newMoves.length - 1].secondMove) {
+        // passive move
+        if (newGameState.boards[action.boardId].playerHome !== action.color) {
+          return {
+            ...newGameState,
+            boardMessage: BoardMessage.MOVENOTINHOMEAREA,
+          };
+        } else {
+          throw Error(`invalid ActionType.CANTMOVE: {action}; {newGameState}`);
+        }
+      } else {
+        // active move
+        if (
+          newGameState.moves[newGameState.moves.length - 1].firstMove
+            .boardId === action.boardId
+        ) {
+          // undo passive move with the wrong stone
+          return {
+            ...newGameState,
+            boardMessage: BoardMessage.MOVEUNDOWRONGSTONE,
+          };
+        } else if (
+          newGameState.moves[newGameState.moves.length - 1].firstMove.boardId +
+            action.boardId ===
+          3
+        ) {
+          // active move on the same board shade as the passive
+          return {
+            ...newGameState,
+            boardMessage: BoardMessage.MOVEWRONGSHADEBOARD,
+          };
+        } else {
+          throw Error(`invalid ActionType.CANTMOVE: {action}; {newGameState}`);
+        }
+      }
     }
 
     case ActionType.INITIALIZEGAME: {

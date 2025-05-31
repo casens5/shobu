@@ -15,6 +15,7 @@ import {
   BoardCoordinates,
   BoardId,
   BoardMessage,
+  CantMoveAction,
   Direction,
   DisplayErrorAction,
   InitializeGameAction,
@@ -709,6 +710,79 @@ test("gameEngine handles active moves", () => {
 
   // can't push 2 stones in a row
   expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
+});
+
+test("gameEngine handles cant moves", () => {
+  gameState = structuredClone(initialGameState);
+
+  let action = {
+    type: ActionType.CANTMOVE,
+    boardId: 2,
+    color: PlayerColor.WHITE,
+  } as CantMoveAction;
+
+  // handles not your turn
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVENOTYOURTURN,
+  });
+
+  action = {
+    type: ActionType.CANTMOVE,
+    boardId: 2,
+    color: PlayerColor.BLACK,
+  };
+
+  // handles playing outside home area
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVENOTINHOMEAREA,
+  });
+
+  let newGrid = structuredClone(gameState.boards[1].grid);
+
+  let stone = newGrid[0][0]!;
+  newGrid[1][1] = stone;
+  newGrid[0][0] = null;
+
+  moves = [
+    {
+      player: 0,
+      firstMove: {
+        boardId: 1,
+        origin: [0, 0],
+        destination: [1, 1],
+        isPush: false,
+      },
+    },
+  ];
+
+  gameState.boards[1].grid = structuredClone(newGrid);
+  gameState.moves = structuredClone(moves);
+
+  action = {
+    type: ActionType.CANTMOVE,
+    boardId: 1,
+    color: PlayerColor.BLACK,
+  };
+
+  // handles undoing the passive move with the wrong stone
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEUNDOWRONGSTONE,
+  });
+
+  action = {
+    type: ActionType.CANTMOVE,
+    boardId: 2,
+    color: PlayerColor.BLACK,
+  };
+
+  // handles active move on the wrong board shade
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEWRONGSHADEBOARD,
+  });
 });
 
 console.log(fullPrint({ hi: "all done now" }));
