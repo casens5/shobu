@@ -7,7 +7,13 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { StoneId, PlayerColor, StoneObject } from "../types";
+import {
+  StoneId,
+  PlayerColor,
+  StoneObject,
+  ActionType,
+  BoardId,
+} from "../types";
 
 function getEventPosition(
   e: globalThis.MouseEvent | globalThis.TouchEvent,
@@ -22,19 +28,23 @@ function getEventPosition(
 
 type StoneProps = StoneObject & {
   containerWidth: number;
+  boardId: BoardId;
   handleStoneMove: (
     id: StoneId,
     color: PlayerColor,
     newPosition: [number, number],
   ) => void;
+  dispatch: any;
 };
 
 export default function Stone({
   id,
+  boardId,
   color,
   canMove,
   containerWidth,
   handleStoneMove,
+  dispatch,
 }: StoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState([0, 0]);
@@ -43,7 +53,15 @@ export default function Stone({
     e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
   ) {
     if ("button" in e && e.button !== 0) return null;
-    if (!canMove) return null;
+    if (!canMove) {
+      // maybe add origin or stoneId for the undo passive move?
+      dispatch({
+        type: ActionType.CANTMOVE,
+        color: color,
+        boardId: boardId,
+      });
+      return null;
+    }
 
     e.preventDefault();
     setIsDragging(true);

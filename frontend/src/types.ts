@@ -122,6 +122,7 @@ export enum MoveCondition {
 }
 export type GameEngineAction =
   | MoveStoneAction
+  | CantMoveAction
   | InitializeGameAction
   | DisplayErrorAction
   | DrawAction
@@ -133,6 +134,12 @@ export type MoveStoneAction = {
   color: PlayerColor;
   origin: BoardCoordinates;
   destination: BoardCoordinates;
+};
+
+export type CantMoveAction = {
+  type: ActionType.CANTMOVE;
+  boardId: BoardId;
+  color: PlayerColor;
 };
 
 export type InitializeGameAction = {
@@ -157,12 +164,16 @@ export type ConcedeAction = {
 
 export enum ActionType {
   MOVESTONE,
+  CANTMOVE,
   INITIALIZEGAME,
   DISPLAYERROR,
   DRAW,
   CONCEDE,
 }
 
+// filler
+// filler
+// filler
 // filler
 // so that BoardMessage indexes line up with line numbers
 

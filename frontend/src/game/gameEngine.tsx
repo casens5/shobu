@@ -531,6 +531,16 @@ export default function gameEngine(
       }
     }
 
+    case ActionType.CANTMOVE: {
+      if (newGameState.playerTurn !== action.color) {
+        return {
+          ...newGameState,
+          boardMessage: BoardMessage.MOVENOTYOURTURN,
+        };
+      }
+      return newGameState;
+    }
+
     case ActionType.INITIALIZEGAME: {
       const initializedGameState = structuredClone(gameStateTemplate);
       initializedGameState.boards = initializedGameState.boards.map((board) => {

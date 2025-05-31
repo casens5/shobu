@@ -22,6 +22,7 @@ export function coordinateToId(coords: BoardCoordinates): CoordinateId {
 
 type CellProps = {
   cell: StoneObject | null;
+  boardId: BoardId;
   row: Coord;
   col: Coord;
   onMouseDownAction: () => void;
@@ -30,15 +31,18 @@ type CellProps = {
     color: PlayerColor,
     newPosition: [number, number],
   ) => void;
+  dispatch: any;
   className?: string;
 };
 
 function Cell({
   cell,
+  boardId,
   row,
   col,
   onMouseDownAction,
   handleStoneMove,
+  dispatch,
   className,
 }: CellProps) {
   const cellRef = useRef<HTMLDivElement>(null);
@@ -77,10 +81,12 @@ function Cell({
       {cell && (
         <Stone
           id={cell.id}
+          boardId={boardId}
           color={cell.color}
           canMove={cell.canMove}
           containerWidth={containerWidth}
           handleStoneMove={handleStoneMove}
+          dispatch={dispatch}
         />
       )}
     </div>
@@ -215,9 +221,11 @@ export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
             <Cell
               key={4 * x + y}
               cell={cell}
+              boardId={id}
               row={x}
               col={y}
               handleStoneMove={handleStoneMove}
+              dispatch={dispatch}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
             />
           );
