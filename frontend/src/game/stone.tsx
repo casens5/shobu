@@ -9,15 +9,6 @@ import React, {
 } from "react";
 import { StoneId, PlayerColor, StoneObject } from "../types";
 
-type StoneProps = StoneObject & {
-  containerWidth: number;
-  handleStoneMove: (
-    id: StoneId,
-    color: PlayerColor,
-    newPosition: [number, number],
-  ) => void;
-};
-
 function getEventPosition(
   e: globalThis.MouseEvent | globalThis.TouchEvent,
 ): [number, number] {
@@ -28,6 +19,15 @@ function getEventPosition(
     return [e.clientX, e.clientY];
   }
 }
+
+type StoneProps = StoneObject & {
+  containerWidth: number;
+  handleStoneMove: (
+    id: StoneId,
+    color: PlayerColor,
+    newPosition: [number, number],
+  ) => void;
+};
 
 export default function Stone({
   id,
