@@ -210,19 +210,13 @@ export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
             15: "rounded-br-2xl",
           };
           const cornerBorder = cornerBorderDict[coordinateToId([x, y])] || "";
-          const canMove = true;
-          /*
-            cell != null &&
-            playerTurn === cell.color &&
-            isStoneMovable([x, y], moveCondition, restrictedMove);
-            */
 
           return (
             <Cell
               key={4 * x + y}
+              cell={cell}
               row={x}
               col={y}
-              cell={cell && { ...cell, canMove }}
               handleStoneMove={handleStoneMove}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
               onMouseDownAction={() => {
