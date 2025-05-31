@@ -25,7 +25,6 @@ type CellProps = {
   boardId: BoardId;
   row: Coord;
   col: Coord;
-  onMouseDownAction: () => void;
   handleStoneMove: (
     id: StoneId,
     color: PlayerColor,
@@ -40,7 +39,6 @@ function Cell({
   boardId,
   row,
   col,
-  onMouseDownAction,
   handleStoneMove,
   dispatch,
   className,
@@ -68,7 +66,6 @@ function Cell({
     <div
       key={4 * row + col}
       ref={cellRef}
-      onMouseDown={onMouseDownAction}
       className={clsx(
         "box-border aspect-square h-auto w-full touch-none border-black",
         className,
