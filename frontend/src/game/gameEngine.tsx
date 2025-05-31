@@ -396,13 +396,13 @@ export default function gameEngine(
           } else {
             return {
               ...newGameState,
-              boardMessage: BoardMessage.MOVEUNDO1,
+              boardMessage: BoardMessage.MOVEUNDOWRONGDESTINATION,
             };
           }
         } else {
           return {
             ...newGameState,
-            boardMessage: BoardMessage.MOVEUNDO2,
+            boardMessage: BoardMessage.MOVEUNDOWRONGSTONE,
           };
         }
         // else, not an undo move

@@ -349,7 +349,7 @@ test("gameEngine handles undo moves", () => {
 
   expect(gameEngine(resultGameState, action)).toStrictEqual({
     ...resultGameState,
-    boardMessage: BoardMessage.MOVEUNDO1,
+    boardMessage: BoardMessage.MOVEUNDOWRONGDESTINATION,
   });
 
   let stone2 = initialGrid[1][0];
@@ -366,7 +366,7 @@ test("gameEngine handles undo moves", () => {
 
   expect(gameEngine(gameState1, action)).toStrictEqual({
     ...gameState1,
-    boardMessage: BoardMessage.MOVEUNDO2,
+    boardMessage: BoardMessage.MOVEUNDOWRONGSTONE,
   });
 });
 
