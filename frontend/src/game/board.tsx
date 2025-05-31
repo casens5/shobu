@@ -219,18 +219,10 @@ export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
               col={y}
               handleStoneMove={handleStoneMove}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
-              onMouseDownAction={() => {
-                dispatch({
-                  type: ActionType.DISPLAYERROR,
-                  color: cell?.color,
-                  boardMessage: BoardMessage.MOVECLEARERROR,
-                });
-              }}
             />
           );
         });
       })}
-      {/*<div onClick={() => console.log("test baba")}>baba</div>*/}
     </div>
   );
 }
