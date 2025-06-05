@@ -156,7 +156,7 @@ export function getMoveDirection(
 
   // this shouldn't even be possible
   throw new Error(
-    `extremely cursed invalid direction: ${origin}, ${destination}`,
+    `extremely cursed invalid direction: origin: ${JSON.stringify(origin)}, destination: ${JSON.stringify(destination)}`,
   );
 }
 
@@ -263,10 +263,12 @@ export function isInputValid(
     gameState.boards[action.boardId].grid[action.origin[0]][action.origin[1]],
   );
   if (stone == null) {
-    throw new Error(`stone does not exist at origin ${action.origin}`);
+    throw new Error(
+      `stone does not exist at origin ${JSON.stringify(action.origin)}`,
+    );
   }
 
-  const movedStone = stone as StoneObject;
+  const movedStone: StoneObject = stone;
   if (gameState.playerTurn !== movedStone.color) {
     // can't move the other player's color stones
     return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURPIECE };
@@ -352,11 +354,16 @@ export default function gameEngine(
       }
 
       // movedStone exists, checked in isInputValid
-      const movedStone = structuredClone(
+      const stone =
         newGameState.boards[action.boardId].grid[action.origin[0]][
           action.origin[1]
-        ],
-      ) as StoneObject;
+        ];
+      if (!stone) {
+        throw new Error(
+          `stone does not exist at origin ${JSON.stringify(action.origin)}`,
+        );
+      }
+      const movedStone: StoneObject = structuredClone(stone);
 
       const currentPlayerFirstMove =
         newMoves.length > 0 && newMoves[newMoves.length - 1].secondMove == null
