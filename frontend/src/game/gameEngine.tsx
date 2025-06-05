@@ -122,7 +122,9 @@ export function getMoveDirection(
     (xMove > 0 && yMove > 0 && xMove !== yMove)
   ) {
     // only allow pure othogonal / diagonal moves
-    throw new Error(`invalid direction: ${origin}, ${destination}`);
+    throw new Error(
+      `invalid direction: origin: ${JSON.stringify(origin)}, destination: ${JSON.stringify(destination)}`,
+    );
   }
 
   // north/south movement
@@ -198,7 +200,8 @@ export function isMoveLegal(
 
   try {
     getMoveDirection(origin, destination);
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
     // only allow orthogonal or diagonal moves, no knight moves
     return BoardMessage.MOVEKNIGHT;
   }
