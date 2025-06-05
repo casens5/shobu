@@ -7,6 +7,16 @@ import { defineConfig } from "eslint/config";
 export default defineConfig([
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    settings: {
+      react: {
+        createClass: "createReactClass",
+        pragma: "React",
+        fragment: "Fragment",
+        version: "detect",
+        defaultVersion: "",
+        flowVersion: "0.53",
+      },
+    },
     plugins: { js },
     extends: ["js/recommended"],
   },
@@ -15,5 +25,10 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
+  {
+    ...pluginReact.configs.flat.recommended,
+    rules: {
+      "react/react-in-jsx-scope": "off",
+    },
+  },
 ]);
