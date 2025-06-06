@@ -520,10 +520,10 @@ export default function gameEngine(
         newMoves[newMoves.length - 1].secondMove = newMove;
         const winningPlayer = checkWin(newGrid);
 
-        newGameState.boards.forEach((board) => {
+        newBoards.forEach((board) => {
           board.grid = setCanMove(board.grid, action.color, false);
         });
-        newGameState.boards.forEach((board) => {
+        newBoards.forEach((board) => {
           board.grid = setCanMove(
             board.grid,
             switchPlayer(action.color),
