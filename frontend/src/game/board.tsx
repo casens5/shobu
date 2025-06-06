@@ -13,6 +13,7 @@ import {
   BoardCoordinates,
   ActionType,
   BoardShade,
+  LastMoveType,
 } from "../types";
 import { useState, useEffect, useRef } from "react";
 
@@ -94,10 +95,17 @@ type BoardProps = {
   id: BoardId;
   boardShade: BoardShade;
   grid: GridType;
+  lastMoves: [LastMoveType | null, LastMoveType | null];
   dispatch: any;
 };
 
-export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
+export default function Board({
+  id,
+  boardShade,
+  grid,
+  lastMoves,
+  dispatch,
+}: BoardProps) {
   // handle board resizing
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardDimensions, setBoardDimensions] = useState({
@@ -228,6 +236,14 @@ export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
           );
         });
       })}
+
+      {/*<div
+        onClick={() => {
+          console.log("oh hi", lastMoves);
+        }}
+      >
+        test
+      </div>*/}
     </div>
   );
 }

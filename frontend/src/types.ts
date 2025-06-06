@@ -54,8 +54,7 @@ export type BoardType = {
   boardShade: BoardShade;
   playerHome: PlayerColor;
   grid: GridType;
-  lastMoveBlack: LastMoveType | null;
-  lastMoveWhite: LastMoveType | null;
+  lastMoves: [LastMoveType | null, LastMoveType | null];
 };
 export type BoardsType = [BoardType, BoardType, BoardType, BoardType];
 export type GameStateType = {
@@ -67,8 +66,8 @@ export type GameStateType = {
 };
 export type GameWinnerType = PlayerColor | "DRAW";
 export type LastMoveType = {
-  from: BoardCoordinates;
-  to: BoardCoordinates;
+  origin: BoardCoordinates;
+  destination: BoardCoordinates;
   isPush: boolean;
 };
 export enum PlayerColor {

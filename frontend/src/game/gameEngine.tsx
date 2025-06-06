@@ -57,32 +57,28 @@ const boardsTemplate = [
     boardShade: BoardShade.DARK,
     playerHome: PlayerColor.BLACK,
     grid: structuredClone(gridTemplate),
-    lastMoveBlack: null,
-    lastMoveWhite: null,
+    lastMoves: [null, null],
   },
   {
     id: 1,
     boardShade: BoardShade.LIGHT,
     playerHome: PlayerColor.BLACK,
     grid: structuredClone(gridTemplate),
-    lastMoveBlack: null,
-    lastMoveWhite: null,
+    lastMoves: [null, null],
   },
   {
     id: 2,
     boardShade: BoardShade.LIGHT,
     playerHome: PlayerColor.WHITE,
     grid: structuredClone(gridTemplate),
-    lastMoveBlack: null,
-    lastMoveWhite: null,
+    lastMoves: [null, null],
   },
   {
     id: 3,
     boardShade: BoardShade.DARK,
     playerHome: PlayerColor.WHITE,
     grid: structuredClone(gridTemplate),
-    lastMoveBlack: null,
-    lastMoveWhite: null,
+    lastMoves: [null, null],
   },
 ] as BoardsType;
 
@@ -181,6 +177,7 @@ export function setBoardsForPassiveMove(gameState: GameStateType) {
 
   newGameState.boards.forEach((board) => {
     board.grid = setCanMove(board.grid, switchPlayer(playerColor), false);
+    board.lastMoves[switchPlayer(playerColor)] = null;
     if (board.playerHome === playerColor && gameState.winner == null) {
       board.grid = setCanMove(board.grid, playerColor, true);
     }
@@ -511,6 +508,12 @@ export default function gameEngine(
           player: action.color,
           firstMove: newMove,
         });
+
+        newBoards[action.boardId].lastMoves[action.color] = {
+          origin: action.origin,
+          destination: action.destination,
+          isPush: false,
+        };
         return { ...newGameState, boards: newBoards, moves: newMoves };
       } else {
         // active move
@@ -535,6 +538,12 @@ export default function gameEngine(
             boardMessage: BoardMessage.MOVEUNEQUALTOPASSIVEMOVE,
           };
         }
+
+        newGameState.boards[action.boardId].lastMoves[action.color] = {
+          origin: action.origin,
+          destination: action.destination,
+          isPush: pushedStone != null,
+        };
 
         newMoves[newMoves.length - 1].secondMove = newMove;
         newGameState.moves = newMoves;
