@@ -254,6 +254,11 @@ export function isInputValid(
   action: MoveStoneAction,
 ) {
   const newGameState = structuredClone(gameState);
+
+  if (gameState.winner != null) {
+    return { ...newGameState };
+  }
+
   if (gameState.playerTurn !== action.color) {
     // can't move when it's not your turn
     return { ...newGameState, boardMessage: BoardMessage.MOVENOTYOURTURN };
@@ -542,6 +547,10 @@ export default function gameEngine(
     }
 
     case ActionType.CANTMOVE: {
+      if (newGameState.winner != null) {
+        return { ...newGameState };
+      }
+
       if (newGameState.playerTurn !== action.color) {
         return {
           ...newGameState,
