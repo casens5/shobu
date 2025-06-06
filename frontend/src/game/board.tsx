@@ -17,7 +17,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 
 export function coordinateToId(coords: BoardCoordinates): CoordinateId {
-  return (4 * coords[0] + coords[1]) as CoordinateId;
+  return (4 * coords[1] + coords[0]) as CoordinateId;
 }
 
 type CellProps = {
@@ -200,9 +200,9 @@ export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
           colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
         return col.map((cell, rowIndex) => {
-          const x = rowIndex as Coord;
-          const y = colIndex as Coord;
-          const bottomBorder = x !== 3 ? "border-b sm:border-b-2" : "";
+          const x = colIndex as Coord;
+          const y = rowIndex as Coord;
+          const bottomBorder = y !== 3 ? "border-b sm:border-b-2" : "";
           const moveColor = ""; //getMoveColor(x, y);
           // makes the transparecy effect on LastMove squares not look weird
           // on the corners
@@ -216,11 +216,11 @@ export default function Board({ id, boardShade, grid, dispatch }: BoardProps) {
 
           return (
             <Cell
-              key={4 * x + y}
+              key={4 * y + x}
               cell={cell}
               boardId={id}
-              row={x}
-              col={y}
+              row={y}
+              col={x}
               handleStoneMove={handleStoneMove}
               dispatch={dispatch}
               className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
