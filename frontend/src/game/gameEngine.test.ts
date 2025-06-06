@@ -99,18 +99,42 @@ test("checkWin works", () => {
   expect(checkWin(initialGrid)).toBe(null);
 
   let grid = structuredClone(blankGrid);
-  let stone0 = initialGrid[0][0];
-  grid[3][1] = stone0;
+  const stone: StoneObject = {
+    id: 0,
+    color: PlayerColor.BLACK,
+    canMove: false,
+  };
+  grid[3][1] = stone;
 
   expect(checkWin(grid)).toBe(PlayerColor.BLACK);
 
   grid = structuredClone(blankGrid);
-  stone0 = initialGrid[3][3];
-  const stone1 = initialGrid[0][3];
+  const stone0: StoneObject = {
+    id: 4,
+    color: PlayerColor.WHITE,
+    canMove: false,
+  };
+  const stone1: StoneObject = {
+    id: 7,
+    color: PlayerColor.WHITE,
+    canMove: false,
+  };
   grid[3][3] = stone0;
   grid[3][0] = stone1;
 
   expect(checkWin(grid)).toBe(PlayerColor.WHITE);
+
+  grid = structuredClone(blankGrid);
+  const stone2: StoneObject = {
+    id: 1,
+    color: PlayerColor.BLACK,
+    canMove: false,
+  };
+  grid[0][3] = stone2;
+  grid[1][2] = stone0;
+  grid[2][0] = stone1;
+
+  expect(checkWin(grid)).toBe(null);
 });
 
 test("setCanMove works", () => {
@@ -128,8 +152,11 @@ test("setCanMove works", () => {
   // flips canMove on a single stone
   expect(setCanMove(grid, PlayerColor.BLACK, true)).toStrictEqual(resultGrid);
 
-  const whiteStone = initialGrid[1][3]!;
-  whiteStone.canMove = false;
+  const whiteStone: StoneObject = {
+    id: 5,
+    color: PlayerColor.WHITE,
+    canMove: false,
+  };
   grid[3][0] = whiteStone;
   grid[3][2]!.canMove = false;
 
@@ -182,8 +209,16 @@ test("gameEngine renders error messages", () => {
 let gameState = structuredClone(initialGameState);
 let grid = structuredClone(blankGrid);
 const initialGrid = structuredClone(gameState.boards[0].grid);
-const blackStone: StoneObject = structuredClone(initialGrid[2][0]!);
-const whiteStone: StoneObject = structuredClone(initialGrid[3][3]!);
+const blackStone: StoneObject = {
+  id: 2,
+  color: PlayerColor.BLACK,
+  canMove: true,
+};
+const whiteStone: StoneObject = {
+  id: 7,
+  color: PlayerColor.WHITE,
+  canMove: false,
+};
 grid[1][2] = blackStone;
 grid[1][0] = whiteStone;
 gameState.boards[1].grid = structuredClone(grid);
@@ -425,8 +460,10 @@ test("gameEngine handles passive moves", () => {
 test("gameEngine handles active moves", () => {
   gameState = structuredClone(initialGameState);
   const passiveGrid = structuredClone(blankGrid);
-  passiveGrid[1][0] = initialGrid[2][0];
-  passiveGrid[1][2] = initialGrid[3][3];
+  let stone: StoneObject = { id: 2, color: PlayerColor.BLACK, canMove: true };
+  passiveGrid[1][0] = stone;
+  stone = { id: 7, color: PlayerColor.WHITE, canMove: false };
+  passiveGrid[1][2] = stone;
   gameState.boards[1].grid = passiveGrid;
 
   action = {
@@ -439,10 +476,14 @@ test("gameEngine handles active moves", () => {
 
   let activeGameState = gameEngine(gameState, action);
 
-  let stone0 = initialGrid[3][0];
-  let stone1 = initialGrid[0][0];
-  let stone2 = initialGrid[0][3];
-  const stone3 = initialGrid[1][3];
+  let stone0: StoneObject = { id: 3, color: PlayerColor.BLACK, canMove: true };
+  let stone1: StoneObject = { id: 0, color: PlayerColor.BLACK, canMove: true };
+  let stone2: StoneObject = { id: 4, color: PlayerColor.WHITE, canMove: false };
+  const stone3: StoneObject = {
+    id: 5,
+    color: PlayerColor.WHITE,
+    canMove: false,
+  };
   let activeGrid = structuredClone(blankGrid);
   activeGrid[2][0] = stone0;
   activeGrid[0][1] = stone1;
@@ -516,14 +557,14 @@ test("gameEngine handles active moves", () => {
   resultGameState = structuredClone(activeGameState);
 
   resultGrid = structuredClone(resultGameState.boards[0].grid);
-  let stone = resultGrid[2][0];
+  stone = resultGrid[2][0]!;
   resultGrid[2][2] = stone;
   resultGrid[2][0] = null;
 
   resultGameState.boards[0].grid = structuredClone(resultGrid);
   resultGameState.playerTurn = PlayerColor.WHITE;
 
-  moves = [
+  resultGameState.moves = [
     {
       player: 0,
       firstMove: {
@@ -540,8 +581,6 @@ test("gameEngine handles active moves", () => {
       },
     } as MoveRecord,
   ];
-
-  resultGameState.moves = moves;
 
   action = {
     type: ActionType.MOVESTONE,
@@ -560,9 +599,9 @@ test("gameEngine handles active moves", () => {
 
   gameState.boards[1].grid = structuredClone(passiveGrid);
 
-  stone0 = resultGrid[0][2];
+  stone0 = resultGrid[0][2]!;
   resultGrid[0][1] = stone0;
-  stone1 = resultGrid[0][3];
+  stone1 = resultGrid[0][3]!;
   resultGrid[0][2] = stone1;
   resultGrid[0][3] = null;
   stone2 = resultGrid[2][2];
@@ -582,7 +621,7 @@ test("gameEngine handles active moves", () => {
   activeGameState = gameEngine(gameState, action);
   resultGameState = structuredClone(activeGameState);
 
-  moves = [
+  resultGameState.moves = [
     {
       player: 0,
       firstMove: {
@@ -599,7 +638,6 @@ test("gameEngine handles active moves", () => {
       },
     } as MoveRecord,
   ];
-  resultGameState.moves = moves;
 
   resultGrid[0][2] = stone2;
   resultGrid[2][0] = null;
@@ -662,7 +700,7 @@ test("gameEngine handles active moves", () => {
     destination: [2, 1],
   };
 
-  stone = activeGrid[0][1];
+  stone = activeGrid[0][1]!;
   activeGrid[2][1] = stone;
 
   gameState.boards[1].grid = structuredClone(passiveGrid);
@@ -686,11 +724,11 @@ test("gameEngine handles active moves", () => {
   // can't push your own stone
   expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
 
-  stone = activeGrid[2][1];
+  stone = activeGrid[2][1]!;
   activeGrid[0][1] = stone;
-  stone = activeGrid[0][2];
+  stone = activeGrid[0][2]!;
   activeGrid[2][1] = stone;
-  stone = activeGrid[2][3];
+  stone = activeGrid[2][3]!;
   activeGrid[2][2] = stone;
   activeGrid[2][3] = null;
 
@@ -744,7 +782,11 @@ test("gameEngine handles cant moves", () => {
 
   const newGrid = structuredClone(gameState.boards[1].grid);
 
-  const stone = newGrid[0][0]!;
+  const stone: StoneObject = {
+    id: 0,
+    color: PlayerColor.BLACK,
+    canMove: false,
+  };
   newGrid[1][1] = stone;
   newGrid[0][0] = null;
 
@@ -788,4 +830,5 @@ test("gameEngine handles cant moves", () => {
   });
 });
 
+// fullPrint needs to be used otherwise the linter is sad
 console.log(fullPrint({ hi: "all done now" }));

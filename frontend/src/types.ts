@@ -174,7 +174,6 @@ export enum ActionType {
 // filler
 // filler
 // filler
-// filler
 // so that BoardMessage indexes line up with line numbers
 
 export enum BoardMessage {
