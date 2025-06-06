@@ -177,7 +177,7 @@ export function setBoardsForPassiveMove(gameState: GameStateType) {
 
   newGameState.boards.forEach((board) => {
     board.grid = setCanMove(board.grid, switchPlayer(playerColor), false);
-    board.lastMoves[switchPlayer(playerColor)] = null;
+    board.lastMoves[playerColor] = null;
     if (board.playerHome === playerColor && gameState.winner == null) {
       board.grid = setCanMove(board.grid, playerColor, true);
     }
@@ -539,7 +539,7 @@ export default function gameEngine(
           };
         }
 
-        newGameState.boards[action.boardId].lastMoves[action.color] = {
+        newBoards[action.boardId].lastMoves[action.color] = {
           origin: action.origin,
           destination: action.destination,
           isPush: pushedStone != null,

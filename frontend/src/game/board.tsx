@@ -181,6 +181,22 @@ export default function Board({
     }
   }
 
+  function getCellColor(x: Coord, y: Coord) {
+    let val = null;
+    lastMoves.forEach((lastMove: LastMoveType | null) => {
+      if (lastMove !== null) {
+        if (lastMove.origin[0] === x && lastMove.origin[1] === y) {
+          val = "dark-transparent";
+        }
+
+        if (lastMove.destination[0] === x && lastMove.destination[1] === y) {
+          val = lastMove.isPush ? "red-transparent" : "dark-transparent";
+        }
+      }
+    });
+    return val;
+  }
+
   useEffect(() => {
     updateBoardDimensions();
     window.addEventListener("resize", updateBoardDimensions);
@@ -211,7 +227,7 @@ export default function Board({
           const x = colIndex as Coord;
           const y = rowIndex as Coord;
           const bottomBorder = y !== 3 ? "border-b sm:border-b-2" : "";
-          const moveColor = ""; //getMoveColor(x, y);
+          const cellColor = getCellColor(x, y);
           // makes the transparecy effect on LastMove squares not look weird
           // on the corners
           const cornerBorderDict: { [key: number]: string } = {
@@ -231,7 +247,7 @@ export default function Board({
               col={x}
               handleStoneMove={handleStoneMove}
               dispatch={dispatch}
-              className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${moveColor}`}
+              className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${cellColor}`}
             />
           );
         });
