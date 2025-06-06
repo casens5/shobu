@@ -108,10 +108,10 @@ export default function Game() {
 
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
-      {winner ? (
-        <WinIndicator playerWin={winner} />
-      ) : (
+      {winner == null ? (
         <TurnIndicator playerTurn={playerTurn} />
+      ) : (
+        <WinIndicator playerWin={winner} />
       )}
       <ErrorMessage message={boardMessage} />
       <div className="max-h-2xl h-auto w-full max-w-2xl items-center">
