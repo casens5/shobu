@@ -9,6 +9,7 @@ import gameEngine, {
   initialGameState,
   setCanMove,
   gameStateTemplate,
+  setBoardsForPassiveMove,
 } from "./gameEngine";
 import {
   ActionType,
@@ -497,8 +498,12 @@ test("gameEngine handles active moves", () => {
   resultGrid[0][1] = null;
   resultGrid[0][2] = stone1;
   resultGrid[0][3] = stone2;
+  resultGameState.boards[0].grid = resultGrid;
 
-  moves = [
+  resultGameState.playerTurn = switchPlayer(resultGameState.playerTurn);
+  resultGameState.boards = setBoardsForPassiveMove(resultGameState);
+
+  resultGameState.moves = [
     {
       player: PlayerColor.BLACK,
       firstMove: {
@@ -515,10 +520,6 @@ test("gameEngine handles active moves", () => {
       },
     } as MoveRecord,
   ];
-
-  resultGameState.playerTurn = switchPlayer(resultGameState.playerTurn);
-  resultGameState.boards[0].grid = resultGrid;
-  resultGameState.moves = moves;
 
   action = {
     type: ActionType.MOVESTONE,
@@ -563,6 +564,7 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.boards[0].grid = structuredClone(resultGrid);
   resultGameState.playerTurn = PlayerColor.WHITE;
+  resultGameState.boards = setBoardsForPassiveMove(resultGameState);
 
   resultGameState.moves = [
     {
@@ -644,6 +646,7 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.boards[0].grid = structuredClone(resultGrid);
   resultGameState.playerTurn = PlayerColor.WHITE;
+  resultGameState.boards = setBoardsForPassiveMove(resultGameState);
 
   action = {
     type: ActionType.MOVESTONE,

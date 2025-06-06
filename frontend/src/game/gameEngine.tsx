@@ -175,6 +175,20 @@ export function setCanMove(
   }) as GridType;
 }
 
+export function setBoardsForPassiveMove(gameState: GameStateType) {
+  const newGameState = structuredClone(gameState);
+  const playerColor = newGameState.playerTurn;
+
+  newGameState.boards.forEach((board) => {
+    board.grid = setCanMove(board.grid, switchPlayer(playerColor), false);
+    if (board.playerHome === playerColor && gameState.winner == null) {
+      board.grid = setCanMove(board.grid, playerColor, true);
+    }
+  });
+
+  return newGameState.boards;
+}
+
 // checks that a move is legal locally on board, including direction, length, and pushing stones
 export function isMoveLegal(
   origin: BoardCoordinates,
@@ -523,26 +537,14 @@ export default function gameEngine(
         }
 
         newMoves[newMoves.length - 1].secondMove = newMove;
-        const winningPlayer = checkWin(newGrid);
+        newGameState.moves = newMoves;
+        newGameState.winner = checkWin(newGrid);
+        newGameState.playerTurn = switchPlayer(newGameState.playerTurn);
 
-        newBoards.forEach((board) => {
-          board.grid = setCanMove(board.grid, action.color, false);
-        });
-        newBoards.forEach((board) => {
-          board.grid = setCanMove(
-            board.grid,
-            switchPlayer(action.color),
-            winningPlayer == null ? board.playerHome !== action.color : false,
-          );
-        });
+        newGameState.boards = newBoards;
+        newGameState.boards = setBoardsForPassiveMove(newGameState);
 
-        return {
-          ...newGameState,
-          moves: newMoves,
-          boards: newBoards,
-          playerTurn: switchPlayer(gameState.playerTurn),
-          winner: winningPlayer,
-        };
+        return newGameState;
       }
     }
 
