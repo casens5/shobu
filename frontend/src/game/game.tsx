@@ -82,7 +82,7 @@ function HomeArea({ color, children }: HomeAreaProps) {
   return (
     <div
       className={clsx(
-        "grid grid-cols-2 gap-x-7 py-[23px] sm:gap-x-8 sm:p-[26px]",
+        "grid grid-cols-2 gap-x-7 py-[23px] sm:gap-x-8 sm:p-[26px] xs:px-4",
         {
           "bg-[#00000088] sm:rounded-t-3xl": color === PlayerColor.BLACK,
           "bg-[#ffffff44] sm:rounded-b-3xl": color === PlayerColor.WHITE,
