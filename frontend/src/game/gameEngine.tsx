@@ -483,7 +483,10 @@ export default function gameEngine(
       ) {
         // passive move
         if (pushedStone) {
-          throw new Error("can't push stones with passive move");
+          return {
+            ...newGameState,
+            boardMessage: BoardMessage.MOVEPASSIVECANTPUSH,
+          };
         }
 
         if (action.color !== gameState.boards[action.boardId].playerHome) {

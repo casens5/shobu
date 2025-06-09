@@ -85,7 +85,7 @@ function HomeArea({ color, children }: HomeAreaProps) {
         "grid grid-cols-2 gap-x-7 py-[23px] sm:gap-x-8 sm:p-[26px]",
         {
           "bg-[#00000088] sm:rounded-t-3xl": color === PlayerColor.BLACK,
-          "bg-[#ffffff22] sm:rounded-b-3xl": color === PlayerColor.WHITE,
+          "bg-[#ffffff44] sm:rounded-b-3xl": color === PlayerColor.WHITE,
         },
       )}
     >
