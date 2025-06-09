@@ -54,7 +54,7 @@ export type BoardType = {
   boardShade: BoardShade;
   playerHome: PlayerColor;
   grid: GridType;
-  lastMoves: [LastMoveType | null, LastMoveType | null];
+  lastMoves: LastMovesStoreType;
 };
 export type BoardsType = [BoardType, BoardType, BoardType, BoardType];
 export type GameStateType = {
@@ -65,6 +65,7 @@ export type GameStateType = {
   boardMessage: BoardMessage | null;
 };
 export type GameWinnerType = PlayerColor | "DRAW";
+export type LastMovesStoreType = [LastMoveType | null, LastMoveType | null];
 export type LastMoveType = {
   origin: BoardCoordinates;
   destination: BoardCoordinates;
