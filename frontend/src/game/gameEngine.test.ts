@@ -20,6 +20,7 @@ import {
   Direction,
   DisplayErrorAction,
   InitializeGameAction,
+  LastMovesStoreType,
   MoveRecord,
   MoveStoneAction,
   PlayerColor,
@@ -263,6 +264,16 @@ let moves = [
 ];
 resultGameState.moves = structuredClone(moves);
 
+const lastMoves: LastMovesStoreType = [
+  {
+    destination: [1, 1],
+    isPush: false,
+    origin: [1, 2],
+  },
+  null,
+];
+resultGameState.boards[1].lastMoves = lastMoves;
+
 test("gameEngine initializes the boards", () => {
   const initializedGameState = structuredClone(gameStateTemplate);
   let grid0 = structuredClone(initializedGameState.boards[0].grid);
@@ -366,6 +377,8 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
 });
 
 test("gameEngine handles undo moves", () => {
+  resultGameState.boards[1].lastMoves = [null, null];
+
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
@@ -437,9 +450,10 @@ test("gameEngine handles passive moves", () => {
     destination: [1, 0],
   };
 
-  expect(() => gameEngine(gameState, action)).toThrow(
-    new Error("can't push stones with passive move"),
-  );
+  expect(gameEngine(gameState, action)).toStrictEqual({
+    ...gameState,
+    boardMessage: BoardMessage.MOVEPASSIVECANTPUSH,
+  });
 
   action = {
     type: ActionType.MOVESTONE,
@@ -521,6 +535,14 @@ test("gameEngine handles active moves", () => {
     } as MoveRecord,
   ];
 
+  resultGameState.boards[0].lastMoves = [
+    {
+      destination: [0, 2],
+      isPush: true,
+      origin: [0, 1],
+    },
+    null,
+  ];
   action = {
     type: ActionType.MOVESTONE,
     boardId: 0,
@@ -582,6 +604,15 @@ test("gameEngine handles active moves", () => {
         isPush: false,
       },
     } as MoveRecord,
+  ];
+
+  resultGameState.boards[0].lastMoves = [
+    {
+      destination: [2, 2],
+      isPush: false,
+      origin: [2, 0],
+    },
+    null,
   ];
 
   action = {
@@ -647,6 +678,15 @@ test("gameEngine handles active moves", () => {
   resultGameState.boards[0].grid = structuredClone(resultGrid);
   resultGameState.playerTurn = PlayerColor.WHITE;
   resultGameState.boards = setBoardsForPassiveMove(resultGameState);
+
+  resultGameState.boards[0].lastMoves = [
+    {
+      destination: [0, 2],
+      isPush: true,
+      origin: [2, 0],
+    },
+    null,
+  ];
 
   action = {
     type: ActionType.MOVESTONE,
