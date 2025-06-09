@@ -405,6 +405,8 @@ export default function gameEngine(
             grid[action.destination[0]][action.destination[1]] = movedStone;
             grid[action.origin[0]][action.origin[1]] = null;
 
+            newGameState.boards[action.boardId].lastMoves[action.color] = null;
+
             newGameState.boards.forEach((board) => {
               board.grid = setCanMove(
                 board.grid,
