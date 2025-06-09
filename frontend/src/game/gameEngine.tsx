@@ -577,7 +577,9 @@ export default function gameEngine(
             boardMessage: BoardMessage.MOVENOTINHOMEAREA,
           };
         } else {
-          throw Error(`invalid ActionType.CANTMOVE: {action}; {newGameState}`);
+          throw Error(
+            `invalid ActionType.CANTMOVE: ${action}; ${newGameState}`,
+          );
         }
       } else {
         // active move
@@ -601,7 +603,9 @@ export default function gameEngine(
             boardMessage: BoardMessage.MOVEWRONGSHADEBOARD,
           };
         } else {
-          throw Error(`invalid ActionType.CANTMOVE: {action}; {newGameState}`);
+          throw Error(
+            `invalid ActionType.CANTMOVE: ${action}; ${newGameState}`,
+          );
         }
       }
     }
