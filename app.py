@@ -1,10 +1,11 @@
-from flask import Flask, request, session, jsonify
+import os
+from flask import Flask, request, session, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 from config import Config
 
-app = Flask(__name__, static_folder="frontend/dist", static_url_path='')
+app = Flask(__name__, static_folder="frontend/dist") 
 app.config.from_object(Config)
 CORS(app, supports_credentials=True)
 
@@ -82,7 +83,10 @@ def profile():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
-    return app.send_static_file('index.html')
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
     app.run()
