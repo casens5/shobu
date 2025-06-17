@@ -21,17 +21,14 @@ npm run lint-staged  # Run lint-staged (used by pre-commit hooks)
 
 ### Backend (Flask/Python)
 ```bash
-python app.py        # Run Flask development server
+python run.py        # Run Flask development server
 pip install -r requirements.txt  # Install dependencies
 ```
 
 ## Architecture
 
 ### Backend Structure
-- **app.py**: Main Flask application with user authentication endpoints (`/api/login`, `/api/register`, `/api/status`, `/api/logout`, `/api/profile`)
-- **config.py**: Flask configuration (SQLite database, session management)
-- **User model**: SQLAlchemy model for user authentication with password hashing
-- Serves the React frontend as static files from `frontend/dist/`
+- (out of date)
 
 ### Frontend Structure
 - **Game Engine**: Core game logic in `frontend/src/game/gameEngine.tsx`

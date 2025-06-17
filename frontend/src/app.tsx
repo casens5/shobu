@@ -13,7 +13,7 @@ export default function App() {
           <Header />
           <main className="flex h-full w-full flex-1 flex-col items-center text-xl">
             <Routes>
-              {/*<Route path="/" element={<HomePage />} />*/}
+              <Route path="" element={<Game />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/game" element={<Game />} />
