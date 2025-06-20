@@ -1,9 +1,8 @@
-import { coordinateToId } from "./board";
 import {
   PlayerColor,
   BoardMessage,
   GridType,
-  BoardCoordinates,
+  Coordinate,
   Direction,
   Length,
   BoardsType,
@@ -15,40 +14,29 @@ import {
   GameWinnerType,
   InitializeGameAction,
   BoardShade,
+  Cartesians,
+  Cart,
 } from "../types";
 
-export const blankGrid = [
-  [null, null, null, null],
-  [null, null, null, null],
-  [null, null, null, null],
-  [null, null, null, null],
-] as GridType;
+export const blankGrid = new Array(16).fill(null) as GridType;
 
 const gridTemplate = [
-  [
-    { id: 0, color: PlayerColor.BLACK, canMove: false },
-    null,
-    null,
-    { id: 4, color: PlayerColor.WHITE, canMove: false },
-  ],
-  [
-    { id: 1, color: PlayerColor.BLACK, canMove: false },
-    null,
-    null,
-    { id: 5, color: PlayerColor.WHITE, canMove: false },
-  ],
-  [
-    { id: 2, color: PlayerColor.BLACK, canMove: false },
-    null,
-    null,
-    { id: 6, color: PlayerColor.WHITE, canMove: false },
-  ],
-  [
-    { id: 3, color: PlayerColor.BLACK, canMove: false },
-    null,
-    null,
-    { id: 7, color: PlayerColor.WHITE, canMove: false },
-  ],
+  { id: 0, color: PlayerColor.BLACK, canMove: false },
+  { id: 1, color: PlayerColor.BLACK, canMove: false },
+  { id: 2, color: PlayerColor.BLACK, canMove: false },
+  { id: 3, color: PlayerColor.BLACK, canMove: false },
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  { id: 4, color: PlayerColor.WHITE, canMove: false },
+  { id: 5, color: PlayerColor.WHITE, canMove: false },
+  { id: 6, color: PlayerColor.WHITE, canMove: false },
+  { id: 7, color: PlayerColor.WHITE, canMove: false },
 ] as GridType;
 
 const boardsTemplate = [
@@ -100,60 +88,84 @@ export function switchPlayer(player: PlayerColor) {
   return player === PlayerColor.WHITE ? PlayerColor.BLACK : PlayerColor.WHITE;
 }
 
-export function getMoveLength(
-  a: BoardCoordinates,
-  b: BoardCoordinates,
-): number {
-  return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+export function coordinateToCartesian(coord: Coordinate) {
+  const aX = coord % 4;
+  const aY = Math.floor(coord / 4);
+  if (
+    !Number.isInteger(aX) ||
+    !Number.isInteger(aY) ||
+    aX < 0 ||
+    aX > 3 ||
+    aY < 0 ||
+    aY > 3
+  ) {
+    throw new Error(`invalid input to coordinateToCartesian: ${coord}`);
+  }
+  return [aX, aY] as Cartesians;
+}
+
+export function cartesianToCoordinate(carts: Cartesians): Coordinate {
+  if (
+    !Number.isInteger(carts[0]) ||
+    !Number.isInteger(carts[1]) ||
+    carts[0] < 0 ||
+    carts[0] > 3 ||
+    carts[1] < 0 ||
+    carts[1] > 3
+  ) {
+    throw new Error(`invalid input to cartesianToCoordinate: ${carts}`);
+  }
+  return (4 * carts[1] + carts[0]) as Coordinate;
+}
+
+export function getMoveLength(a: Coordinate, b: Coordinate): number {
+  const [aX, aY] = coordinateToCartesian(a);
+  const [bX, bY] = coordinateToCartesian(b);
+  return Math.max(Math.abs(aX - bX), Math.abs(aY - bY));
 }
 
 export function getMoveDirection(
-  origin: BoardCoordinates,
-  destination: BoardCoordinates,
+  origin: Coordinate,
+  destination: Coordinate,
 ): Direction {
-  const xMove = Math.abs(origin[0] - destination[0]);
-  const yMove = Math.abs(origin[1] - destination[1]);
+  const [originX, originY] = coordinateToCartesian(origin);
+  const [destinationX, destinationY] = coordinateToCartesian(destination);
+  const xMove = Math.abs(originX - destinationX);
+  const yMove = Math.abs(originY - destinationY);
+
+  // offset by 10, dicts can't have negative indicies
+  const moveDiff = origin - destination + 10;
+  const directionDict: { [key: number]: Direction } = {
+    2: Direction.S,
+    6: Direction.S,
+    14: Direction.N,
+    18: Direction.N,
+    11: Direction.W,
+    12: Direction.W,
+    9: Direction.E,
+    8: Direction.E,
+    7: Direction.SW,
+    4: Direction.SW,
+    15: Direction.NW,
+    20: Direction.NW,
+    13: Direction.NE,
+    16: Direction.NE,
+    5: Direction.SE,
+    0: Direction.SE,
+  };
+
   if (
     (xMove === 0 && yMove === 0) ||
-    (xMove > 0 && yMove > 0 && xMove !== yMove)
+    (xMove > 0 && yMove > 0 && xMove !== yMove) ||
+    directionDict[moveDiff] == null
   ) {
     // only allow pure othogonal / diagonal moves
     throw new Error(
-      `invalid direction: origin: ${JSON.stringify(origin)}, destination: ${JSON.stringify(destination)}`,
+      `invalid direction: origin: ${origin}, destination: ${destination}`,
     );
   }
 
-  // north/south movement
-  if (xMove === 0) {
-    if (origin[1] > destination[1]) {
-      return Direction.N;
-    } else {
-      return Direction.S;
-    }
-  }
-  // east/west movement
-  if (yMove === 0) {
-    if (origin[0] < destination[0]) {
-      return Direction.E;
-    } else {
-      return Direction.W;
-    }
-  }
-  // diagonal
-  if (origin[0] < destination[0] && origin[1] > destination[1]) {
-    return Direction.NE;
-  } else if (origin[0] < destination[0] && origin[1] < destination[1]) {
-    return Direction.SE;
-  } else if (origin[0] > destination[0] && origin[1] > destination[1]) {
-    return Direction.NW;
-  } else if (origin[0] > destination[0] && origin[1] < destination[1]) {
-    return Direction.SW;
-  }
-
-  // this shouldn't even be possible
-  throw new Error(
-    `extremely cursed invalid direction: origin: ${JSON.stringify(origin)}, destination: ${JSON.stringify(destination)}`,
-  );
+  return directionDict[moveDiff];
 }
 
 export function setCanMove(
@@ -161,13 +173,11 @@ export function setCanMove(
   playerColor: PlayerColor,
   canMove: boolean,
 ) {
-  return grid.map((col) => {
-    return col.map((cell) => {
-      if (cell && cell.color === playerColor) {
-        return { ...cell, canMove: canMove };
-      }
-      return cell;
-    });
+  return grid.map((cell) => {
+    if (cell && cell.color === playerColor) {
+      return { ...cell, canMove: canMove };
+    }
+    return cell;
   }) as GridType;
 }
 
@@ -188,8 +198,8 @@ export function setBoardsForPassiveMove(gameState: GameStateType) {
 
 // checks that a move is legal locally on board, including direction, length, and pushing stones
 export function isMoveLegal(
-  origin: BoardCoordinates,
-  destination: BoardCoordinates,
+  origin: Coordinate,
+  destination: Coordinate,
   boardGrid: GridType,
   playerTurn: PlayerColor,
 ): BoardMessage | "LEGAL" {
@@ -217,27 +227,26 @@ export function isMoveLegal(
     return BoardMessage.MOVEKNIGHT;
   }
 
-  const betweenCoords =
+  const [originX, originY] = coordinateToCartesian(origin);
+  const [destinationX, destinationY] = coordinateToCartesian(destination);
+
+  const betweenCoord =
     moveLength === 2
-      ? ([
-          origin[0] + (destination[0] - origin[0]) / 2,
-          origin[1] + (destination[1] - origin[1]) / 2,
-        ] as BoardCoordinates)
+      ? cartesianToCoordinate([
+          (originX + (destinationX - originX) / 2) as Cart,
+          (originY + (destinationY - originY) / 2) as Cart,
+        ])
       : undefined;
-  const nextX = destination[0] + (destination[0] - origin[0]) / moveLength;
-  const nextY = destination[1] + (destination[1] - origin[1]) / moveLength;
-  const nextCoords =
+  const nextX = (destinationX + (destinationX - originX) / moveLength) as Cart;
+  const nextY = (destinationY + (destinationY - originY) / moveLength) as Cart;
+  const nextCoord =
     nextX >= 0 && nextX <= 3 && nextY >= 0 && nextY <= 3
-      ? ([nextX, nextY] as BoardCoordinates)
+      ? cartesianToCoordinate([nextX, nextY])
       : undefined;
 
-  const destinationSquare = boardGrid[destination[0]][destination[1]];
-  const pushDestination = nextCoords
-    ? boardGrid[nextCoords[0]][nextCoords[1]]
-    : null;
-  const intermediarySquare = betweenCoords
-    ? boardGrid[betweenCoords[0]][betweenCoords[1]]
-    : null;
+  const destinationSquare = boardGrid[destination];
+  const pushDestination = nextCoord ? boardGrid[nextCoord] : null;
+  const intermediarySquare = betweenCoord ? boardGrid[betweenCoord] : null;
 
   if (
     (destinationSquare != null && destinationSquare.color === playerTurn) ||
@@ -276,12 +285,10 @@ export function isInputValid(
   }
 
   const stone = structuredClone(
-    gameState.boards[action.boardId].grid[action.origin[0]][action.origin[1]],
+    gameState.boards[action.boardId].grid[action.origin],
   );
   if (stone == null) {
-    throw new Error(
-      `stone does not exist at origin ${JSON.stringify(action.origin)}`,
-    );
+    throw new Error(`stone does not exist at origin ${action.origin}`);
   }
 
   const movedStone: StoneObject = stone;
@@ -315,18 +322,10 @@ export function isInputValid(
 }
 
 export function checkWin(boardGrid: GridType): PlayerColor | null {
-  if (
-    !boardGrid.some((row) =>
-      row.some((cell) => cell && cell.color === PlayerColor.BLACK),
-    )
-  ) {
+  if (!boardGrid.some((cell) => cell && cell.color === PlayerColor.BLACK)) {
     return PlayerColor.WHITE;
   }
-  if (
-    !boardGrid.some((row) =>
-      row.some((cell) => cell && cell.color === PlayerColor.WHITE),
-    )
-  ) {
+  if (!boardGrid.some((cell) => cell && cell.color === PlayerColor.WHITE)) {
     return PlayerColor.BLACK;
   }
   return null;
@@ -363,21 +362,14 @@ export default function gameEngine(
       }
 
       // clicked but didn't move stone
-      if (
-        coordinateToId(action.origin) === coordinateToId(action.destination)
-      ) {
+      if (action.origin === action.destination) {
         return { ...newGameState };
       }
 
       // movedStone exists, checked in isInputValid
-      const stone =
-        newGameState.boards[action.boardId].grid[action.origin[0]][
-          action.origin[1]
-        ];
+      const stone = newGameState.boards[action.boardId].grid[action.origin];
       if (!stone) {
-        throw new Error(
-          `stone does not exist at origin ${JSON.stringify(action.origin)}`,
-        );
+        throw new Error(`stone does not exist at origin ${action.origin}`);
       }
       const movedStone: StoneObject = structuredClone(stone);
 
@@ -392,18 +384,12 @@ export default function gameEngine(
         currentPlayerFirstMove.boardId === action.boardId
       ) {
         // selected the stone that moved last move
-        if (
-          coordinateToId(currentPlayerFirstMove.destination) ===
-          coordinateToId(action.origin)
-        ) {
+        if (currentPlayerFirstMove.destination === action.origin) {
           // moved the stone to the last move's origin
-          if (
-            coordinateToId(currentPlayerFirstMove.origin) ===
-            coordinateToId(action.destination)
-          ) {
+          if (currentPlayerFirstMove.origin === action.destination) {
             const grid = newGameState.boards[action.boardId].grid;
-            grid[action.destination[0]][action.destination[1]] = movedStone;
-            grid[action.origin[0]][action.origin[1]] = null;
+            grid[action.destination] = movedStone;
+            grid[action.origin] = null;
 
             newGameState.boards[action.boardId].lastMoves[action.color] = null;
 
@@ -438,37 +424,39 @@ export default function gameEngine(
 
       const newGrid = structuredClone(gameState.boards[action.boardId].grid);
 
+      const [originX, originY] = coordinateToCartesian(action.origin);
+      const [destinationX, destinationY] = coordinateToCartesian(
+        action.destination,
+      );
       const moveLength = getMoveLength(action.origin, action.destination);
-      const betweenCoords =
+      const betweenCoord =
         moveLength === 2
-          ? ([
-              action.origin[0] + (action.destination[0] - action.origin[0]) / 2,
-              action.origin[1] + (action.destination[1] - action.origin[1]) / 2,
-            ] as BoardCoordinates)
+          ? cartesianToCoordinate([
+              (originX + (destinationX - originX) / 2) as Cart,
+              (originY + (destinationY - originY) / 2) as Cart,
+            ])
           : undefined;
-      const nextX =
-        action.destination[0] +
-        (action.destination[0] - action.origin[0]) / moveLength;
-      const nextY =
-        action.destination[1] +
-        (action.destination[1] - action.origin[1]) / moveLength;
-      const nextCoords =
+      const nextX = (destinationX +
+        (destinationX - originX) / moveLength) as Cart;
+      const nextY = (destinationY +
+        (destinationY - originY) / moveLength) as Cart;
+      const nextCoord =
         nextX >= 0 && nextX <= 3 && nextY >= 0 && nextY <= 3
-          ? ([nextX, nextY] as BoardCoordinates)
+          ? cartesianToCoordinate([nextX, nextY])
           : undefined;
 
       const pushedStone =
-        newGrid[action.destination[0]][action.destination[1]] ||
-        (betweenCoords ? newGrid[betweenCoords[0]][betweenCoords[1]] : null);
+        newGrid[action.destination] ||
+        (betweenCoord ? newGrid[betweenCoord] : null);
 
-      if (pushedStone && betweenCoords) {
-        newGrid[betweenCoords[0]][betweenCoords[1]] = null;
+      if (pushedStone && betweenCoord) {
+        newGrid[betweenCoord] = null;
       }
-      if (pushedStone && nextCoords) {
-        newGrid[nextCoords[0]][nextCoords[1]] = pushedStone;
+      if (pushedStone && nextCoord) {
+        newGrid[nextCoord] = pushedStone;
       }
-      newGrid[action.origin[0]][action.origin[1]] = null;
-      newGrid[action.destination[0]][action.destination[1]] = movedStone;
+      newGrid[action.origin] = null;
+      newGrid[action.destination] = movedStone;
 
       const newBoards = structuredClone(gameState.boards);
       newBoards[action.boardId].grid = newGrid;
@@ -505,9 +493,7 @@ export default function gameEngine(
           );
         });
 
-        newBoards[action.boardId].grid[action.destination[0]][
-          action.destination[1]
-        ]!.canMove = true;
+        newBoards[action.boardId].grid[action.destination]!.canMove = true;
 
         newMoves.push({
           player: action.color,

@@ -1,5 +1,4 @@
-export type BoardCoordinates = [Coord, Coord];
-export type CoordinateId =
+export type Coordinate =
   | 0
   | 1
   | 2
@@ -16,38 +15,31 @@ export type CoordinateId =
   | 13
   | 14
   | 15;
+export type Cart = 0 | 1 | 2 | 3;
+export type Cartesians = [Cart, Cart];
 export type StoneId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export type StoneObject = {
   id: StoneId;
   color: PlayerColor;
   canMove: boolean;
 };
-export type Coord = 0 | 1 | 2 | 3;
 export type GridType = [
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
-  [
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-    StoneObject | null,
-  ],
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
+  StoneObject | null,
 ];
 export type BoardType = {
   id: BoardId;
@@ -67,8 +59,8 @@ export type GameStateType = {
 export type GameWinnerType = PlayerColor | "DRAW";
 export type LastMovesStoreType = [LastMoveType | null, LastMoveType | null];
 export type LastMoveType = {
-  origin: BoardCoordinates;
-  destination: BoardCoordinates;
+  origin: Coordinate;
+  destination: Coordinate;
   isPush: boolean;
 };
 export enum PlayerColor {
@@ -96,21 +88,21 @@ export type MoveRecord = {
   firstMove: {
     boardId: BoardId;
     isPush: boolean;
-    origin: BoardCoordinates;
-    destination: BoardCoordinates;
+    origin: Coordinate;
+    destination: Coordinate;
   };
   secondMove?: {
     boardId: BoardId;
     isPush: boolean;
-    origin: BoardCoordinates;
-    destination: BoardCoordinates;
+    origin: Coordinate;
+    destination: Coordinate;
   };
 };
 export type MoveType = {
   boardId: BoardId;
   isPush: boolean;
-  origin: BoardCoordinates;
-  destination: BoardCoordinates;
+  origin: Coordinate;
+  destination: Coordinate;
 };
 export enum MoveCondition {
   ISACTIVE,
@@ -132,8 +124,8 @@ export type MoveStoneAction = {
   type: ActionType.MOVESTONE;
   boardId: BoardId;
   color: PlayerColor;
-  origin: BoardCoordinates;
-  destination: BoardCoordinates;
+  origin: Coordinate;
+  destination: Coordinate;
 };
 
 export type CantMoveAction = {
@@ -171,9 +163,6 @@ export enum ActionType {
   CONCEDE,
 }
 
-// filler
-// filler
-// filler
 // filler
 // so that BoardMessage indexes line up with line numbers
 

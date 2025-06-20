@@ -4,28 +4,23 @@ import Stone from "./stone";
 import {
   PlayerColor,
   BoardId,
-  CoordinateId,
-  Coord,
+  Coordinate,
   GridType,
   StoneId,
   StoneObject,
   BoardMessage,
-  BoardCoordinates,
   ActionType,
   BoardShade,
   LastMoveType,
+  Cartesians,
 } from "../types";
 import { useState, useEffect, useRef } from "react";
-
-export function coordinateToId(coords: BoardCoordinates): CoordinateId {
-  return (4 * coords[1] + coords[0]) as CoordinateId;
-}
+import { cartesianToCoordinate, coordinateToCartesian } from "./gameEngine";
 
 type CellProps = {
   cell: StoneObject | null;
   boardId: BoardId;
-  row: Coord;
-  col: Coord;
+  coord: Coordinate;
   handleStoneMove: (
     id: StoneId,
     color: PlayerColor,
@@ -38,8 +33,7 @@ type CellProps = {
 function Cell({
   cell,
   boardId,
-  row,
-  col,
+  coord,
   handleStoneMove,
   dispatch,
   className,
@@ -62,10 +56,11 @@ function Cell({
       window.removeEventListener("resize", updateWidth);
     };
   }, []);
+  const [col, row] = coordinateToCartesian(coord);
 
   return (
     <div
-      key={4 * row + col}
+      key={coord}
       ref={cellRef}
       className={clsx(
         "box-border aspect-square h-auto w-full touch-none border-black",
@@ -129,7 +124,7 @@ export default function Board({
         (4 * (newPosition[1] - boardDimensions.top)) /
           (boardDimensions.bottom - boardDimensions.top),
       ),
-    ] as [Coord, Coord];
+    ] as [number, number];
     if (
       destination[0] > 3 ||
       destination[0] < 0 ||
@@ -141,19 +136,16 @@ export default function Board({
         playerColor: color,
         boardMessage: BoardMessage.MOVEOUTOFBOUNDS,
       });
-      return null; // exit; move is out of bounds
+      return null;
     }
 
     // get previous stone coordinates by its id
     let origin = null;
-    for (let colIndex = 0; colIndex < grid.length; colIndex++) {
-      for (let rowIndex = 0; rowIndex < grid[colIndex].length; rowIndex++) {
-        if (grid[colIndex][rowIndex]?.id === stoneId) {
-          origin = [colIndex, rowIndex] as BoardCoordinates;
-          break;
-        }
+    for (let coord = 0; coord < 16; coord++) {
+      if (grid[coord]?.id === stoneId) {
+        origin = coord as Coordinate;
+        break;
       }
-      if (origin) break;
     }
 
     if (origin == null) {
@@ -164,8 +156,8 @@ export default function Board({
       type: ActionType.MOVESTONE,
       boardId: id,
       color: color,
-      origin: origin as BoardCoordinates,
-      destination: destination,
+      origin: origin,
+      destination: cartesianToCoordinate(destination as Cartesians),
     });
   }
 
@@ -181,20 +173,21 @@ export default function Board({
     }
   }
 
-  function getCellColor(x: Coord, y: Coord) {
-    let val = null;
-    lastMoves.forEach((lastMove: LastMoveType | null) => {
-      if (lastMove !== null) {
-        if (lastMove.origin[0] === x && lastMove.origin[1] === y) {
-          val = "dark-transparent";
-        }
+  function getCellColor(coord: Coordinate) {
+    if (lastMoves[0] == null && lastMoves[1] == null) {
+      return null;
+    }
 
-        if (lastMove.destination[0] === x && lastMove.destination[1] === y) {
-          val = lastMove.isPush ? "red-transparent" : "dark-transparent";
-        }
+    for (const lastMove of lastMoves) {
+      if (lastMove && lastMove.origin === coord) {
+        return "dark-transparent";
       }
-    });
-    return val;
+
+      if (lastMove && lastMove.destination === coord) {
+        return lastMove.isPush ? "red-transparent" : "dark-transparent";
+      }
+    }
+    return null;
   }
 
   useEffect(() => {
@@ -217,40 +210,41 @@ export default function Board({
         },
       )}
     >
-      {grid.map((col, colIndex) => {
+      {grid.map((cell, index) => {
+        if (index < 0 || index > 15) {
+          throw new Error("grid has illegal number of cells");
+        }
+        const coord = index as Coordinate;
+        const [x, y] = coordinateToCartesian(coord);
+
         // the padding is a weird hack that fixes the spacing for the top
         // right corner of the board
         const rightBorder =
-          colIndex !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
+          x !== 3 ? "border-r sm:border-r-2" : "pr-px sm:pr-0.5";
 
-        return col.map((cell, rowIndex) => {
-          const x = colIndex as Coord;
-          const y = rowIndex as Coord;
-          const bottomBorder = y !== 3 ? "border-b sm:border-b-2" : "";
-          const cellColor = getCellColor(x, y);
-          // makes the transparecy effect on LastMove squares not look weird
-          // on the corners
-          const cornerBorderDict: { [key: number]: string } = {
-            0: "rounded-tl-2xl",
-            3: "rounded-tr-2xl",
-            12: "rounded-bl-2xl",
-            15: "rounded-br-2xl",
-          };
-          const cornerBorder = cornerBorderDict[coordinateToId([x, y])] || "";
+        const bottomBorder = y !== 3 ? "border-b sm:border-b-2" : "";
+        const cellColor = getCellColor(coord);
+        // makes the transparecy effect on LastMove squares not look weird
+        // on the corners
+        const cornerBorderDict: { [key: number]: string } = {
+          0: "rounded-tl-2xl",
+          3: "rounded-tr-2xl",
+          12: "rounded-bl-2xl",
+          15: "rounded-br-2xl",
+        };
+        const cornerBorder = cornerBorderDict[coord] || "";
 
-          return (
-            <Cell
-              key={4 * y + x}
-              cell={cell}
-              boardId={id}
-              row={y}
-              col={x}
-              handleStoneMove={handleStoneMove}
-              dispatch={dispatch}
-              className={`${rightBorder} ${bottomBorder} ${cornerBorder} ${cellColor}`}
-            />
-          );
-        });
+        return (
+          <Cell
+            key={coord}
+            cell={cell}
+            boardId={id}
+            coord={coord}
+            handleStoneMove={handleStoneMove}
+            dispatch={dispatch}
+            className={clsx(rightBorder, bottomBorder, cornerBorder, cellColor)}
+          />
+        );
       })}
 
       {/*<div

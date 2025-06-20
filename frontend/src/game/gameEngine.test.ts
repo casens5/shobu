@@ -13,8 +13,7 @@ import gameEngine, {
 } from "./gameEngine";
 import {
   ActionType,
-  BoardCoordinates,
-  BoardId,
+  Coordinate,
   BoardMessage,
   CantMoveAction,
   Direction,
@@ -32,13 +31,13 @@ function fullPrint(json: object) {
 }
 
 test("getMoveLength works", () => {
-  expect(getMoveLength([0, 0], [0, 2])).toBe(2);
-  expect(getMoveLength([3, 3], [1, 3])).toBe(2);
-  expect(getMoveLength([1, 3], [3, 1])).toBe(2);
-  expect(getMoveLength([3, 3], [3, 3])).toBe(0);
-  expect(getMoveLength([0, 1], [1, 1])).toBe(1);
-  expect(getMoveLength([3, 2], [2, 3])).toBe(1);
-  expect(getMoveLength([0, 0], [1, 1])).toBe(1);
+  expect(getMoveLength(0, 8)).toBe(2);
+  expect(getMoveLength(15, 13)).toBe(2);
+  expect(getMoveLength(13, 7)).toBe(2);
+  expect(getMoveLength(15, 15)).toBe(0);
+  expect(getMoveLength(4, 5)).toBe(1);
+  expect(getMoveLength(11, 14)).toBe(1);
+  expect(getMoveLength(0, 5)).toBe(1);
 });
 
 test("switchPlayer works", () => {
@@ -47,54 +46,50 @@ test("switchPlayer works", () => {
 });
 
 test("getMoveDirection works", () => {
-  expect(getMoveDirection([0, 1], [0, 0])).toBe(Direction.N);
-  expect(getMoveDirection([1, 1], [1, 3])).toBe(Direction.S);
-  expect(getMoveDirection([1, 2], [2, 2])).toBe(Direction.E);
-  expect(getMoveDirection([2, 3], [0, 3])).toBe(Direction.W);
-  expect(getMoveDirection([0, 1], [1, 0])).toBe(Direction.NE);
-  expect(getMoveDirection([1, 2], [2, 3])).toBe(Direction.SE);
-  expect(getMoveDirection([2, 1], [1, 0])).toBe(Direction.NW);
-  expect(getMoveDirection([1, 0], [0, 1])).toBe(Direction.SW);
-  const origin = [2, 1] as BoardCoordinates;
-  const destination = [0, 2] as BoardCoordinates;
+  expect(getMoveDirection(4, 0)).toBe(Direction.N);
+  expect(getMoveDirection(5, 13)).toBe(Direction.S);
+  expect(getMoveDirection(9, 10)).toBe(Direction.E);
+  expect(getMoveDirection(14, 12)).toBe(Direction.W);
+  expect(getMoveDirection(4, 1)).toBe(Direction.NE);
+  expect(getMoveDirection(9, 14)).toBe(Direction.SE);
+  expect(getMoveDirection(6, 1)).toBe(Direction.NW);
+  expect(getMoveDirection(1, 4)).toBe(Direction.SW);
+  const origin = 6 as Coordinate;
+  const destination = 8 as Coordinate;
   expect(() => getMoveDirection(origin, destination)).toThrow();
 });
 
 test("isMoveLegal works", () => {
-  expect(isMoveLegal([0, 0], [0, 1], initialGrid, PlayerColor.BLACK)).toBe(
-    "LEGAL",
-  );
-  expect(isMoveLegal([0, 3], [0, 3], initialGrid, PlayerColor.WHITE)).toBe(
-    "LEGAL",
-  );
+  expect(isMoveLegal(0, 4, initialGrid, PlayerColor.BLACK)).toBe("LEGAL");
+  expect(isMoveLegal(12, 12, initialGrid, PlayerColor.WHITE)).toBe("LEGAL");
 
   const grid = structuredClone(initialGrid);
   let stone: StoneObject = { id: 0, color: PlayerColor.BLACK, canMove: false };
-  grid[0][0] = null;
-  grid[0][1] = stone;
-  expect(isMoveLegal([0, 1], [3, 1], grid, PlayerColor.BLACK)).toBe(
+  grid[0] = null;
+  grid[4] = stone;
+  expect(isMoveLegal(4, 7, grid, PlayerColor.BLACK)).toBe(
     BoardMessage.MOVETOOLONG,
   );
 
-  expect(isMoveLegal([0, 3], [1, 1], initialGrid, PlayerColor.WHITE)).toBe(
+  expect(isMoveLegal(12, 5, initialGrid, PlayerColor.WHITE)).toBe(
     BoardMessage.MOVEKNIGHT,
   );
 
-  expect(isMoveLegal([1, 0], [0, 1], grid, PlayerColor.BLACK)).toBe(
+  expect(isMoveLegal(1, 4, grid, PlayerColor.BLACK)).toBe(
     BoardMessage.MOVESAMECOLORBLOCKING,
   );
 
   stone = { id: 7, color: PlayerColor.WHITE, canMove: false };
-  grid[3][3] = null;
-  grid[0][2] = stone;
-  expect(isMoveLegal([0, 1], [0, 2], grid, PlayerColor.BLACK)).toBe(
+  grid[15] = null;
+  grid[8] = stone;
+  expect(isMoveLegal(4, 8, grid, PlayerColor.BLACK)).toBe(
     BoardMessage.MOVETWOSTONESBLOCKING,
   );
 
   expect(() =>
-    // @ts-expect-error intentionally disobeying the BoardCoordinates type
-    isMoveLegal([0, 0], [0, 4], initialGrid, PlayerColor.BLACK),
-  ).toThrow("move length is some kind of crazy value: 4");
+    // @ts-expect-error intentionally disobeying the Coordinate type
+    isMoveLegal(0, 16, initialGrid, PlayerColor.BLACK),
+  ).toThrow("invalid input to coordinateToCartesian: 16");
 });
 
 test("checkWin works", () => {
@@ -106,7 +101,7 @@ test("checkWin works", () => {
     color: PlayerColor.BLACK,
     canMove: false,
   };
-  grid[3][1] = stone;
+  grid[7] = stone;
 
   expect(checkWin(grid)).toBe(PlayerColor.BLACK);
 
@@ -121,8 +116,8 @@ test("checkWin works", () => {
     color: PlayerColor.WHITE,
     canMove: false,
   };
-  grid[3][3] = stone0;
-  grid[3][0] = stone1;
+  grid[15] = stone0;
+  grid[3] = stone1;
 
   expect(checkWin(grid)).toBe(PlayerColor.WHITE);
 
@@ -132,9 +127,9 @@ test("checkWin works", () => {
     color: PlayerColor.BLACK,
     canMove: false,
   };
-  grid[0][3] = stone2;
-  grid[1][2] = stone0;
-  grid[2][0] = stone1;
+  grid[12] = stone2;
+  grid[9] = stone0;
+  grid[2] = stone1;
 
   expect(checkWin(grid)).toBe(null);
 });
@@ -146,10 +141,10 @@ test("setCanMove works", () => {
     color: PlayerColor.BLACK,
     canMove: false,
   };
-  grid[3][2] = blackStone;
+  grid[11] = blackStone;
 
   resultGrid = structuredClone(grid);
-  resultGrid[3][2]!.canMove = true;
+  resultGrid[11]!.canMove = true;
 
   // flips canMove on a single stone
   expect(setCanMove(grid, PlayerColor.BLACK, true)).toStrictEqual(resultGrid);
@@ -159,38 +154,38 @@ test("setCanMove works", () => {
     color: PlayerColor.WHITE,
     canMove: false,
   };
-  grid[3][0] = whiteStone;
-  grid[3][2]!.canMove = false;
+  grid[3] = whiteStone;
+  grid[11].canMove = false;
 
   resultGrid = structuredClone(grid);
 
-  resultGrid[3][0]!.canMove = true;
-  resultGrid[3][2]!.canMove = false;
+  resultGrid[3]!.canMove = true;
+  resultGrid[11]!.canMove = false;
 
   // flips canMove on a single stone, doesn't affect other color stones
   expect(setCanMove(grid, PlayerColor.WHITE, true)).toStrictEqual(resultGrid);
 
   grid = structuredClone(initialGrid);
-  grid[2][3]!.canMove = true;
-  grid[3][3]!.canMove = true;
+  grid[14]!.canMove = true;
+  grid[15]!.canMove = true;
 
   resultGrid = structuredClone(grid);
-  resultGrid[2][3]!.canMove = false;
-  resultGrid[3][3]!.canMove = false;
+  resultGrid[14]!.canMove = false;
+  resultGrid[15]!.canMove = false;
 
   // flips canMove when stones are a mix of true and false
   expect(setCanMove(grid, PlayerColor.WHITE, false)).toStrictEqual(resultGrid);
 
-  grid[0][0]!.canMove = true;
-  grid[1][0]!.canMove = true;
-  grid[2][0]!.canMove = true;
-  grid[3][0]!.canMove = true;
+  grid[0]!.canMove = true;
+  grid[1]!.canMove = true;
+  grid[2]!.canMove = true;
+  grid[3]!.canMove = true;
 
   resultGrid = structuredClone(grid);
-  resultGrid[0][0]!.canMove = false;
-  resultGrid[1][0]!.canMove = false;
-  resultGrid[2][0]!.canMove = false;
-  resultGrid[3][0]!.canMove = false;
+  resultGrid[0]!.canMove = false;
+  resultGrid[1]!.canMove = false;
+  resultGrid[2]!.canMove = false;
+  resultGrid[3]!.canMove = false;
 
   // flips canMove for black and doesn't affect white
   expect(setCanMove(grid, PlayerColor.BLACK, false)).toStrictEqual(resultGrid);
@@ -221,21 +216,21 @@ const whiteStone: StoneObject = {
   color: PlayerColor.WHITE,
   canMove: false,
 };
-grid[1][2] = blackStone;
-grid[1][0] = whiteStone;
+grid[9] = blackStone;
+grid[1] = whiteStone;
 gameState.boards[1].grid = structuredClone(grid);
 
 let action: MoveStoneAction = {
   type: ActionType.MOVESTONE,
   boardId: 1,
   color: PlayerColor.BLACK,
-  origin: [1, 2],
-  destination: [1, 1],
+  origin: 9,
+  destination: 5,
 };
 
 let resultGrid = structuredClone(grid);
-resultGrid[1][1] = resultGrid[1][2];
-resultGrid[1][2] = null;
+resultGrid[5] = resultGrid[9];
+resultGrid[9] = null;
 let resultGameState = structuredClone(gameState);
 resultGameState.boards[1].grid = structuredClone(resultGrid);
 
@@ -244,7 +239,7 @@ resultGameState.boards[1].grid = setCanMove(
   PlayerColor.BLACK,
   false,
 );
-resultGameState.boards[1].grid[1][1]!.canMove = true;
+resultGameState.boards[1].grid[5]!.canMove = true;
 resultGameState.boards[3].grid = setCanMove(
   resultGameState.boards[3].grid,
   PlayerColor.BLACK,
@@ -254,21 +249,21 @@ resultGameState.boards[3].grid = setCanMove(
 let moves = [
   {
     firstMove: {
-      boardId: 1 as BoardId,
+      boardId: 1,
       isPush: false,
-      origin: [1, 2] as BoardCoordinates,
-      destination: [1, 1] as BoardCoordinates,
+      origin: 9,
+      destination: 5,
     },
     player: PlayerColor.BLACK,
-  },
+  } as MoveRecord,
 ];
 resultGameState.moves = structuredClone(moves);
 
 const lastMoves: LastMovesStoreType = [
   {
-    destination: [1, 1],
+    destination: 5,
     isPush: false,
-    origin: [1, 2],
+    origin: 9,
   },
   null,
 ];
@@ -298,8 +293,8 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 2],
-    destination: [1, 1],
+    origin: 9,
+    destination: 5,
   };
 
   expect(gameEngine(gameState, action)).toStrictEqual({
@@ -310,8 +305,8 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.WHITE,
-    origin: [1, 0],
-    destination: [1, 1],
+    origin: 1,
+    destination: 5,
   };
 
   // wrong player's turn
@@ -324,8 +319,8 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 0],
-    destination: [1, 1],
+    origin: 1,
+    destination: 5,
   };
 
   // black can't move white's pieces
@@ -338,20 +333,20 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [3, 2],
-    destination: [3, 1],
+    origin: 11,
+    destination: 7,
   };
 
   expect(() => gameEngine(gameState, action)).toThrow(
-    new Error("stone does not exist at origin [3,2]"),
+    new Error("stone does not exist at origin 11"),
   );
 
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 2],
-    destination: [3, 1],
+    origin: 9,
+    destination: 7,
   };
 
   // illegal move caught by isMoveLegal
@@ -366,14 +361,12 @@ test("gameEngine handles invalid/illegal moveStone actions", () => {
     type: ActionType.MOVESTONE,
     boardId: 0,
     color: PlayerColor.BLACK,
-    origin: [3, 0],
-    destination: [3, 0],
+    origin: 3,
+    destination: 3,
   };
 
   // click and de-select stone
-  expect(gameEngine(gameState1, action)).toStrictEqual({
-    ...gameState1,
-  });
+  expect(gameEngine(gameState1, action)).toStrictEqual(gameState1);
 });
 
 test("gameEngine handles undo moves", () => {
@@ -383,8 +376,8 @@ test("gameEngine handles undo moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 1],
-    destination: [1, 2],
+    origin: 5,
+    destination: 9,
   };
 
   // successful undo move
@@ -396,8 +389,8 @@ test("gameEngine handles undo moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 1],
-    destination: [2, 1],
+    origin: 5,
+    destination: 6,
   };
 
   expect(gameEngine(resultGameState, action)).toStrictEqual({
@@ -405,16 +398,16 @@ test("gameEngine handles undo moves", () => {
     boardMessage: BoardMessage.MOVEUNDOWRONGDESTINATION,
   });
 
-  const stone2 = initialGrid[1][0];
+  const stone2 = initialGrid[1];
   const gameState1 = structuredClone(resultGameState);
-  gameState1.boards[1].grid[1][3] = stone2;
+  gameState1.boards[1].grid[13] = stone2;
 
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 3],
-    destination: [2, 2],
+    origin: 13,
+    destination: 10,
   };
 
   expect(gameEngine(gameState1, action)).toStrictEqual({
@@ -428,14 +421,14 @@ test("gameEngine handles passive moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 2],
-    destination: [1, 1],
+    origin: 9,
+    destination: 5,
   };
 
   resultGrid = structuredClone(gameState.boards[1].grid);
-  const stone = resultGrid[1][2];
-  resultGrid[1][1] = stone;
-  resultGrid[1][2] = null;
+  const stone = resultGrid[9];
+  resultGrid[5] = stone;
+  resultGrid[9] = null;
 
   // successful passive move
   expect(gameEngine(gameState, action).boards[1].grid).toStrictEqual(
@@ -446,8 +439,8 @@ test("gameEngine handles passive moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 2],
-    destination: [1, 0],
+    origin: 9,
+    destination: 1,
   };
 
   expect(gameEngine(gameState, action)).toStrictEqual({
@@ -459,11 +452,11 @@ test("gameEngine handles passive moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 2,
     color: PlayerColor.BLACK,
-    origin: [1, 0],
-    destination: [2, 1],
+    origin: 1,
+    destination: 6,
   };
 
-  gameState.boards[2].grid[1][0]!.canMove = true;
+  gameState.boards[2].grid[1]!.canMove = true;
 
   expect(() => gameEngine(gameState, action)).toThrow(
     new Error(
@@ -476,17 +469,17 @@ test("gameEngine handles active moves", () => {
   gameState = structuredClone(initialGameState);
   const passiveGrid = structuredClone(blankGrid);
   let stone: StoneObject = { id: 2, color: PlayerColor.BLACK, canMove: true };
-  passiveGrid[1][0] = stone;
+  passiveGrid[1] = stone;
   stone = { id: 7, color: PlayerColor.WHITE, canMove: false };
-  passiveGrid[1][2] = stone;
+  passiveGrid[9] = stone;
   gameState.boards[1].grid = passiveGrid;
 
   action = {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 0],
-    destination: [1, 1],
+    origin: 1,
+    destination: 5,
   };
 
   let activeGameState = gameEngine(gameState, action);
@@ -500,18 +493,18 @@ test("gameEngine handles active moves", () => {
     canMove: false,
   };
   let activeGrid = structuredClone(blankGrid);
-  activeGrid[2][0] = stone0;
-  activeGrid[0][1] = stone1;
-  activeGrid[0][2] = stone2;
-  activeGrid[2][3] = stone3;
+  activeGrid[2] = stone0;
+  activeGrid[4] = stone1;
+  activeGrid[8] = stone2;
+  activeGrid[14] = stone3;
 
   activeGameState.boards[0].grid = activeGrid;
   resultGameState = structuredClone(activeGameState);
 
   resultGrid = structuredClone(activeGrid);
-  resultGrid[0][1] = null;
-  resultGrid[0][2] = stone1;
-  resultGrid[0][3] = stone2;
+  resultGrid[4] = null;
+  resultGrid[8] = stone1;
+  resultGrid[12] = stone2;
   resultGameState.boards[0].grid = resultGrid;
 
   resultGameState.playerTurn = switchPlayer(resultGameState.playerTurn);
@@ -522,14 +515,14 @@ test("gameEngine handles active moves", () => {
       player: PlayerColor.BLACK,
       firstMove: {
         boardId: 1,
-        origin: [1, 0],
-        destination: [1, 1],
+        origin: 1,
+        destination: 5,
         isPush: false,
       },
       secondMove: {
         boardId: 0,
-        origin: [0, 1],
-        destination: [0, 2],
+        origin: 4,
+        destination: 8,
         isPush: true,
       },
     } as MoveRecord,
@@ -537,9 +530,9 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.boards[0].lastMoves = [
     {
-      destination: [0, 2],
+      destination: 8,
       isPush: true,
-      origin: [0, 1],
+      origin: 4,
     },
     null,
   ];
@@ -547,18 +540,18 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 0,
     color: PlayerColor.BLACK,
-    origin: [0, 1],
-    destination: [0, 2],
+    origin: 4,
+    destination: 8,
   };
 
   // push but no stone removal
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
 
-  const blackStone = passiveGrid[1][0];
-  const whiteStone = passiveGrid[1][2];
-  passiveGrid[1][2] = null;
-  passiveGrid[1][1] = blackStone;
-  passiveGrid[1][0] = whiteStone;
+  const blackStone = passiveGrid[1];
+  const whiteStone = passiveGrid[9];
+  passiveGrid[9] = null;
+  passiveGrid[5] = blackStone;
+  passiveGrid[1] = whiteStone;
 
   gameState.boards[1].grid = passiveGrid;
   gameState.boards[0].grid = structuredClone(resultGrid);
@@ -567,8 +560,8 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [1, 1],
-    destination: [1, 3],
+    origin: 5,
+    destination: 13,
   };
 
   activeGameState = gameEngine(gameState, action);
@@ -580,9 +573,9 @@ test("gameEngine handles active moves", () => {
   resultGameState = structuredClone(activeGameState);
 
   resultGrid = structuredClone(resultGameState.boards[0].grid);
-  stone = resultGrid[2][0]!;
-  resultGrid[2][2] = stone;
-  resultGrid[2][0] = null;
+  stone = resultGrid[2]!;
+  resultGrid[10] = stone;
+  resultGrid[2] = null;
 
   resultGameState.boards[0].grid = structuredClone(resultGrid);
   resultGameState.playerTurn = PlayerColor.WHITE;
@@ -593,14 +586,14 @@ test("gameEngine handles active moves", () => {
       player: 0,
       firstMove: {
         boardId: 1,
-        origin: [1, 1],
-        destination: [1, 3],
+        origin: 5,
+        destination: 13,
         isPush: false,
       },
       secondMove: {
         boardId: 0,
-        origin: [2, 0],
-        destination: [2, 2],
+        origin: 2,
+        destination: 10,
         isPush: false,
       },
     } as MoveRecord,
@@ -608,9 +601,9 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.boards[0].lastMoves = [
     {
-      destination: [2, 2],
+      destination: 10,
       isPush: false,
-      origin: [2, 0],
+      origin: 2,
     },
     null,
   ];
@@ -619,27 +612,27 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 0,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [2, 2],
+    origin: 2,
+    destination: 10,
   };
 
   // move with no push
   expect(gameEngine(activeGameState, action)).toStrictEqual(resultGameState);
 
-  stone = passiveGrid[1][1];
-  passiveGrid[2][0] = stone;
-  passiveGrid[1][1] = null;
+  stone = passiveGrid[5];
+  passiveGrid[2] = stone;
+  passiveGrid[5] = null;
 
   gameState.boards[1].grid = structuredClone(passiveGrid);
 
-  stone0 = resultGrid[0][2]!;
-  resultGrid[0][1] = stone0;
-  stone1 = resultGrid[0][3]!;
-  resultGrid[0][2] = stone1;
-  resultGrid[0][3] = null;
-  stone2 = resultGrid[2][2];
-  resultGrid[2][0] = stone2;
-  resultGrid[2][2] = null;
+  stone0 = resultGrid[8]!;
+  resultGrid[4] = stone0;
+  stone1 = resultGrid[12]!;
+  resultGrid[8] = stone1;
+  resultGrid[12] = null;
+  stone2 = resultGrid[10];
+  resultGrid[2] = stone2;
+  resultGrid[10] = null;
 
   gameState.boards[0].grid = structuredClone(resultGrid);
 
@@ -647,8 +640,8 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [0, 2],
+    origin: 2,
+    destination: 8,
   };
 
   activeGameState = gameEngine(gameState, action);
@@ -660,20 +653,20 @@ test("gameEngine handles active moves", () => {
       firstMove: {
         boardId: 1,
         isPush: false,
-        origin: [2, 0],
-        destination: [0, 2],
+        origin: 2,
+        destination: 8,
       },
       secondMove: {
         boardId: 0,
-        origin: [2, 0],
-        destination: [0, 2],
+        origin: 2,
+        destination: 8,
         isPush: true,
       },
     } as MoveRecord,
   ];
 
-  resultGrid[0][2] = stone2;
-  resultGrid[2][0] = null;
+  resultGrid[8] = stone2;
+  resultGrid[2] = null;
 
   resultGameState.boards[0].grid = structuredClone(resultGrid);
   resultGameState.playerTurn = PlayerColor.WHITE;
@@ -681,9 +674,9 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.boards[0].lastMoves = [
     {
-      destination: [0, 2],
+      destination: 8,
       isPush: true,
-      origin: [2, 0],
+      origin: 2,
     },
     null,
   ];
@@ -692,8 +685,8 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 0,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [0, 2],
+    origin: 2,
+    destination: 8,
   };
 
   // push and remove opponent's stone
@@ -703,11 +696,11 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 2,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [3, 1],
+    origin: 2,
+    destination: 7,
   };
 
-  activeGameState.boards[2].grid[2][0]!.canMove = true;
+  activeGameState.boards[2].grid[2]!.canMove = true;
 
   expect(gameEngine(activeGameState, action)).toStrictEqual({
     ...activeGameState,
@@ -718,8 +711,8 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 3,
     color: PlayerColor.BLACK,
-    origin: [3, 0],
-    destination: [2, 1],
+    origin: 3,
+    destination: 6,
   };
 
   let errorGameState = {
@@ -739,12 +732,12 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 1,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [2, 1],
+    origin: 2,
+    destination: 6,
   };
 
-  stone = activeGrid[0][1]!;
-  activeGrid[2][1] = stone;
+  stone = activeGrid[4]!;
+  activeGrid[6] = stone;
 
   gameState.boards[1].grid = structuredClone(passiveGrid);
   gameState.boards[0].grid = structuredClone(activeGrid);
@@ -755,8 +748,8 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 0,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [2, 1],
+    origin: 2,
+    destination: 6,
   };
 
   errorGameState = {
@@ -767,13 +760,13 @@ test("gameEngine handles active moves", () => {
   // can't push your own stone
   expect(gameEngine(activeGameState, action)).toStrictEqual(errorGameState);
 
-  stone = activeGrid[2][1]!;
-  activeGrid[0][1] = stone;
-  stone = activeGrid[0][2]!;
-  activeGrid[2][1] = stone;
-  stone = activeGrid[2][3]!;
-  activeGrid[2][2] = stone;
-  activeGrid[2][3] = null;
+  stone = activeGrid[6]!;
+  activeGrid[4] = stone;
+  stone = activeGrid[8]!;
+  activeGrid[6] = stone;
+  stone = activeGrid[14]!;
+  activeGrid[10] = stone;
+  activeGrid[14] = null;
 
   activeGrid = setCanMove(activeGrid, PlayerColor.BLACK, true);
 
@@ -783,8 +776,8 @@ test("gameEngine handles active moves", () => {
     type: ActionType.MOVESTONE,
     boardId: 0,
     color: PlayerColor.BLACK,
-    origin: [2, 0],
-    destination: [2, 1],
+    origin: 2,
+    destination: 6,
   };
 
   errorGameState = {
@@ -830,16 +823,16 @@ test("gameEngine handles cant moves", () => {
     color: PlayerColor.BLACK,
     canMove: false,
   };
-  newGrid[1][1] = stone;
-  newGrid[0][0] = null;
+  newGrid[5] = stone;
+  newGrid[0] = null;
 
   moves = [
     {
       player: 0,
       firstMove: {
         boardId: 1,
-        origin: [0, 0],
-        destination: [1, 1],
+        origin: 0,
+        destination: 5,
         isPush: false,
       },
     },
