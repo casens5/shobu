@@ -84,19 +84,9 @@ export enum Direction {
 }
 export type Length = 1 | 2;
 export type MoveRecord = {
-  player: PlayerColor;
-  firstMove: {
-    boardId: BoardId;
-    isPush: boolean;
-    origin: Coordinate;
-    destination: Coordinate;
-  };
-  secondMove?: {
-    boardId: BoardId;
-    isPush: boolean;
-    origin: Coordinate;
-    destination: Coordinate;
-  };
+  playerColor: PlayerColor;
+  passiveMove: MoveType;
+  activeMove?: MoveType;
 };
 export type MoveType = {
   boardId: BoardId;

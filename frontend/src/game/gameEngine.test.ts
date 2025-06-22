@@ -248,13 +248,13 @@ resultGameState.boards[3].grid = setCanMove(
 
 let moves = [
   {
-    firstMove: {
+    playerColor: PlayerColor.BLACK,
+    passiveMove: {
       boardId: 1,
       isPush: false,
       origin: 9,
       destination: 5,
     },
-    player: PlayerColor.BLACK,
   } as MoveRecord,
 ];
 resultGameState.moves = structuredClone(moves);
@@ -512,14 +512,14 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.moves = [
     {
-      player: PlayerColor.BLACK,
-      firstMove: {
+      playerColor: PlayerColor.BLACK,
+      passiveMove: {
         boardId: 1,
         origin: 1,
         destination: 5,
         isPush: false,
       },
-      secondMove: {
+      activeMove: {
         boardId: 0,
         origin: 4,
         destination: 8,
@@ -583,14 +583,14 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.moves = [
     {
-      player: 0,
-      firstMove: {
+      playerColor: 0,
+      passiveMove: {
         boardId: 1,
         origin: 5,
         destination: 13,
         isPush: false,
       },
-      secondMove: {
+      activeMove: {
         boardId: 0,
         origin: 2,
         destination: 10,
@@ -649,14 +649,14 @@ test("gameEngine handles active moves", () => {
 
   resultGameState.moves = [
     {
-      player: 0,
-      firstMove: {
+      playerColor: 0,
+      passiveMove: {
         boardId: 1,
         isPush: false,
         origin: 2,
         destination: 8,
       },
-      secondMove: {
+      activeMove: {
         boardId: 0,
         origin: 2,
         destination: 8,
@@ -828,8 +828,8 @@ test("gameEngine handles cant moves", () => {
 
   moves = [
     {
-      player: 0,
-      firstMove: {
+      playerColor: 0,
+      passiveMove: {
         boardId: 1,
         origin: 0,
         destination: 5,

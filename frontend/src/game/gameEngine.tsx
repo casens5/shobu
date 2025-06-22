@@ -305,8 +305,8 @@ export function isInputValid(
   // if is the active move, and the move is on the same shade board as the passive move
   if (
     lastTurn &&
-    lastTurn.secondMove == null &&
-    lastTurn.firstMove.boardId + action.boardId === 3
+    lastTurn.activeMove == null &&
+    lastTurn.passiveMove.boardId + action.boardId === 3
   ) {
     return {
       ...newGameState,
@@ -374,8 +374,8 @@ export default function gameEngine(
       const movedStone: StoneObject = structuredClone(stone);
 
       const currentPlayerFirstMove =
-        newMoves.length > 0 && newMoves[newMoves.length - 1].secondMove == null
-          ? newMoves[newMoves.length - 1].firstMove
+        newMoves.length > 0 && newMoves[newMoves.length - 1].activeMove == null
+          ? newMoves[newMoves.length - 1].passiveMove
           : null;
 
       // undo passive move
@@ -469,7 +469,7 @@ export default function gameEngine(
 
       if (
         gameState.moves.length === 0 ||
-        gameState.moves[gameState.moves.length - 1].secondMove
+        gameState.moves[gameState.moves.length - 1].activeMove
       ) {
         // passive move
         if (pushedStone) {
@@ -496,8 +496,8 @@ export default function gameEngine(
         newBoards[action.boardId].grid[action.destination]!.canMove = true;
 
         newMoves.push({
-          player: action.color,
-          firstMove: newMove,
+          playerColor: action.color,
+          passiveMove: newMove,
         });
 
         newBoards[action.boardId].lastMoves[action.color] = {
@@ -536,7 +536,7 @@ export default function gameEngine(
           isPush: pushedStone != null,
         };
 
-        newMoves[newMoves.length - 1].secondMove = newMove;
+        newMoves[newMoves.length - 1].activeMove = newMove;
         newGameState.moves = newMoves;
         newGameState.winner = checkWin(newGrid);
         newGameState.playerTurn = switchPlayer(newGameState.playerTurn);
@@ -560,7 +560,7 @@ export default function gameEngine(
         };
       }
 
-      if (newMoves.length === 0 || newMoves[newMoves.length - 1].secondMove) {
+      if (newMoves.length === 0 || newMoves[newMoves.length - 1].activeMove) {
         // passive move
         if (newGameState.boards[action.boardId].playerHome !== action.color) {
           return {
@@ -575,7 +575,7 @@ export default function gameEngine(
       } else {
         // active move
         if (
-          newGameState.moves[newGameState.moves.length - 1].firstMove
+          newGameState.moves[newGameState.moves.length - 1].passiveMove
             .boardId === action.boardId
         ) {
           // undo passive move with the wrong stone
@@ -584,7 +584,8 @@ export default function gameEngine(
             boardMessage: BoardMessage.MOVEUNDOWRONGSTONE,
           };
         } else if (
-          newGameState.moves[newGameState.moves.length - 1].firstMove.boardId +
+          newGameState.moves[newGameState.moves.length - 1].passiveMove
+            .boardId +
             action.boardId ===
           3
         ) {
