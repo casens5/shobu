@@ -94,6 +94,31 @@ function HomeArea({ color, children }: HomeAreaProps) {
   );
 }
 
+async function createGame() {
+  try {
+    const response = await fetch("/api/game/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        opponent: "ai",
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("created game:", data);
+    } else {
+      const errorData = await response.json();
+      console.error("failed to create game:", errorData.message);
+    }
+  } catch (error) {
+    console.error("failed to create game:", error);
+  }
+}
+
+
 export default function Game() {
   const [{ boards, moves, playerTurn, winner, boardMessage }, dispatch] =
     useReducer(gameEngine, {
@@ -124,12 +149,15 @@ export default function Game() {
           <Board {...board3} dispatch={dispatch} />
         </HomeArea>
       </div>
+      <div className="flex w-full flex-row justify-between">
+        <div onClick={createGame}>start new game</div>
       <div
         onClick={() => {
-          console.log("oh hi", boards, moves, playerTurn, winner, boardMessage);
+            console.log("oh hi", moves);
         }}
       >
         test
+        </div>
       </div>
     </div>
   );
