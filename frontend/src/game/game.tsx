@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import Board from "./board";
 import gameEngine, { initialGameState } from "./gameEngine";
-import { useReducer, ReactNode } from "react";
+import { useReducer, ReactNode, useEffect, useState } from "react";
 import { PlayerColor, BoardMessage, GameWinnerType } from "../types";
+import { createGame, sendMove } from "./gameApi";
 
 type TurnIndicatorProps = {
   playerTurn: PlayerColor;
@@ -94,42 +95,27 @@ function HomeArea({ color, children }: HomeAreaProps) {
   );
 }
 
-async function createGame() {
-  try {
-    const response = await fetch("/api/game/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        opponent: "ai",
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("created game:", data);
-    } else {
-      const errorData = await response.json();
-      console.error("failed to create game:", errorData.message);
-    }
-  } catch (error) {
-    console.error("failed to create game:", error);
-  }
-}
-
-
 export default function Game() {
-  const [{ boards, moves, playerTurn, winner, boardMessage }, dispatch] =
-    useReducer(gameEngine, {
-      boards: initialGameState.boards,
-      moves: [],
-      playerTurn: PlayerColor.BLACK,
-      winner: null,
-      boardMessage: null,
-    });
-
+  const [
+    { boards, moves, playerTurn, winner, boardMessage, activeMoveTrigger },
+    dispatch,
+  ] = useReducer(gameEngine, {
+    boards: initialGameState.boards,
+    moves: [],
+    playerTurn: PlayerColor.BLACK,
+    winner: null,
+    boardMessage: null,
+    activeMoveTrigger: null,
+  });
   const [board0, board1, board2, board3] = boards;
+
+  const [gameId, setGameId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (activeMoveTrigger != null && gameId != null) {
+      sendMove(gameId, activeMoveTrigger);
+    }
+  }, [activeMoveTrigger]);
 
   return (
     <div className="max-h-2xl h-auto w-full max-w-2xl">
@@ -150,13 +136,26 @@ export default function Game() {
         </HomeArea>
       </div>
       <div className="flex w-full flex-row justify-between">
-        <div onClick={createGame}>start new game</div>
-      <div
-        onClick={() => {
-            console.log("oh hi", moves);
-        }}
-      >
-        test
+        <div
+          onClick={() => {
+            createGame("ai")
+              .then((gameData) => {
+                console.log("whee", gameData);
+                setGameId(gameData.game_id);
+              })
+              .catch((error) => {
+                console.error("error creating game:", error);
+              });
+          }}
+        >
+          start new game
+        </div>
+        <div
+          onClick={() => {
+            console.log("oh hi", gameId, activeMoveTrigger, moves);
+          }}
+        >
+          test
         </div>
       </div>
     </div>

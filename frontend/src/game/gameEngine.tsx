@@ -16,6 +16,7 @@ import {
   BoardShade,
   Cartesians,
   Cart,
+  ActiveMoveTrigger,
 } from "../types";
 
 export const blankGrid = new Array(16).fill(null) as GridType;
@@ -76,6 +77,7 @@ export const gameStateTemplate = {
   playerTurn: PlayerColor.BLACK,
   winner: null,
   boardMessage: null,
+  activeMoveTrigger: null,
 } as GameStateType;
 
 const initAction: InitializeGameAction = {
@@ -335,9 +337,10 @@ export default function gameEngine(
   gameState: GameStateType,
   action: GameEngineAction,
 ) {
-  // default to clearing the boardMessage
+  // default to clearing the boardMessage, ActiveMoveTrigger
   const newGameState = structuredClone(gameState);
   newGameState.boardMessage = null;
+  newGameState.activeMoveTrigger = null;
   const newMoves = structuredClone(gameState.moves);
 
   switch (action.type) {
@@ -543,6 +546,12 @@ export default function gameEngine(
 
         newGameState.boards = newBoards;
         newGameState.boards = setBoardsForPassiveMove(newGameState);
+        const trigger = structuredClone(newMoves[newMoves.length - 1]);
+        //@ts-expect-error notehunoethunt
+        delete trigger.activeMove.isPush;
+        //@ts-expect-error notehunoethunt
+        delete trigger.passiveMove.isPush;
+        newGameState.activeMoveTrigger = trigger as ActiveMoveTrigger;
 
         return newGameState;
       }

@@ -55,6 +55,20 @@ export type GameStateType = {
   playerTurn: PlayerColor;
   winner: GameWinnerType | null;
   boardMessage: BoardMessage | null;
+  activeMoveTrigger: ActiveMoveTrigger | null;
+};
+export type ActiveMoveTrigger = {
+  playerColor: PlayerColor;
+  passiveMove: {
+    boardId: BoardId;
+    origin: Coordinate;
+    destination: Coordinate;
+  };
+  activeMove: {
+    boardId: BoardId;
+    origin: Coordinate;
+    destination: Coordinate;
+  };
 };
 export type GameWinnerType = PlayerColor | "DRAW";
 export type LastMovesStoreType = [LastMoveType | null, LastMoveType | null];
@@ -153,6 +167,12 @@ export enum ActionType {
   CONCEDE,
 }
 
+// filler
+// filler
+// filler
+// filler
+// filler
+// filler
 // filler
 // so that BoardMessage indexes line up with line numbers
 

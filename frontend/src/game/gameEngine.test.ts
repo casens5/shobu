@@ -536,6 +536,21 @@ test("gameEngine handles active moves", () => {
     },
     null,
   ];
+
+  resultGameState.activeMoveTrigger = {
+    activeMove: {
+      boardId: 0,
+      destination: 8,
+      origin: 4,
+    },
+    passiveMove: {
+      boardId: 1,
+      destination: 5,
+      origin: 1,
+    },
+    playerColor: 0,
+  };
+
   action = {
     type: ActionType.MOVESTONE,
     boardId: 0,
@@ -607,6 +622,20 @@ test("gameEngine handles active moves", () => {
     },
     null,
   ];
+
+  resultGameState.activeMoveTrigger = {
+    activeMove: {
+      boardId: 0,
+      destination: 10,
+      origin: 2,
+    },
+    passiveMove: {
+      boardId: 1,
+      destination: 13,
+      origin: 5,
+    },
+    playerColor: 0,
+  };
 
   action = {
     type: ActionType.MOVESTONE,
@@ -680,6 +709,20 @@ test("gameEngine handles active moves", () => {
     },
     null,
   ];
+
+  resultGameState.activeMoveTrigger = {
+    activeMove: {
+      boardId: 0,
+      destination: 8,
+      origin: 2,
+    },
+    passiveMove: {
+      boardId: 1,
+      destination: 8,
+      origin: 2,
+    },
+    playerColor: 0,
+  };
 
   action = {
     type: ActionType.MOVESTONE,
