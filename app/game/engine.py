@@ -49,6 +49,51 @@ def player_number_to_color(player_number: PlayerNumberType) -> PlayerColorType:
     return "black" if player_number == 0 else "white"
 
 
+def get_move_direction(origin: CoordinateType, destination: CoordinateType):
+    origin_x = origin % 4
+    origin_y = origin // 4
+    destination_x = destination % 4
+    destination_y = destination // 4
+    x_move = abs(origin_x - destination_x)
+    y_move = abs(origin_y - destination_y)
+
+    # offset by 10, dicts can't have negative indicies
+    move_diff = origin - destination + 10
+    direction_dict = {
+        2: 4,
+        6: 4,
+        14: 0,
+        18: 0,
+        11: 6,
+        12: 6,
+        9: 2,
+        8: 2,
+        7: 5,
+        4: 5,
+        15: 7,
+        20: 7,
+        13: 1,
+        16: 1,
+        5: 3,
+        0: 3,
+    }
+
+    if (
+        (x_move == 0 and y_move == 0)
+        or (x_move > 0 and y_move > 0 and x_move != y_move)
+        or direction_dict[move_diff] == None
+    ):
+        # only allow pure othogonal / diagonal moves
+        raise Exception(
+            f"invalid direction: origin: {origin}, destination: {destination}"
+        )
+
+    direction = Direction(
+        cardinal=direction_dict[move_diff], length=max(x_move, y_move)
+    )
+    return direction
+
+
 @dataclass(frozen=True)
 class BoardMove:
     board: BoardNumberType
@@ -111,6 +156,7 @@ class Direction:
 
 @dataclass(frozen=True)
 class Move:
+    player: PlayerNumberType
     passive: BoardMove
     active: BoardMove
     direction: Direction
@@ -118,6 +164,7 @@ class Move:
     def __repr__(self) -> str:
         return (
             "Move(\n"
+            f"  player=\n{repr(self.player)},\n"
             f"  passive=\n{repr(self.passive)},\n"
             f"  active=\n{repr(self.active)},\n"
             f"  direction=\n{repr(self.direction)}\n"
@@ -448,7 +495,7 @@ class GameEngine:
 
 class InputParser:
     @staticmethod
-    def parse_command(command: str) -> ActionType:
+    def parse_command(command: str, player: PlayerNumberType) -> ActionType:
         command = command.strip().lower()
 
         if command in ["quit", "q", ":q"]:
@@ -458,12 +505,11 @@ class InputParser:
         elif command == "restart":
             return RestartAction()
         else:
-            # Try to parse as move
-            move = InputParser._parse_move(command)
+            move = InputParser._parse_move(command, player)
             return PlayMoveAction(move=move)
 
     @staticmethod
-    def _parse_move(command: str) -> Move:
+    def _parse_move(command: str, player: PlayerNumberType) -> Move:
         move_pattern = r"""
             ^                         
             ([a-d])               
@@ -514,6 +560,7 @@ class InputParser:
             raise GameError(f"active move destination is out of bounds")
 
         return Move(
+            player=player,
             passive=BoardMove(
                 board=board_letter_to_index(groups[0]),
                 origin=passive_origin,
@@ -537,7 +584,7 @@ def run_terminal_game():
     while True:
         try:
             user_input = input("~> ").strip()
-            action = InputParser.parse_command(user_input)
+            action = InputParser.parse_command(user_input, state.player_turn)
             result = GameEngine.apply_action(state, action)
 
             if result.message:
