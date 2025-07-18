@@ -53,42 +53,70 @@ def get_move_direction(origin: CoordinateType, destination: CoordinateType):
     destination_y = destination // 4
     x_move = abs(origin_x - destination_x)
     y_move = abs(origin_y - destination_y)
+    move_length = max(x_move, y_move)
 
-    # offset by 10, dicts can't have negative indicies
-    move_diff = origin - destination + 10
-    direction_dict = {
-        2: 4,
-        6: 4,
-        14: 0,
-        18: 0,
-        11: 6,
-        12: 6,
-        9: 2,
-        8: 2,
-        7: 5,
-        4: 5,
-        15: 7,
-        20: 7,
-        13: 1,
-        16: 1,
-        5: 3,
-        0: 3,
-    }
-
-    if (
-        (x_move == 0 and y_move == 0)
-        or (x_move > 0 and y_move > 0 and x_move != y_move)
-        or direction_dict[move_diff] == None
+    if (x_move == 0 and y_move == 0) or (
+        x_move > 0 and y_move > 0 and x_move != y_move
     ):
         # only allow pure othogonal / diagonal moves
         raise Exception(
             f"invalid direction: origin: {origin}, destination: {destination}"
         )
 
-    direction = Direction(
-        cardinal=direction_dict[move_diff], length=max(x_move, y_move)
-    )
-    return direction
+    if origin_x == destination_x:
+        if origin_y < destination_y:
+            cardinal = 0  # north
+        if origin_y > destination_y:
+            cardinal = 4  # south
+    if origin_y == destination_y:
+        if origin_x < destination_x:
+            cardinal = 2  # east
+        if origin_x > destination_x:
+            cardinal = 6  # west
+    if origin_x < destination_x:
+        if origin_y < destination_y:
+            cardinal = 1  # north-east
+        if origin_y > destination_y:
+            cardinal = 3  # south-east
+    if origin_x > destination_x:
+        if origin_y > destination_y:
+            cardinal = 5  # south-west
+        if origin_y < destination_y:
+            cardinal = 7  # north-west
+
+    # offset by 10, dicts can't have negative indicies
+    # move_diff = origin - destination + 10
+    # direction_dict = {
+    #     14: 0,
+    #     18: 0,
+    #     13: 1,
+    #     16: 1,
+    #     9: 2,
+    #     8: 2,
+    #     5: 3,
+    #     0: 3,
+    #     2: 4,
+    #     6: 4,
+    #     7: 5,
+    #     4: 5,
+    #     11: 6,
+    #     12: 6,
+    #     15: 7,
+    #     20: 7,
+    # }
+    # cardinal=direction_dict[move_diff]
+
+    # if (
+    #    (x_move == 0 and y_move == 0)
+    #    or (x_move > 0 and y_move > 0 and x_move != y_move)
+    #    or direction_dict[move_diff] == None
+    # ):
+    #    # only allow pure othogonal / diagonal moves
+    #    raise Exception(
+    #        f"invalid direction: origin: {origin}, destination: {destination}"
+    #    )
+
+    return Direction(cardinal=cardinal, length=move_length)
 
 
 @dataclass(frozen=True)
