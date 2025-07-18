@@ -1,21 +1,18 @@
 import numpy as np
-import re
 from dataclasses import dataclass, replace
-from typing import List, Optional, Literal, NamedTuple, Union
+from typing import Optional, Literal, NamedTuple
 from copy import deepcopy
-
-PlayerColorType = Literal["black", "white"]
-PlayerNumberType = Literal[0, 1]
-MoveLengthType = Literal[1, 2]
-CoordinateType = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-BoardNumberType = Literal[0, 1, 2, 3]
-BoardLetterType = Literal["a", "b", "c", "d"]
-CardinalLetterType = Literal["n", "ne", "e", "se", "s", "sw", "w", "nw"]
-CardinalNumberType = Literal[0, 1, 2, 3, 4, 5, 6, 7]
-BoardType = List[Optional[PlayerNumberType]]
-BoardsType = List[BoardType]
-
-# from .monte_carlo_ai import MonteCarloAI
+from app.game.types import (
+    PlayerColorType,
+    PlayerNumberType,
+    MoveLengthType,
+    CoordinateType,
+    BoardNumberType,
+    BoardLetterType,
+    CardinalLetterType,
+    CardinalNumberType,
+    BoardsType,
+)
 
 
 LETTER_TO_INDEX = {"a": 0, "b": 1, "c": 2, "d": 3}
@@ -25,20 +22,20 @@ CARDINAL_TO_INDEX = {"n": 0, "ne": 1, "e": 2, "se": 3, "s": 4, "sw": 5, "w": 6, 
 INDEX_TO_CARDINAL = {v: k for k, v in CARDINAL_TO_INDEX.items()}
 
 
-def board_letter_to_index(letter: BoardLetterType) -> BoardNumberType:
-    return LETTER_TO_INDEX[letter.lower()]  # type: ignore
+def board_letter_to_index(letter: BoardNumberType) -> BoardNumberType:
+    return LETTER_TO_INDEX[letter.lower()]
 
 
 def index_to_board_letter(index: BoardNumberType) -> BoardLetterType:
-    return INDEX_TO_LETTER[index]  # type: ignore
+    return INDEX_TO_LETTER[index]
 
 
 def cardinal_to_index(cardinal: CardinalLetterType) -> CardinalNumberType:
-    return CARDINAL_TO_INDEX[cardinal.lower()]  # type: ignore
+    return CARDINAL_TO_INDEX[cardinal.lower()]
 
 
 def index_to_cardinal(index: CardinalNumberType) -> CardinalLetterType:
-    return INDEX_TO_CARDINAL[index]  # type: ignore
+    return INDEX_TO_CARDINAL[index]
 
 
 def player_color_to_number(player_color: PlayerColorType) -> PlayerNumberType:
