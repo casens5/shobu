@@ -189,30 +189,6 @@ class GameState:
         return cls(boards=boards, player_turn=0)
 
 
-# Actions
-@dataclass(frozen=True)
-class PlayMoveAction:
-    move: Move
-
-
-@dataclass(frozen=True)
-class RestartAction:
-    pass
-
-
-@dataclass(frozen=True)
-class QuitAction:
-    pass
-
-
-@dataclass(frozen=True)
-class ReadAction:
-    pass
-
-
-ActionType = Union[PlayMoveAction, RestartAction, QuitAction, ReadAction]
-
-
 class ValidationResult(NamedTuple):
     is_legal: bool
     message: Optional[str]
@@ -231,24 +207,7 @@ class GameError(Exception):
 
 class GameEngine:
     @staticmethod
-    def apply_action(state: GameState, action: ActionType) -> GameResult:
-        if isinstance(action, QuitAction):
-            return GameResult(state=state, should_quit=True)
-
-        elif isinstance(action, RestartAction):
-            return GameResult(state=GameState.initial_state(), message="game restarted")
-
-        elif isinstance(action, ReadAction):
-            return GameResult(state=state, message=GameEngine._format_game_state(state))
-
-        elif isinstance(action, PlayMoveAction):
-            return GameEngine._apply_move(state, action.move)
-
-        else:
-            raise ValueError(f"unknown action type: {type(action)}")
-
-    @staticmethod
-    def _apply_move(state: GameState, move: Move) -> GameResult:
+    def apply_move(state: GameState, move: Move) -> GameResult:
         if state.winner is not None:
             return GameResult(
                 state=state, message="game is already over. use restart to play again"
@@ -491,119 +450,3 @@ class GameEngine:
 
         output.append(f"{player_number_to_color(state.player_turn)}'s turn")
         return "\n".join(output)
-
-
-class InputParser:
-    @staticmethod
-    def parse_command(command: str, player: PlayerNumberType) -> ActionType:
-        command = command.strip().lower()
-
-        if command in ["quit", "q", ":q"]:
-            return QuitAction()
-        elif command == "read":
-            return ReadAction()
-        elif command == "restart":
-            return RestartAction()
-        else:
-            move = InputParser._parse_move(command, player)
-            return PlayMoveAction(move=move)
-
-    @staticmethod
-    def _parse_move(command: str, player: PlayerNumberType) -> Move:
-        move_pattern = r"""
-            ^                         
-            ([a-d])               
-            (\d{1,2})               
-            (n|nw|w|sw|s|se|e|ne)     
-            ([1-2])
-            [,\s]+               
-            ([a-d])          
-            (\d{1,2})          
-            .*                
-            $                         
-        """
-
-        move_regex = re.compile(move_pattern, re.VERBOSE | re.IGNORECASE)
-        match = move_regex.match(command)
-
-        if not match:
-            raise GameError(f"i don't understand input: {command}")
-
-        groups = match.groups()
-
-        passive_origin = int(groups[1]) - 1
-        active_origin = int(groups[5]) - 1
-
-        if not (0 <= passive_origin <= 15):
-            raise GameError(
-                f"passive move must be between 1 and 16 inclusive, got {groups[1]}"
-            )
-        if not (0 <= active_origin <= 15):
-            raise GameError(
-                f"active move must be between 1 and 16 inclusive, got {groups[5]}"
-            )
-
-        direction = Direction(
-            cardinal=cardinal_to_index(groups[2]), length=int(groups[3])  # type: ignore
-        )
-
-        passive_dest = GameEngine._get_move_destination(
-            passive_origin, direction.cardinal, direction.length
-        )
-        active_dest = GameEngine._get_move_destination(
-            active_origin, direction.cardinal, direction.length
-        )
-
-        if passive_dest is None:
-            raise GameError(f"passive move destination is out of bounds")
-        if active_dest is None:
-            raise GameError(f"active move destination is out of bounds")
-
-        return Move(
-            player=player,
-            passive=BoardMove(
-                board=board_letter_to_index(groups[0]),
-                origin=passive_origin,
-                destination=passive_dest,
-            ),
-            active=BoardMove(
-                board=board_letter_to_index(groups[4]),
-                origin=active_origin,
-                destination=active_dest,
-            ),
-            direction=direction,
-        )
-
-
-# for testing
-def run_terminal_game():
-    state = GameState.initial_state()
-    print(GameEngine._format_game_state(state))
-    print("enter 'quit' to exit, 'read' to see board, 'restart' to restart")
-
-    while True:
-        try:
-            user_input = input("~> ").strip()
-            action = InputParser.parse_command(user_input, state.player_turn)
-            result = GameEngine.apply_action(state, action)
-
-            if result.message:
-                print(result.message)
-
-            if result.should_quit:
-                print("exiting...")
-                break
-
-            state = result.state
-
-        except GameError as e:
-            print(f"error: {e}")
-        except KeyboardInterrupt:
-            print("\nexiting...")
-            break
-        except Exception as e:
-            print(f"unexpected error: {e}")
-
-
-if __name__ == "__main__":
-    run_terminal_game()

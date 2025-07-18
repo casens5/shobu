@@ -1,0 +1,172 @@
+import sys
+import re
+import numpy as np
+from pathlib import Path
+from app.game.engine import (
+    GameState,
+    GameEngine,
+    BoardMove,
+    GameResult,
+    GameError,
+    Move,
+    Direction,
+    board_letter_to_index,
+    cardinal_to_index,
+    player_number_to_color,
+)
+from app.game.types import PlayerNumberType
+from app.game.ai.rando import RandoAI
+
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+
+@staticmethod
+def format_game_state(state: GameState) -> str:
+    value_to_symbol = {None: ".", 0: "X", 1: "O"}
+
+    grids = [np.array(row).reshape(4, 4) for row in state.boards]
+    grid_layout = np.array(grids).reshape(2, 2, 4, 4)
+
+    output = ["\n"]
+    for row in grid_layout:
+        for i in range(4):
+            line = "    ".join(
+                " ".join(value_to_symbol.get(cell, ".") for cell in grid[i])
+                for grid in row
+            )
+            output.append(line)
+        output.append("")
+
+    output.append(f"{player_number_to_color(state.player_turn)}'s turn")
+    return "\n".join(output)
+
+
+class InputParser:
+    @staticmethod
+    def parse_command(
+        command: str, player: PlayerNumberType, state: GameState
+    ) -> GameResult:
+        command = command.strip().lower()
+
+        if command in ["quit", "q", ":q"]:
+            return GameResult(state=state, should_quit=True)
+        elif command == "read":
+            return GameResult(state=state, message=format_game_state(state))
+        elif command == "start":
+            return GameResult(
+                state=GameState.initial_state(),
+                message="choose an opponent: human or rando",
+            )
+        else:
+            move = InputParser._parse_move(command, player)
+            return GameEngine.apply_move(state, move)
+
+    @staticmethod
+    def _parse_move(command: str, player: PlayerNumberType) -> Move:
+        move_pattern = r"""
+            ^
+            ([a-d])
+            (\d{1,2})
+            (n|nw|w|sw|s|se|e|ne)
+            ([1-2])
+            [,\s]+
+            ([a-d])
+            (\d{1,2})
+            .*
+            $
+        """
+
+        move_regex = re.compile(move_pattern, re.VERBOSE | re.IGNORECASE)
+        match = move_regex.match(command)
+
+        if not match:
+            raise GameError(f"i don't understand input: {command}")
+
+        groups = match.groups()
+
+        passive_origin = int(groups[1]) - 1
+        active_origin = int(groups[5]) - 1
+
+        if not (0 <= passive_origin <= 15):
+            raise GameError(
+                f"passive move must be between 1 and 16 inclusive, got {groups[1]}"
+            )
+        if not (0 <= active_origin <= 15):
+            raise GameError(
+                f"active move must be between 1 and 16 inclusive, got {groups[5]}"
+            )
+
+        direction = Direction(
+            cardinal=cardinal_to_index(groups[2]), length=int(groups[3])  # type: ignore
+        )
+
+        passive_dest = GameEngine.get_move_destination(
+            passive_origin, direction.cardinal, direction.length
+        )
+        active_dest = GameEngine.get_move_destination(
+            active_origin, direction.cardinal, direction.length
+        )
+
+        if passive_dest is None:
+            raise GameError("passive move destination is out of bounds")
+        if active_dest is None:
+            raise GameError("active move destination is out of bounds")
+
+        return Move(
+            player=player,
+            passive=BoardMove(
+                board=board_letter_to_index(groups[0]),
+                origin=passive_origin,
+                destination=passive_dest,
+            ),
+            active=BoardMove(
+                board=board_letter_to_index(groups[4]),
+                origin=active_origin,
+                destination=active_dest,
+            ),
+            direction=direction,
+        )
+
+
+def run_terminal_game():
+    state = GameState.initial_state()
+    print(format_game_state(state))
+    print("enter 'quit' to exit, 'read' to see board, 'start' to start new game")
+
+    while True:
+        try:
+            user_input = input("~> ").strip()
+            result = InputParser.parse_command(user_input, state.player_turn, state)
+            opponent = "rando"
+
+            if result.message:
+                print(result.message)
+                if result.message == "choose an opponent: human or rando":
+                    opponent_selection = input("~> ").strip()
+                    if opponent_selection == "human" or opponent_selection == "rando":
+                        opponent = opponent_selection
+                    else:
+                        print("invalid opponent")
+
+            if result.should_quit:
+                print("exiting...")
+                break
+
+            state = result.state
+
+            if opponent == "rando":
+                print(RandoAI.list_passive_candidates(state.boards, state.player_turn))
+
+        except GameError as e:
+            print(f"error: {e}")
+        except (KeyboardInterrupt, EOFError):
+            print("\nexiting...")
+            break
+        except Exception as e:
+            print(f"unexpected error: {e}")
+
+
+# test with python -m app.utils.tui_game
+if __name__ == "__main__":
+    run_terminal_game()
