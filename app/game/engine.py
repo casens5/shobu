@@ -210,35 +210,35 @@ class GameEngine:
     def apply_move(state: GameState, move: Move) -> GameResult:
         if state.winner is not None:
             return GameResult(
-                state=state, message="game is already over. use restart to play again"
+                state=state, message="game is already over. use start to play again"
             )
 
-        enhanced_move = GameEngine._enhance_move_with_push_info(move, state.boards)
+        enhanced_move = GameEngine.enhance_move_with_push_info(move, state.boards)
 
-        is_legal, reason = GameEngine._is_move_legal(
+        is_legal, reason = GameEngine.is_move_legal(
             enhanced_move, state.boards, state.player_turn
         )
         if not is_legal:
             return GameResult(state=state, message=reason)
 
-        new_boards = GameEngine._update_boards(
+        new_boards = GameEngine.update_boards(
             state.boards, enhanced_move, state.player_turn
         )
-        winner = GameEngine._check_winner(new_boards)
+        winner = GameEngine.check_winner(new_boards)
         new_turn = (state.player_turn + 1) % 2  # type: ignore
 
         new_state = GameState(boards=new_boards, player_turn=new_turn, winner=winner)
 
-        message = GameEngine._format_game_state(new_state)
+        message = GameEngine.format_game_state(new_state)
         if winner is not None:
             message += f"\n{player_number_to_color(winner)} wins"
 
         return GameResult(state=new_state, message=message)
 
     @staticmethod
-    def _enhance_move_with_push_info(move: Move, boards: BoardsType) -> Move:
-        if GameEngine._is_move_push(move.active, move.direction.length, boards):
-            push_destination = GameEngine._get_move_destination(
+    def enhance_move_with_push_info(move: Move, boards: BoardsType) -> Move:
+        if GameEngine.is_move_push(move.active, move.direction.length, boards):
+            push_destination = GameEngine.get_move_destination(
                 move.active.origin,
                 move.direction.cardinal,
                 move.direction.length + 1,  # type: ignore
@@ -252,22 +252,22 @@ class GameEngine:
         return move
 
     @staticmethod
-    def _is_move_legal(
+    def is_move_legal(
         move: Move, boards: BoardsType, player: PlayerNumberType
     ) -> ValidationResult:
-        is_legal, reason = GameEngine._is_passive_legal(
+        is_legal, reason = GameEngine.is_passive_legal(
             move.passive, move.direction, boards, player
         )
         if not is_legal:
             return ValidationResult(is_legal, reason)
 
-        is_legal, reason = GameEngine._is_active_legal(
+        is_legal, reason = GameEngine.is_active_legal(
             move.active, move.passive, move.direction, boards, player
         )
         return ValidationResult(is_legal, reason)
 
     @staticmethod
-    def _is_passive_legal(
+    def is_passive_legal(
         passive_move: BoardMove,
         direction: Direction,
         boards: BoardsType,
@@ -294,7 +294,7 @@ class GameEngine:
             return ValidationResult(False, reason)
 
         midpoint = (
-            GameEngine._get_move_midpoint(passive_move.origin, passive_move.destination)
+            GameEngine.get_move_midpoint(passive_move.origin, passive_move.destination)
             if direction.length == 2
             else None
         )
@@ -308,7 +308,7 @@ class GameEngine:
         return ValidationResult(True, None)
 
     @staticmethod
-    def _is_active_legal(
+    def is_active_legal(
         active_move: BoardMove,
         passive_move: BoardMove,
         direction: Direction,
@@ -338,7 +338,7 @@ class GameEngine:
 
             midpoint = None
             if direction.length == 2:
-                midpoint = GameEngine._get_move_midpoint(
+                midpoint = GameEngine.get_move_midpoint(
                     active_move.origin, active_move.destination
                 )
                 stones += int(bool(boards[active_move.board][midpoint]))
@@ -361,11 +361,11 @@ class GameEngine:
         return ValidationResult(True, None)
 
     @staticmethod
-    def _is_move_push(
+    def is_move_push(
         move: BoardMove, length: MoveLengthType, boards: BoardsType
     ) -> bool:
         if length == 2:
-            midpoint = GameEngine._get_move_midpoint(move.origin, move.destination)
+            midpoint = GameEngine.get_move_midpoint(move.origin, move.destination)
             if boards[move.board][midpoint] is not None:
                 return True
         if boards[move.board][move.destination] is not None:
@@ -373,13 +373,13 @@ class GameEngine:
         return False
 
     @staticmethod
-    def _get_move_midpoint(
+    def get_move_midpoint(
         origin: CoordinateType, destination: CoordinateType
     ) -> CoordinateType:
         return origin + ((destination - origin) // 2)  # type: ignore
 
     @staticmethod
-    def _get_move_destination(
+    def get_move_destination(
         origin: CoordinateType, direction: CoordinateType, length: Literal[1, 2, 3]
     ) -> Optional[CoordinateType]:
         x = origin % 4
@@ -424,7 +424,7 @@ class GameEngine:
         return new_boards
 
     @staticmethod
-    def _check_winner(boards: BoardsType) -> Optional[PlayerNumberType]:
+    def check_winner(boards: BoardsType) -> Optional[PlayerNumberType]:
         if any(1 not in board for board in boards):
             return 0
         elif any(0 not in board for board in boards):
@@ -432,7 +432,7 @@ class GameEngine:
         return None
 
     @staticmethod
-    def _format_game_state(state: GameState) -> str:
+    def format_game_state(state: GameState) -> str:
         value_to_symbol = {None: ".", 0: "X", 1: "O"}
 
         grids = [np.array(row).reshape(4, 4) for row in state.boards]
