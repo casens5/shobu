@@ -426,7 +426,7 @@ class GameEngine:
             return (y * 4) + x  # type: ignore
 
     @staticmethod
-    def _update_boards(
+    def update_boards(
         boards: BoardsType, move: Move, player: PlayerNumberType
     ) -> BoardsType:
         new_boards = deepcopy(boards)
