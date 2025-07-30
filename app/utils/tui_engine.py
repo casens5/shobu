@@ -23,20 +23,7 @@ sys.path.insert(0, str(project_root))
 
 @staticmethod
 def format_game_state(state: GameState) -> str:
-    value_to_symbol = {None: ".", 0: "X", 1: "O"}
-
-    grids = [np.array(row).reshape(4, 4) for row in state.boards]
-    grid_layout = np.array(grids).reshape(2, 2, 4, 4)
-
-    output = ["\n"]
-    for row in grid_layout:
-        for i in range(4):
-            line = "    ".join(
-                " ".join(value_to_symbol.get(cell, ".") for cell in grid[i])
-                for grid in row
-            )
-            output.append(line)
-        output.append("")
+    output = [repr(state.boards)]
 
     output.append(f"{player_number_to_color(state.player_turn)}'s turn")
     return "\n".join(output)
@@ -156,7 +143,7 @@ def run_terminal_game():
             state = result.state
 
             if opponent == "rando":
-                print(RandoAI.list_passive_candidates(state.boards, state.player_turn))
+                print(RandoAI.get_passive_candidates(state.boards, state.player_turn))
 
         except GameError as e:
             print(f"error: {e}")

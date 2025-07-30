@@ -197,9 +197,34 @@ class Move:
         )
 
 
+class Boards(list):
+    def __init__(self, boards: BoardsType):
+        super().__init__(boards)
+
+    def __repr__(self) -> str:
+        result = []
+        for i, board in enumerate(self):
+            if i > 0:
+                result.append("")  # empty line between boards
+
+            # convert board to 4x4 grid
+            for row in range(4):
+                row_chars = []
+                for col in range(4):
+                    idx = row * 4 + col
+                    cell = board[idx]
+                    if cell is None:
+                        row_chars.append(".")
+                    else:
+                        row_chars.append(str(cell))
+                result.append(" ".join(row_chars))
+
+        return "\n".join(result)
+
+
 @dataclass(frozen=True)
 class GameState:
-    boards: BoardsType
+    boards: Boards
     player_turn: PlayerNumberType
     winner: Optional[PlayerNumberType] = None
 
@@ -211,7 +236,7 @@ class GameState:
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
         ]
-        return cls(boards=boards, player_turn=0)
+        return cls(boards=Boards(boards), player_turn=0)
 
 
 class ValidationResult(NamedTuple):
@@ -441,7 +466,7 @@ class GameEngine:
             if move.active.push_destination is not None:
                 new_boards[move.active.board][move.active.push_destination] = opponent
             if move.direction.length == 2:
-                midpoint = GameEngine._get_move_midpoint(
+                midpoint = GameEngine.get_move_midpoint(
                     move.active.origin, move.active.destination
                 )
                 new_boards[move.active.board][midpoint] = None
