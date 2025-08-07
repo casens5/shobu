@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass, replace
-from typing import Optional, Literal, NamedTuple
+from typing import Optional, Literal, NamedTuple, cast
 from copy import deepcopy
 from app.game.types import (
     PlayerColorType,
@@ -22,20 +22,20 @@ CARDINAL_TO_INDEX = {"n": 0, "ne": 1, "e": 2, "se": 3, "s": 4, "sw": 5, "w": 6, 
 INDEX_TO_CARDINAL = {v: k for k, v in CARDINAL_TO_INDEX.items()}
 
 
-def board_letter_to_index(letter: BoardNumberType) -> BoardNumberType:
-    return LETTER_TO_INDEX[letter.lower()]
+def board_letter_to_index(letter: BoardLetterType):
+    return cast(BoardNumberType, LETTER_TO_INDEX[letter.lower()])
 
 
-def index_to_board_letter(index: BoardNumberType) -> BoardLetterType:
-    return INDEX_TO_LETTER[index]
+def index_to_board_letter(index: BoardNumberType):
+    return cast(BoardLetterType, INDEX_TO_LETTER[index])
 
 
-def cardinal_to_index(cardinal: CardinalLetterType) -> CardinalNumberType:
-    return CARDINAL_TO_INDEX[cardinal.lower()]
+def cardinal_to_index(cardinal: CardinalLetterType):
+    return cast(CardinalNumberType, CARDINAL_TO_INDEX[cardinal.lower()])
 
 
-def index_to_cardinal(index: CardinalNumberType) -> CardinalLetterType:
-    return INDEX_TO_CARDINAL[index]
+def index_to_cardinal(index: CardinalNumberType):
+    return cast(CardinalLetterType, INDEX_TO_CARDINAL[index])
 
 
 def player_color_to_number(player_color: PlayerColorType) -> PlayerNumberType:
@@ -63,6 +63,7 @@ def get_move_direction(origin: CoordinateType, destination: CoordinateType):
             f"invalid direction: origin: {origin}, destination: {destination}"
         )
 
+    cardinal = 0
     if origin_x == destination_x:
         if origin_y < destination_y:
             cardinal = 0  # north
@@ -116,7 +117,10 @@ def get_move_direction(origin: CoordinateType, destination: CoordinateType):
     #        f"invalid direction: origin: {origin}, destination: {destination}"
     #    )
 
-    return Direction(cardinal=cardinal, length=move_length)
+    return Direction(
+        cardinal=cast(CardinalNumberType, cardinal),
+        length=cast(MoveLengthType, move_length),
+    )
 
 
 @dataclass(frozen=True)
@@ -275,7 +279,7 @@ class GameEngine:
             state.boards, enhanced_move, state.player_turn
         )
         winner = GameEngine.check_winner(new_boards)
-        new_turn = (state.player_turn + 1) % 2  # type: ignore
+        new_turn = (state.player_turn + 1) % 2
 
         new_state = GameState(boards=new_boards, player_turn=new_turn, winner=winner)
 
@@ -291,7 +295,7 @@ class GameEngine:
             push_destination = GameEngine.get_move_destination(
                 move.active.origin,
                 move.direction.cardinal,
-                move.direction.length + 1,  # type: ignore
+                move.direction.length + 1,
             )
 
             enhanced_active = replace(
@@ -426,11 +430,12 @@ class GameEngine:
     def get_move_midpoint(
         origin: CoordinateType, destination: CoordinateType
     ) -> CoordinateType:
-        return origin + ((destination - origin) // 2)  # type: ignore
+        midpoint = origin + ((destination - origin) // 2)
+        return cast(CoordinateType, midpoint)
 
     @staticmethod
     def get_move_destination(
-        origin: CoordinateType, direction: CoordinateType, length: Literal[1, 2, 3]
+        origin: CoordinateType, direction: CardinalNumberType, length: Literal[1, 2]
     ) -> Optional[CoordinateType]:
         x = origin % 4
         y = origin // 4
@@ -448,12 +453,12 @@ class GameEngine:
             # out of bounds
             return None
         else:
-            return (y * 4) + x  # type: ignore
+            return cast(CoordinateType, (y * 4) + x)
 
     @staticmethod
     def update_boards(
         boards: BoardsType, move: Move, player: PlayerNumberType
-    ) -> BoardsType:
+    ) -> Boards:
         new_boards = deepcopy(boards)
 
         new_boards[move.passive.board][move.passive.origin] = None
@@ -471,7 +476,7 @@ class GameEngine:
                 )
                 new_boards[move.active.board][midpoint] = None
 
-        return new_boards
+        return Boards(new_boards)
 
     @staticmethod
     def check_winner(boards: BoardsType) -> Optional[PlayerNumberType]:
