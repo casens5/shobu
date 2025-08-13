@@ -128,7 +128,6 @@ class BoardMove:
     board: BoardNumberType
     origin: CoordinateType
     destination: CoordinateType
-    is_push: Optional[bool] = None
     push_destination: Optional[CoordinateType] = None
 
     def __repr__(self) -> str:
@@ -137,7 +136,6 @@ class BoardMove:
             f"  board=            {repr(self.board)},\n"
             f"  origin=           {repr(self.origin)},\n"
             f"  destination=      {repr(self.destination)},\n"
-            f"  is_push=          {repr(self.is_push)},\n"
             f"  push_destination= {repr(self.push_destination)},\n"
             ")"
         )
@@ -296,9 +294,7 @@ class GameEngine:
                 move.direction.length + 1,
             )
 
-            enhanced_active = replace(
-                move.active, is_push=True, push_destination=push_destination
-            )
+            enhanced_active = replace(move.active, push_destination=push_destination)
             return replace(move, active=enhanced_active)
 
         return move
@@ -385,7 +381,7 @@ class GameEngine:
             reason = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(player)}"
             return ValidationResult(False, reason)
 
-        if active_move.is_push:
+        if active_move.push_destination is not None:
             stones = int(bool(boards[active_move.board][active_move.destination]))
 
             midpoint = None
@@ -465,7 +461,7 @@ class GameEngine:
         new_boards[move.active.board][move.active.origin] = None
         new_boards[move.active.board][move.active.destination] = player
 
-        if move.active.is_push:
+        if move.active.push_destination is not None:
             opponent = 1 if player == 0 else 0
             if move.active.push_destination is not None:
                 new_boards[move.active.board][move.active.push_destination] = opponent
