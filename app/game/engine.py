@@ -46,83 +46,6 @@ def player_number_to_color(player_number: PlayerNumberType) -> PlayerColorType:
     return "black" if player_number == 0 else "white"
 
 
-def get_move_direction(origin: CoordinateType, destination: CoordinateType):
-    origin_x = origin % 4
-    origin_y = origin // 4
-    destination_x = destination % 4
-    destination_y = destination // 4
-    x_move = abs(origin_x - destination_x)
-    y_move = abs(origin_y - destination_y)
-    move_length = max(x_move, y_move)
-
-    if (x_move == 0 and y_move == 0) or (
-        x_move > 0 and y_move > 0 and x_move != y_move
-    ):
-        # only allow pure othogonal / diagonal moves
-        raise Exception(
-            f"invalid direction: origin: {origin}, destination: {destination}"
-        )
-
-    cardinal = 0
-    if origin_x == destination_x:
-        if origin_y < destination_y:
-            cardinal = 0  # north
-        if origin_y > destination_y:
-            cardinal = 4  # south
-    if origin_y == destination_y:
-        if origin_x < destination_x:
-            cardinal = 2  # east
-        if origin_x > destination_x:
-            cardinal = 6  # west
-    if origin_x < destination_x:
-        if origin_y < destination_y:
-            cardinal = 1  # north-east
-        if origin_y > destination_y:
-            cardinal = 3  # south-east
-    if origin_x > destination_x:
-        if origin_y > destination_y:
-            cardinal = 5  # south-west
-        if origin_y < destination_y:
-            cardinal = 7  # north-west
-
-    # offset by 10, dicts can't have negative indicies
-    # move_diff = origin - destination + 10
-    # direction_dict = {
-    #     14: 0,
-    #     18: 0,
-    #     13: 1,
-    #     16: 1,
-    #     9: 2,
-    #     8: 2,
-    #     5: 3,
-    #     0: 3,
-    #     2: 4,
-    #     6: 4,
-    #     7: 5,
-    #     4: 5,
-    #     11: 6,
-    #     12: 6,
-    #     15: 7,
-    #     20: 7,
-    # }
-    # cardinal=direction_dict[move_diff]
-
-    # if (
-    #    (x_move == 0 and y_move == 0)
-    #    or (x_move > 0 and y_move > 0 and x_move != y_move)
-    #    or direction_dict[move_diff] == None
-    # ):
-    #    # only allow pure othogonal / diagonal moves
-    #    raise Exception(
-    #        f"invalid direction: origin: {origin}, destination: {destination}"
-    #    )
-
-    return Direction(
-        cardinal=cast(CardinalNumberType, cardinal),
-        length=cast(MoveLengthType, move_length),
-    )
-
-
 @dataclass(frozen=True)
 class BoardMove:
     board: BoardNumberType
@@ -287,11 +210,14 @@ class GameEngine:
 
     @staticmethod
     def enhance_move_with_push_info(move: Move, boards: BoardsType) -> Move:
-        if GameEngine.is_move_push(move.active, move.direction.length, boards):
+        direction = GameEngine.get_move_direction(
+            move.passive.origin, move.passive.destination
+        )
+        if GameEngine.is_move_push(move.active, boards):
             push_destination = GameEngine.get_destination_coordinate(
                 move.active.origin,
-                move.direction.cardinal,
-                move.direction.length + 1,
+                direction.cardinal,
+                direction.length + 1,
             )
 
             enhanced_active = replace(move.active, push_destination=push_destination)
@@ -409,10 +335,9 @@ class GameEngine:
         return ValidationResult(True, None)
 
     @staticmethod
-    def is_move_push(
-        move: BoardMove, length: MoveLengthType, boards: BoardsType
-    ) -> bool:
-        if length == 2:
+    def is_move_push(move: BoardMove, boards: BoardsType) -> bool:
+        direction = GameEngine.get_move_direction(move.origin, move.destination)
+        if direction.length == 2:
             midpoint = GameEngine.get_move_midpoint(move.origin, move.destination)
             if boards[move.board][midpoint] is not None:
                 return True
@@ -449,6 +374,83 @@ class GameEngine:
             return None
         else:
             return cast(CoordinateType, (y * 4) + x)
+
+    @staticmethod
+    def get_move_direction(origin: CoordinateType, destination: CoordinateType):
+        origin_x = origin % 4
+        origin_y = origin // 4
+        destination_x = destination % 4
+        destination_y = destination // 4
+        x_move = abs(origin_x - destination_x)
+        y_move = abs(origin_y - destination_y)
+        move_length = max(x_move, y_move)
+
+        if (x_move == 0 and y_move == 0) or (
+            x_move > 0 and y_move > 0 and x_move != y_move
+        ):
+            # only allow pure othogonal / diagonal moves
+            raise Exception(
+                f"invalid direction: origin: {origin}, destination: {destination}"
+            )
+
+        cardinal = 0
+        if origin_x == destination_x:
+            if origin_y < destination_y:
+                cardinal = 0  # north
+            if origin_y > destination_y:
+                cardinal = 4  # south
+        if origin_y == destination_y:
+            if origin_x < destination_x:
+                cardinal = 2  # east
+            if origin_x > destination_x:
+                cardinal = 6  # west
+        if origin_x < destination_x:
+            if origin_y < destination_y:
+                cardinal = 1  # north-east
+            if origin_y > destination_y:
+                cardinal = 3  # south-east
+        if origin_x > destination_x:
+            if origin_y > destination_y:
+                cardinal = 5  # south-west
+            if origin_y < destination_y:
+                cardinal = 7  # north-west
+
+        # offset by 10, dicts can't have negative indicies
+        # move_diff = origin - destination + 10
+        # direction_dict = {
+        #     14: 0,
+        #     18: 0,
+        #     13: 1,
+        #     16: 1,
+        #     9: 2,
+        #     8: 2,
+        #     5: 3,
+        #     0: 3,
+        #     2: 4,
+        #     6: 4,
+        #     7: 5,
+        #     4: 5,
+        #     11: 6,
+        #     12: 6,
+        #     15: 7,
+        #     20: 7,
+        # }
+        # cardinal=direction_dict[move_diff]
+
+        # if (
+        #    (x_move == 0 and y_move == 0)
+        #    or (x_move > 0 and y_move > 0 and x_move != y_move)
+        #    or direction_dict[move_diff] == None
+        # ):
+        #    # only allow pure othogonal / diagonal moves
+        #    raise Exception(
+        #        f"invalid direction: origin: {origin}, destination: {destination}"
+        #    )
+
+        return Direction(
+            cardinal=cast(CardinalNumberType, cardinal),
+            length=cast(MoveLengthType, move_length),
+        )
 
     @staticmethod
     def update_boards(

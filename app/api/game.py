@@ -7,7 +7,6 @@ from app.game.engine import (
     GameError,
     Move,
     BoardMove,
-    get_move_direction,
     PlayMoveAction,
 )
 
@@ -17,7 +16,7 @@ game_bp = Blueprint("game", __name__)
 def parse_api_move(input):
     passive_move = input["passiveMove"]
     active_move = input["activeMove"]
-    direction = get_move_direction(
+    direction = GameEngine.get_move_direction(
         passive_move["origin"],
         passive_move["destination"],
     )
