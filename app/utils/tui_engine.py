@@ -112,7 +112,6 @@ class InputParser:
                 origin=active_origin,
                 destination=active_dest,
             ),
-            direction=direction,
         )
 
 

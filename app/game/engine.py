@@ -109,7 +109,6 @@ class Move:
     player: PlayerNumberType
     passive: BoardMove
     active: BoardMove
-    direction: Direction
 
     def __repr__(self) -> str:
         return (
@@ -117,7 +116,6 @@ class Move:
             f"  player=\n{repr(self.player)},\n"
             f"  passive=\n{repr(self.passive)},\n"
             f"  active=\n{repr(self.active)},\n"
-            f"  direction=\n{repr(self.direction)}\n"
             ")"
         )
 
@@ -234,21 +232,18 @@ class GameEngine:
     def is_move_legal(
         move: Move, boards: BoardsType, player: PlayerNumberType
     ) -> ValidationResult:
-        is_legal, reason = GameEngine.is_passive_legal(
-            move.passive, move.direction, boards, player
-        )
+        is_legal, reason = GameEngine.is_passive_legal(move.passive, boards, player)
         if not is_legal:
             return ValidationResult(is_legal, reason)
 
         is_legal, reason = GameEngine.is_active_legal(
-            move.active, move.passive, move.direction, boards, player
+            move.active, move.passive, boards, player
         )
         return ValidationResult(is_legal, reason)
 
     @staticmethod
     def is_passive_legal(
         passive_move: BoardMove,
-        direction: Direction,
         boards: BoardsType,
         player: PlayerNumberType,
     ) -> ValidationResult:
@@ -272,6 +267,9 @@ class GameEngine:
             reason = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(player)}"
             return ValidationResult(False, reason)
 
+        direction = GameEngine.get_move_direction(
+            passive_move.origin, passive_move.destination
+        )
         midpoint = (
             GameEngine.get_move_midpoint(passive_move.origin, passive_move.destination)
             if direction.length == 2
@@ -290,7 +288,6 @@ class GameEngine:
     def is_active_legal(
         active_move: BoardMove,
         passive_move: BoardMove,
-        direction: Direction,
         boards: BoardsType,
         player: PlayerNumberType,
     ) -> ValidationResult:
@@ -315,6 +312,9 @@ class GameEngine:
         if active_move.push_destination is not None:
             stones = int(bool(boards[active_move.board][active_move.destination]))
 
+            direction = GameEngine.get_move_direction(
+                active_move.origin, active_move.destination
+            )
             midpoint = None
             if direction.length == 2:
                 midpoint = GameEngine.get_move_midpoint(
@@ -470,9 +470,13 @@ class GameEngine:
 
         if move.active.push_destination is not None:
             opponent = 1 if player == 0 else 0
+            direction = GameEngine.get_move_direction(
+                move.active.origin, move.active.destination
+            )
+
             if move.active.push_destination is not None:
                 new_boards[move.active.board][move.active.push_destination] = opponent
-            if move.direction.length == 2:
+            if direction.length == 2:
                 midpoint = GameEngine.get_move_midpoint(
                     move.active.origin, move.active.destination
                 )
