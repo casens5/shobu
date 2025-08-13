@@ -37,7 +37,7 @@ class InputParser:
         command = command.strip().lower()
 
         if command in ["quit", "q", ":q"]:
-            return GameResult(state=state, should_quit=True)
+            return GameResult(state=state, game_end="INCOMPLETE")
         elif command == "read":
             return GameResult(state=state, message=format_game_state(state))
         elif command == "start":
@@ -136,7 +136,7 @@ def run_terminal_game():
                     else:
                         print("invalid opponent")
 
-            if result.should_quit:
+            if result.game_end == "INCOMPLETE":
                 print("exiting...")
                 break
 

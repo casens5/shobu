@@ -1,8 +1,8 @@
-import numpy as np
 from dataclasses import dataclass, replace
 from typing import Optional, Literal, NamedTuple, cast
 from copy import deepcopy
 from app.game.types import (
+    GameEndType,
     PlayerColorType,
     PlayerNumberType,
     MoveLengthType,
@@ -151,7 +151,7 @@ class Boards(list):
 class GameState:
     boards: Boards
     player_turn: PlayerNumberType
-    winner: Optional[PlayerNumberType] = None
+    winner: Optional[GameEndType] = None
 
     @classmethod
     def initial_state(cls) -> "GameState":
@@ -173,7 +173,7 @@ class ValidationResult(NamedTuple):
 class GameResult:
     state: GameState
     message: Optional[str] = None
-    should_quit: bool = False
+    game_end: Optional[GameEndType] = None
 
 
 class GameError(Exception):
@@ -184,8 +184,13 @@ class GameEngine:
     @staticmethod
     def apply_move(state: GameState, input_move: Move) -> GameResult:
         if state.winner is not None:
+            winner = state.winner
+            if winner in [0, 1]:
+                winner = player_number_to_color(winner)
             return GameResult(
-                state=state, message="game is already over. use start to play again"
+                state=state,
+                game_end=state.winner,
+                message=f"game won by {winner}",
             )
 
         move = GameEngine.enhance_move_with_push_info(input_move, state.boards)
@@ -202,9 +207,9 @@ class GameEngine:
 
         new_state = GameState(boards=new_boards, player_turn=new_turn, winner=winner)
 
-        message = GameEngine.format_game_state(new_state)
+        message = None
         if winner is not None:
-            message += f"\n{player_number_to_color(winner)} wins"
+            message = f"{player_number_to_color(winner)} wins"
 
         return GameResult(state=new_state, message=message)
 
@@ -483,23 +488,3 @@ class GameEngine:
             return 1
         else:
             return None
-
-    @staticmethod
-    def format_game_state(state: GameState) -> str:
-        value_to_symbol = {None: ".", 0: "X", 1: "O"}
-
-        grids = [np.array(row).reshape(4, 4) for row in state.boards]
-        grid_layout = np.array(grids).reshape(2, 2, 4, 4)
-
-        output = ["\n"]
-        for row in grid_layout:
-            for i in range(4):
-                line = "    ".join(
-                    " ".join(value_to_symbol.get(cell, ".") for cell in grid[i])
-                    for grid in row
-                )
-                output.append(line)
-            output.append("")
-
-        output.append(f"{player_number_to_color(state.player_turn)}'s turn")
-        return "\n".join(output)
