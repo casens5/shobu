@@ -88,10 +88,10 @@ class InputParser:
             cardinal=cardinal_to_index(groups[2]), length=int(groups[3])  # type: ignore
         )
 
-        passive_dest = GameEngine.get_move_destination(
+        passive_dest = GameEngine.get_destination_coordinate(
             passive_origin, direction.cardinal, direction.length
         )
-        active_dest = GameEngine.get_move_destination(
+        active_dest = GameEngine.get_destination_coordinate(
             active_origin, direction.cardinal, direction.length
         )
 
@@ -155,5 +155,6 @@ def run_terminal_game():
 
 
 # test with python -m app.utils.tui_game
+# alias test_engine
 if __name__ == "__main__":
     run_terminal_game()

@@ -261,23 +261,21 @@ class GameError(Exception):
 
 class GameEngine:
     @staticmethod
-    def apply_move(state: GameState, move: Move) -> GameResult:
+    def apply_move(state: GameState, input_move: Move) -> GameResult:
         if state.winner is not None:
             return GameResult(
                 state=state, message="game is already over. use start to play again"
             )
 
-        enhanced_move = GameEngine.enhance_move_with_push_info(move, state.boards)
+        move = GameEngine.enhance_move_with_push_info(input_move, state.boards)
 
         is_legal, reason = GameEngine.is_move_legal(
-            enhanced_move, state.boards, state.player_turn
+            move, state.boards, state.player_turn
         )
         if not is_legal:
             return GameResult(state=state, message=reason)
 
-        new_boards = GameEngine.update_boards(
-            state.boards, enhanced_move, state.player_turn
-        )
+        new_boards = GameEngine.update_boards(state.boards, move, state.player_turn)
         winner = GameEngine.check_winner(new_boards)
         new_turn = (state.player_turn + 1) % 2
 
@@ -292,7 +290,7 @@ class GameEngine:
     @staticmethod
     def enhance_move_with_push_info(move: Move, boards: BoardsType) -> Move:
         if GameEngine.is_move_push(move.active, move.direction.length, boards):
-            push_destination = GameEngine.get_move_destination(
+            push_destination = GameEngine.get_destination_coordinate(
                 move.active.origin,
                 move.direction.cardinal,
                 move.direction.length + 1,
@@ -433,9 +431,10 @@ class GameEngine:
         midpoint = origin + ((destination - origin) // 2)
         return cast(CoordinateType, midpoint)
 
+    # length is Literal[1, 2, 3] so that this function can also calculate a push coordinate
     @staticmethod
-    def get_move_destination(
-        origin: CoordinateType, direction: CardinalNumberType, length: Literal[1, 2]
+    def get_destination_coordinate(
+        origin: CoordinateType, direction: CardinalNumberType, length: Literal[1, 2, 3]
     ) -> Optional[CoordinateType]:
         x = origin % 4
         y = origin // 4
@@ -484,7 +483,8 @@ class GameEngine:
             return 0
         elif any(0 not in board for board in boards):
             return 1
-        return None
+        else:
+            return None
 
     @staticmethod
     def format_game_state(state: GameState) -> str:

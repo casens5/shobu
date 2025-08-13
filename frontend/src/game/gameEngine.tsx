@@ -90,7 +90,7 @@ export function switchPlayer(player: PlayerColor) {
   return player === PlayerColor.WHITE ? PlayerColor.BLACK : PlayerColor.WHITE;
 }
 
-export function coordinateToCartesian(coord: Coordinate) {
+export function coordinateToCartesian(coord: Coordinate): Cartesians {
   const aX = coord % 4;
   const aY = Math.floor(coord / 4);
   if (
