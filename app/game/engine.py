@@ -191,7 +191,7 @@ class GameEngine:
                 message=f"game won by {winner}",
             )
 
-        move = GameEngine.enhance_move_with_push_info(input_move, state.boards)
+        move = GameEngine.add_push_info_to_move(input_move, state.boards)
 
         is_legal, reason = GameEngine.is_move_legal(
             move, state.boards, state.player_turn
@@ -199,7 +199,7 @@ class GameEngine:
         if not is_legal:
             return GameResult(state=state, message=reason)
 
-        new_boards = GameEngine.update_boards(state.boards, move, state.player_turn)
+        new_boards = GameEngine._update_boards(state.boards, move, state.player_turn)
         winner = GameEngine.check_winner(new_boards)
         new_turn = (state.player_turn + 1) % 2
 
@@ -212,11 +212,48 @@ class GameEngine:
         return GameResult(state=new_state, message=message)
 
     @staticmethod
-    def enhance_move_with_push_info(move: Move, boards: BoardsType) -> Move:
-        direction = GameEngine.get_move_direction(
-            move.passive.origin, move.passive.destination
-        )
+    def _update_boards(
+        boards: BoardsType, move: Move, player: PlayerNumberType
+    ) -> Boards:
+        new_boards = deepcopy(boards)
+
+        new_boards[move.passive.board][move.passive.origin] = None
+        new_boards[move.passive.board][move.passive.destination] = player
+        new_boards[move.active.board][move.active.origin] = None
+        new_boards[move.active.board][move.active.destination] = player
+
+        if move.active.push_destination is not None:
+            opponent = 1 if player == 0 else 0
+            direction = GameEngine.get_move_direction(
+                move.active.origin, move.active.destination
+            )
+
+            if move.active.push_destination is not None:
+                new_boards[move.active.board][move.active.push_destination] = opponent
+            if direction.length == 2:
+                midpoint = GameEngine.get_move_midpoint(
+                    move.active.origin, move.active.destination
+                )
+                new_boards[move.active.board][midpoint] = None
+
+        return Boards(new_boards)
+
+    @staticmethod
+    def check_winner(boards: BoardsType) -> Optional[PlayerNumberType]:
+        if any(1 not in board for board in boards):
+            return 0
+        elif any(0 not in board for board in boards):
+            return 1
+        else:
+            return None
+
+    @staticmethod
+    def add_push_info_to_move(move: Move, boards: BoardsType) -> Move:
         if GameEngine.is_move_push(move.active, boards):
+            direction = GameEngine.get_move_direction(
+                move.passive.origin, move.passive.destination
+            )
+
             push_destination = GameEngine.get_destination_coordinate(
                 move.active.origin,
                 direction.cardinal,
@@ -456,39 +493,3 @@ class GameEngine:
             cardinal=cast(CardinalNumberType, cardinal),
             length=cast(MoveLengthType, move_length),
         )
-
-    @staticmethod
-    def update_boards(
-        boards: BoardsType, move: Move, player: PlayerNumberType
-    ) -> Boards:
-        new_boards = deepcopy(boards)
-
-        new_boards[move.passive.board][move.passive.origin] = None
-        new_boards[move.passive.board][move.passive.destination] = player
-        new_boards[move.active.board][move.active.origin] = None
-        new_boards[move.active.board][move.active.destination] = player
-
-        if move.active.push_destination is not None:
-            opponent = 1 if player == 0 else 0
-            direction = GameEngine.get_move_direction(
-                move.active.origin, move.active.destination
-            )
-
-            if move.active.push_destination is not None:
-                new_boards[move.active.board][move.active.push_destination] = opponent
-            if direction.length == 2:
-                midpoint = GameEngine.get_move_midpoint(
-                    move.active.origin, move.active.destination
-                )
-                new_boards[move.active.board][midpoint] = None
-
-        return Boards(new_boards)
-
-    @staticmethod
-    def check_winner(boards: BoardsType) -> Optional[PlayerNumberType]:
-        if any(1 not in board for board in boards):
-            return 0
-        elif any(0 not in board for board in boards):
-            return 1
-        else:
-            return None
