@@ -1,7 +1,7 @@
 import sys
 import re
-import numpy as np
 from pathlib import Path
+from typing import cast
 from app.game.engine import (
     GameState,
     GameEngine,
@@ -14,7 +14,13 @@ from app.game.engine import (
     cardinal_to_index,
     player_number_to_color,
 )
-from app.game.types import PlayerNumberType
+from app.game.types import (
+    BoardLetterType,
+    CardinalLetterType,
+    CoordinateType,
+    MoveLengthType,
+    PlayerNumberType,
+)
 from app.game.ai.rando import RandoAI
 
 project_root = Path(__file__).parent.parent.parent
@@ -72,45 +78,53 @@ class InputParser:
 
         groups = match.groups()
 
-        passive_origin = int(groups[1]) - 1
-        active_origin = int(groups[5]) - 1
+        passive_board_letter = cast(BoardLetterType, groups[0])
+        active_board_letter = cast(BoardLetterType, groups[4])
+        passive_board_index = board_letter_to_index(passive_board_letter)
+        active_board_index = board_letter_to_index(active_board_letter)
+        direction_length = cast(MoveLengthType, int(groups[3]))
+        cardinal_letter = cast(CardinalLetterType, groups[2])
+        cardinal_index = cardinal_to_index(cardinal_letter)
 
-        if not (0 <= passive_origin <= 15):
+        passive_o = int(groups[1]) - 1
+        active_o = int(groups[5]) - 1
+
+        if not (0 <= passive_o <= 15):
             raise GameError(
                 f"passive move must be between 1 and 16 inclusive, got {groups[1]}"
             )
-        if not (0 <= active_origin <= 15):
+        if not (0 <= active_o <= 15):
             raise GameError(
                 f"active move must be between 1 and 16 inclusive, got {groups[5]}"
             )
+        passive_origin = cast(CoordinateType, passive_o)
+        active_origin = cast(CoordinateType, active_o)
 
-        direction = Direction(
-            cardinal=cardinal_to_index(groups[2]), length=int(groups[3])  # type: ignore
-        )
+        direction = Direction(cardinal=cardinal_index, length=direction_length)
 
-        passive_dest = GameEngine.get_destination_coordinate(
+        passive_destination = GameEngine.get_destination_coordinate(
             passive_origin, direction.cardinal, direction.length
         )
-        active_dest = GameEngine.get_destination_coordinate(
+        active_destination = GameEngine.get_destination_coordinate(
             active_origin, direction.cardinal, direction.length
         )
 
-        if passive_dest is None:
+        if passive_destination is None:
             raise GameError("passive move destination is out of bounds")
-        if active_dest is None:
+        if active_destination is None:
             raise GameError("active move destination is out of bounds")
 
         return Move(
             player=player,
             passive=BoardMove(
-                board=board_letter_to_index(groups[0]),
+                board=passive_board_index,
                 origin=passive_origin,
-                destination=passive_dest,
+                destination=passive_destination,
             ),
             active=BoardMove(
-                board=board_letter_to_index(groups[4]),
+                board=active_board_index,
                 origin=active_origin,
-                destination=active_dest,
+                destination=active_destination,
             ),
         )
 
