@@ -7,7 +7,6 @@ from app.game.engine import (
     GameError,
     Move,
     BoardMove,
-    PlayMoveAction,
 )
 
 game_bp = Blueprint("game", __name__)
@@ -35,7 +34,7 @@ def parse_api_move(input):
         ),
         direction=direction,
     )
-    return PlayMoveAction(move=move)
+    return move
 
 
 @game_bp.route("/<int:game_id>/move", methods=["POST"])

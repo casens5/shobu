@@ -12,6 +12,7 @@ from app.game.types import (
     CardinalLetterType,
     CardinalNumberType,
     BoardsType,
+    BoardType,
 )
 
 
@@ -51,6 +52,7 @@ class BoardMove:
     board: BoardNumberType
     origin: CoordinateType
     destination: CoordinateType
+    is_push: Optional[bool] = None
     push_destination: Optional[CoordinateType] = None
 
     def __repr__(self) -> str:
@@ -59,6 +61,7 @@ class BoardMove:
             f"  board=            {repr(self.board)},\n"
             f"  origin=           {repr(self.origin)},\n"
             f"  destination=      {repr(self.destination)},\n"
+            f"  is_push=          {repr(self.is_push)},\n"
             f"  push_destination= {repr(self.push_destination)},\n"
             ")"
         )
@@ -109,6 +112,7 @@ class Move:
     player: PlayerNumberType
     passive: BoardMove
     active: BoardMove
+    direction: Direction
 
     def __repr__(self) -> str:
         return (
@@ -116,6 +120,7 @@ class Move:
             f"  player=\n{repr(self.player)},\n"
             f"  passive=\n{repr(self.passive)},\n"
             f"  active=\n{repr(self.active)},\n"
+            f"  direction=\n{repr(self.direction)},\n"
             ")"
         )
 
@@ -222,15 +227,12 @@ class GameEngine:
         new_boards[move.active.board][move.active.origin] = None
         new_boards[move.active.board][move.active.destination] = player
 
-        if move.active.push_destination is not None:
+        if move.active.is_push:
             opponent = 1 if player == 0 else 0
-            direction = GameEngine.get_move_direction(
-                move.active.origin, move.active.destination
-            )
 
             if move.active.push_destination is not None:
                 new_boards[move.active.board][move.active.push_destination] = opponent
-            if direction.length == 2:
+            if move.direction.length == 2:
                 midpoint = GameEngine.get_move_midpoint(
                     move.active.origin, move.active.destination
                 )
@@ -249,18 +251,19 @@ class GameEngine:
 
     @staticmethod
     def add_push_info_to_move(move: Move, boards: BoardsType) -> Move:
-        if GameEngine.is_move_push(move.active, boards):
+        if GameEngine.is_move_push(move.active, boards[move.active.board]):
             direction = GameEngine.get_move_direction(
                 move.passive.origin, move.passive.destination
             )
-
             push_destination = GameEngine.get_destination_coordinate(
                 move.active.origin,
                 direction.cardinal,
                 direction.length + 1,
             )
 
-            enhanced_active = replace(move.active, push_destination=push_destination)
+            enhanced_active = replace(
+                move.active, is_push=True, push_destination=push_destination
+            )
             return replace(move, active=enhanced_active)
 
         return move
@@ -291,18 +294,18 @@ class GameEngine:
                 home_boards = ["a", "b"]
             else:
                 home_boards = ["c", "d"]
-            reason = f"the passive (first) move must be in one of your home boards.  player is {player_number_to_color(player)}, home boards are {home_boards}"
-            return ValidationResult(False, reason)
+            message = f"the passive (first) move must be in one of your home boards.  player is {player_number_to_color(player)}, home boards are {home_boards}"
+            return ValidationResult(False, message)
 
         if boards[passive_move.board][passive_move.origin] is None:
             board_letter = index_to_board_letter(passive_move.board)
-            reason = f"no stone exists on {board_letter}{passive_move.origin + 1}"
-            return ValidationResult(False, reason)
+            message = f"no stone exists on {board_letter}{passive_move.origin + 1}"
+            return ValidationResult(False, message)
 
         if boards[passive_move.board][passive_move.origin] is not player:
             board_letter = index_to_board_letter(passive_move.board)
-            reason = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(player)}"
-            return ValidationResult(False, reason)
+            message = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(player)}"
+            return ValidationResult(False, message)
 
         direction = GameEngine.get_move_direction(
             passive_move.origin, passive_move.destination
@@ -316,8 +319,9 @@ class GameEngine:
         if boards[passive_move.board][passive_move.destination] is not None or (
             midpoint is not None and boards[passive_move.board][midpoint] is not None
         ):
-            reason = "you can't push stones with the passive move"
-            return ValidationResult(False, reason)
+            return ValidationResult(
+                False, "you can't push stones with the passive move"
+            )
 
         return ValidationResult(True, None)
 
@@ -329,29 +333,35 @@ class GameEngine:
         player: PlayerNumberType,
     ) -> ValidationResult:
         if passive_move.board == active_move.board:
-            reason = "active and passive moves must be on different boards"
-            return ValidationResult(False, reason)
+            return ValidationResult(
+                False, "active and passive moves must be on different boards"
+            )
 
         if (passive_move.board + active_move.board) == 3:
-            reason = "active and passive moves can't be on the same color"
-            return ValidationResult(False, reason)
+            return ValidationResult(
+                False, "active and passive moves can't be on the same shade of board"
+            )
 
         if boards[active_move.board][active_move.origin] is None:
             board_letter = index_to_board_letter(active_move.board)
-            reason = f"no stone exists on {board_letter}{active_move.origin + 1}"
-            return ValidationResult(False, reason)
+            message = f"no stone exists on {board_letter}{active_move.origin + 1}"
+            return ValidationResult(False, message)
 
         if boards[active_move.board][active_move.origin] is not player:
             board_letter = index_to_board_letter(active_move.board)
-            reason = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(player)}"
-            return ValidationResult(False, reason)
+            message = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(player)}"
+            return ValidationResult(False, message)
 
-        if active_move.push_destination is not None:
-            stones = int(bool(boards[active_move.board][active_move.destination]))
-
+        if GameEngine.is_move_push(active_move, boards[active_move.board]):
             direction = GameEngine.get_move_direction(
                 active_move.origin, active_move.destination
             )
+            push_destination = GameEngine.get_destination_coordinate(
+                active_move.origin, direction.cardinal, direction.length + 1
+            )
+
+            stones = int(bool(boards[active_move.board][active_move.destination]))
+
             midpoint = None
             if direction.length == 2:
                 midpoint = GameEngine.get_move_midpoint(
@@ -359,31 +369,27 @@ class GameEngine:
                 )
                 stones += int(bool(boards[active_move.board][midpoint]))
 
-            if active_move.push_destination is not None:
-                stones += int(
-                    bool(boards[active_move.board][active_move.push_destination])
-                )
+            if push_destination is not None:
+                stones += int(bool(boards[active_move.board][push_destination]))
 
             if stones > 1:
-                reason = "you can't push 2 stones in a row"
-                return ValidationResult(False, reason)
+                return ValidationResult(False, "you can't push 2 stones in a row")
 
             if (
                 midpoint is not None and boards[active_move.board][midpoint] == player
             ) or boards[active_move.board][active_move.destination] == player:
-                reason = "you can't push your own color stones"
-                return ValidationResult(False, reason)
+                return ValidationResult(False, "you can't push your own color stones")
 
         return ValidationResult(True, None)
 
     @staticmethod
-    def is_move_push(move: BoardMove, boards: BoardsType) -> bool:
+    def is_move_push(move: BoardMove, board: BoardType) -> bool:
         direction = GameEngine.get_move_direction(move.origin, move.destination)
         if direction.length == 2:
             midpoint = GameEngine.get_move_midpoint(move.origin, move.destination)
-            if boards[move.board][midpoint] is not None:
+            if board[midpoint] is not None:
                 return True
-        if boards[move.board][move.destination] is not None:
+        if board[move.destination] is not None:
             return True
         return False
 
