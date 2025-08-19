@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-cd frontend
-npm run typecheck
-npm run test run
-npx lint-staged --verbose

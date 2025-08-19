@@ -1,0 +1,32 @@
+repos:
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+        
+  - repo: local
+    hooks:
+      - id: typescript-typecheck
+        name: typescript typecheck
+        entry: bash -c 'cd frontend && npm run typecheck'
+        language: system
+        pass_filenames: false
+        files: 'frontend/.*\.(ts|tsx)$'
+        
+      - id: typescript-test
+        name: typescript test
+        entry: bash -c 'cd frontend && npm run test run'
+        language: system
+        pass_filenames: false
+        files: 'frontend/.*\.(ts|tsx)$'
+        
+      - id: lint-staged
+        name: lint-staged
+        entry: bash -c 'cd frontend && npx lint-staged'
+        language: system
+        pass_filenames: false
+        files: 'frontend/.*'

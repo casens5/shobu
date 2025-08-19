@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "test": "vitest",
     "typecheck": "tsc -b --noEmit",
-    "prepare": "cd .. && husky frontend/.husky",
     "lint-staged": "lint-staged"
   },
   "dependencies": {
@@ -28,7 +27,6 @@
     "eslint": "^9.28.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^15.15.0",
-    "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
     "typescript": "~5.7.2",
