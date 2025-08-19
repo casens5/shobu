@@ -2,4 +2,5 @@ Flask
 Flask-SQLAlchemy
 Werkzeug
 flask_cors
+pytest
 gunicorn
