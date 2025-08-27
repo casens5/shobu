@@ -185,7 +185,7 @@ class GameError(Exception):
 
 class GameEngine:
     @staticmethod
-    def apply_move(state: GameState, input_move: Move) -> GameResult:
+    def apply_move(state: GameState, move: Move) -> GameResult:
         if state.winner is not None:
             winner = state.winner
             if winner in [0, 1]:
@@ -195,8 +195,6 @@ class GameEngine:
                 game_end=state.winner,
                 message=f"game won by {winner}",
             )
-
-        move = GameEngine.add_push_info_to_move(input_move, state.boards)
 
         is_legal, reason = GameEngine.is_move_legal(
             move, state.boards, state.player_turn
@@ -250,23 +248,23 @@ class GameEngine:
             return None
 
     @staticmethod
-    def add_push_info_to_move(move: Move, boards: BoardsType) -> Move:
-        if GameEngine.is_move_push(move.active, boards[move.active.board]):
-            direction = GameEngine.get_move_direction(
-                move.passive.origin, move.passive.destination
-            )
+    def validate_board_move(board_move: BoardMove, board: BoardType) -> BoardMove:
+        direction = GameEngine.get_move_direction(
+            board_move.origin, board_move.destination
+        )
+        if not (direction.length == 1 or direction.length == 2):
+            raise ValueError(f"length must be 1 or 2, got {direction.length}")
+
+        if GameEngine.is_move_push(board_move, board):
             push_destination = GameEngine.get_destination_coordinate(
-                move.active.origin,
+                board_move.origin,
                 direction.cardinal,
                 direction.length + 1,
             )
 
-            enhanced_active = replace(
-                move.active, is_push=True, push_destination=push_destination
-            )
-            return replace(move, active=enhanced_active)
+            return replace(board_move, is_push=True, push_destination=push_destination)
 
-        return move
+        return board_move
 
     @staticmethod
     def is_move_legal(
@@ -283,10 +281,18 @@ class GameEngine:
 
     @staticmethod
     def is_passive_legal(
-        passive_move: BoardMove,
+        passive_move_input: BoardMove,
         boards: BoardsType,
         player: PlayerNumberType,
     ) -> ValidationResult:
+        passive_move = GameEngine.validate_board_move(
+            passive_move_input, boards[passive_move_input.board]
+        )
+        if passive_move.is_push:
+            return ValidationResult(
+                False, "you can't push stones with the passive move"
+            )
+
         if (player == 1 and passive_move.board < 2) or (
             player == 0 and passive_move.board > 1
         ):
@@ -307,31 +313,18 @@ class GameEngine:
             message = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(player)}"
             return ValidationResult(False, message)
 
-        direction = GameEngine.get_move_direction(
-            passive_move.origin, passive_move.destination
-        )
-        midpoint = (
-            GameEngine.get_move_midpoint(passive_move.origin, passive_move.destination)
-            if direction.length == 2
-            else None
-        )
-
-        if boards[passive_move.board][passive_move.destination] is not None or (
-            midpoint is not None and boards[passive_move.board][midpoint] is not None
-        ):
-            return ValidationResult(
-                False, "you can't push stones with the passive move"
-            )
-
         return ValidationResult(True, None)
 
     @staticmethod
     def is_active_legal(
-        active_move: BoardMove,
+        active_move_input: BoardMove,
         passive_move: BoardMove,
         boards: BoardsType,
         player: PlayerNumberType,
     ) -> ValidationResult:
+        active_move = GameEngine.validate_board_move(
+            active_move_input, boards[active_move_input.board]
+        )
         if passive_move.board == active_move.board:
             return ValidationResult(
                 False, "active and passive moves must be on different boards"
@@ -352,12 +345,9 @@ class GameEngine:
             message = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(player)}"
             return ValidationResult(False, message)
 
-        if GameEngine.is_move_push(active_move, boards[active_move.board]):
+        if active_move.is_push:
             direction = GameEngine.get_move_direction(
                 active_move.origin, active_move.destination
-            )
-            push_destination = GameEngine.get_destination_coordinate(
-                active_move.origin, direction.cardinal, direction.length + 1
             )
 
             stones = int(bool(boards[active_move.board][active_move.destination]))
@@ -369,8 +359,10 @@ class GameEngine:
                 )
                 stones += int(bool(boards[active_move.board][midpoint]))
 
-            if push_destination is not None:
-                stones += int(bool(boards[active_move.board][push_destination]))
+            if active_move.push_destination is not None:
+                stones += int(
+                    bool(boards[active_move.board][active_move.push_destination])
+                )
 
             if stones > 1:
                 return ValidationResult(False, "you can't push 2 stones in a row")
@@ -436,7 +428,7 @@ class GameEngine:
         if (x_move == 0 and y_move == 0) or (
             x_move > 0 and y_move > 0 and x_move != y_move
         ):
-            # only allow pure othogonal / diagonal moves
+            # only allow non-null, pure othogonal / diagonal moves
             raise Exception(
                 f"invalid direction: origin: {origin}, destination: {destination}"
             )
