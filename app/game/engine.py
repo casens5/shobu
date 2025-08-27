@@ -67,23 +67,28 @@ class BoardMove:
         )
 
     def __post_init__(self):
-        if not (0 <= self.board <= 3):
-            raise ValueError(f"board must be between 0 and 3, got {self.board}")
+        if not (self.board in list(range(4))):
+            raise ValueError(f"board must be an int between 0 and 3, got {self.board}")
 
-        if not (0 <= self.origin <= 15):
-            raise ValueError(f"origin must be between 0 and 15, got {self.origin}")
-
-        if not (0 <= self.destination <= 15):
+        if not (self.origin in list(range(16))):
             raise ValueError(
-                f"destination must be between 0 and 15, got {self.destination}"
+                f"origin must be an int between 0 and 15, got {self.origin}"
             )
 
-        ### this is being annoying
-        #
-        # if not (0 <= self.push_destination <= 15):
-        #    raise ValueError(
-        #        f"push_destination must be between 0 and 15, got {self.push_destination}"
-        #    )
+        if not (self.destination in list(range(16))):
+            raise ValueError(
+                f"destination must be an int between 0 and 15, got {self.destination}"
+            )
+
+        if self.is_push not in [None, True, False]:
+            raise ValueError(f"is_push must be None or bool, got {self.destination}")
+
+        if self.push_destination is not None and not (
+            self.push_destination in list(range(16))
+        ):
+            raise ValueError(
+                f"push_destination must be None, or an int between 0 and 15, got {self.push_destination}"
+            )
 
 
 @dataclass(frozen=True)
@@ -100,10 +105,12 @@ class Direction:
         )
 
     def __post_init__(self):
-        if not (0 <= self.cardinal <= 7):
-            raise ValueError(f"cardinal must be between 0 and 7, got {self.cardinal}")
+        if not (self.cardinal in list(range(8))):
+            raise ValueError(
+                f"cardinal must be an int between 0 and 7, got {self.cardinal}"
+            )
 
-        if not (1 <= self.length <= 2):
+        if not (self.length == 1 or self.length == 2):
             raise ValueError(f"length must be 1 or 2, got {self.length}")
 
 
@@ -123,6 +130,10 @@ class Move:
             f"  direction=\n{repr(self.direction)},\n"
             ")"
         )
+
+    def __post_init__(self):
+        if not (self.player == 0 or self.player == 1):
+            raise ValueError(f"player must be 0 or 1, got {self.player}")
 
 
 class Boards(list):
@@ -165,6 +176,10 @@ class GameState:
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
         ]
         return cls(boards=Boards(boards), player_turn=0)
+
+    def __post_init__(self):
+        if not (self.player_turn == 0 or self.player_turn == 1):
+            raise ValueError(f"player must be 0 or 1, got {self.player_turn}")
 
 
 class ValidationResult(NamedTuple):
