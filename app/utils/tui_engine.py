@@ -132,7 +132,9 @@ class InputParser:
 def run_terminal_game():
     state = GameState.initial_state()
     print(format_game_state(state))
-    print("enter 'quit' to exit, 'read' to see board, 'start' to start new game")
+    print(
+        "enter 'quit' to exit, 'read' to see board, 'start' to start new game"
+    )
 
     while True:
         try:
@@ -144,7 +146,10 @@ def run_terminal_game():
                 print(result.message)
                 if result.message == "choose an opponent: human or rando":
                     opponent_selection = input("~> ").strip()
-                    if opponent_selection == "human" or opponent_selection == "rando":
+                    if (
+                        opponent_selection == "human"
+                        or opponent_selection == "rando"
+                    ):
                         opponent = opponent_selection
                     else:
                         print("invalid opponent")

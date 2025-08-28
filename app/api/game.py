@@ -53,7 +53,9 @@ def make_move(game_id):
     player_number = 0 if user_id == game_db.player1_id else 1
 
     current_state = GameState(
-        boards=game_db.boards, player_turn=game_db.player_turn, winner=game_db.winner
+        boards=game_db.boards,
+        player_turn=game_db.player_turn,
+        winner=game_db.winner,
     )
 
     if current_state.winner is not None:
@@ -133,7 +135,10 @@ def create_game():
                 "player1_id": game.player1_id,
                 "player2_id": game.player2_id,
                 "is_human_vs_ai": game.is_human_vs_ai,
-                "game_state": {"boards": game.boards, "player_turn": game.player_turn},
+                "game_state": {
+                    "boards": game.boards,
+                    "player_turn": game.player_turn,
+                },
             }
         ),
         201,

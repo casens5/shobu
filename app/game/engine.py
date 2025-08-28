@@ -19,7 +19,16 @@ from app.game.types import (
 LETTER_TO_INDEX = {"a": 0, "b": 1, "c": 2, "d": 3}
 INDEX_TO_LETTER = {v: k for k, v in LETTER_TO_INDEX.items()}
 
-CARDINAL_TO_INDEX = {"n": 0, "ne": 1, "e": 2, "se": 3, "s": 4, "sw": 5, "w": 6, "nw": 7}
+CARDINAL_TO_INDEX = {
+    "n": 0,
+    "ne": 1,
+    "e": 2,
+    "se": 3,
+    "s": 4,
+    "sw": 5,
+    "w": 6,
+    "nw": 7,
+}
 INDEX_TO_CARDINAL = {v: k for k, v in CARDINAL_TO_INDEX.items()}
 
 
@@ -68,7 +77,9 @@ class BoardMove:
 
     def __post_init__(self):
         if not (self.board in list(range(4))):
-            raise ValueError(f"board must be an int between 0 and 3, got {self.board}")
+            raise ValueError(
+                f"board must be an int between 0 and 3, got {self.board}"
+            )
 
         if not (self.origin in list(range(16))):
             raise ValueError(
@@ -81,7 +92,9 @@ class BoardMove:
             )
 
         if self.is_push not in [None, True, False]:
-            raise ValueError(f"is_push must be None or bool, got {self.destination}")
+            raise ValueError(
+                f"is_push must be None or bool, got {self.destination}"
+            )
 
         if self.push_destination is not None and not (
             self.push_destination in list(range(16))
@@ -169,12 +182,14 @@ class GameState:
 
     @classmethod
     def initial_state(cls) -> "GameState":
+        # fmt: off
         boards = [
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
             [0, 0, 0, 0, None, None, None, None, None, None, None, None, 1, 1, 1, 1],
         ]
+        # fmt: on
         return cls(boards=Boards(boards), player_turn=0)
 
     def __post_init__(self):
@@ -215,11 +230,15 @@ class GameEngine:
         if not is_legal:
             return GameResult(state=state, message=reason)
 
-        new_boards = GameEngine._update_boards(state.boards, move, state.player_turn)
+        new_boards = GameEngine._update_boards(
+            state.boards, move, state.player_turn
+        )
         winner = GameEngine.check_winner(new_boards)
         new_turn = (state.player_turn + 1) % 2
 
-        new_state = GameState(boards=new_boards, player_turn=new_turn, winner=winner)
+        new_state = GameState(
+            boards=new_boards, player_turn=new_turn, winner=winner
+        )
 
         message = None
         if winner is not None:
@@ -242,7 +261,9 @@ class GameEngine:
             opponent = 1 if player == 0 else 0
 
             if move.active.push_destination is not None:
-                new_boards[move.active.board][move.active.push_destination] = opponent
+                new_boards[move.active.board][
+                    move.active.push_destination
+                ] = opponent
             if move.direction.length == 2:
                 midpoint = GameEngine.get_move_midpoint(
                     move.active.origin, move.active.destination
@@ -261,7 +282,9 @@ class GameEngine:
             return None
 
     @staticmethod
-    def validate_board_move(board_move: BoardMove, board: BoardType) -> BoardMove:
+    def validate_board_move(
+        board_move: BoardMove, board: BoardType
+    ) -> BoardMove:
         direction = GameEngine.get_move_direction(
             board_move.origin, board_move.destination
         )
@@ -275,7 +298,9 @@ class GameEngine:
                 direction.length + 1,
             )
 
-            return replace(board_move, is_push=True, push_destination=push_destination)
+            return replace(
+                board_move, is_push=True, push_destination=push_destination
+            )
 
         return board_move
 
@@ -286,14 +311,17 @@ class GameEngine:
     ) -> ValidationResult:
         if not move.player == state.player_turn:
             return ValidationResult(
-                False, f"it's not {player_number_to_color(move.player)}'s turn to move"
+                False,
+                f"it's not {player_number_to_color(move.player)}'s turn to move",
             )
 
         is_legal, reason = GameEngine.is_passive_legal(move.passive, state)
         if not is_legal:
             return ValidationResult(is_legal, reason)
 
-        is_legal, reason = GameEngine.is_active_legal(move.active, move.passive, state)
+        is_legal, reason = GameEngine.is_active_legal(
+            move.active, move.passive, state
+        )
         return ValidationResult(is_legal, reason)
 
     @staticmethod
@@ -320,10 +348,15 @@ class GameEngine:
 
         if state.boards[passive_move.board][passive_move.origin] is None:
             board_letter = index_to_board_letter(passive_move.board)
-            message = f"no stone exists on {board_letter}{passive_move.origin + 1}"
+            message = (
+                f"no stone exists on {board_letter}{passive_move.origin + 1}"
+            )
             return ValidationResult(False, message)
 
-        if state.boards[passive_move.board][passive_move.origin] != state.player_turn:
+        if (
+            state.boards[passive_move.board][passive_move.origin]
+            != state.player_turn
+        ):
             board_letter = index_to_board_letter(passive_move.board)
             message = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(state.player_turn)}"
             return ValidationResult(False, message)
@@ -344,15 +377,21 @@ class GameEngine:
 
         if (passive_move.board + active_move.board) == 3:
             return ValidationResult(
-                False, "active and passive moves can't be on the same shade of board"
+                False,
+                "active and passive moves can't be on the same shade of board",
             )
 
         if state.boards[active_move.board][active_move.origin] is None:
             board_letter = index_to_board_letter(active_move.board)
-            message = f"no stone exists on {board_letter}{active_move.origin + 1}"
+            message = (
+                f"no stone exists on {board_letter}{active_move.origin + 1}"
+            )
             return ValidationResult(False, message)
 
-        if state.boards[active_move.board][active_move.origin] != state.player_turn:
+        if (
+            state.boards[active_move.board][active_move.origin]
+            != state.player_turn
+        ):
             board_letter = index_to_board_letter(active_move.board)
             message = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(state.player_turn)}"
             return ValidationResult(False, message)
@@ -362,7 +401,9 @@ class GameEngine:
                 active_move.origin, active_move.destination
             )
 
-            stones = int(bool(state.boards[active_move.board][active_move.destination]))
+            stones = int(
+                bool(state.boards[active_move.board][active_move.destination])
+            )
 
             midpoint = None
             if direction.length == 2:
@@ -373,19 +414,28 @@ class GameEngine:
 
             if active_move.push_destination is not None:
                 stones += int(
-                    bool(state.boards[active_move.board][active_move.push_destination])
+                    bool(
+                        state.boards[active_move.board][
+                            active_move.push_destination
+                        ]
+                    )
                 )
 
             if stones > 1:
-                return ValidationResult(False, "you can't push 2 stones in a row")
+                return ValidationResult(
+                    False, "you can't push 2 stones in a row"
+                )
 
             if (
                 midpoint is not None
-                and state.boards[active_move.board][midpoint] == state.player_turn
+                and state.boards[active_move.board][midpoint]
+                == state.player_turn
             ) or state.boards[active_move.board][
                 active_move.destination
             ] == state.player_turn:
-                return ValidationResult(False, "you can't push your own color stones")
+                return ValidationResult(
+                    False, "you can't push your own color stones"
+                )
 
         return ValidationResult(True, None)
 
@@ -393,7 +443,9 @@ class GameEngine:
     def is_move_push(move: BoardMove, board: BoardType) -> bool:
         direction = GameEngine.get_move_direction(move.origin, move.destination)
         if direction.length == 2:
-            midpoint = GameEngine.get_move_midpoint(move.origin, move.destination)
+            midpoint = GameEngine.get_move_midpoint(
+                move.origin, move.destination
+            )
             if board[midpoint] is not None:
                 return True
         if board[move.destination] is not None:
@@ -410,7 +462,9 @@ class GameEngine:
     # length is Literal[1, 2, 3] so that this function can also calculate a push coordinate
     @staticmethod
     def get_destination_coordinate(
-        origin: CoordinateType, direction: CardinalNumberType, length: Literal[1, 2, 3]
+        origin: CoordinateType,
+        direction: CardinalNumberType,
+        length: Literal[1, 2, 3],
     ) -> Optional[CoordinateType]:
         x = origin % 4
         y = origin // 4
