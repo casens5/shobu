@@ -211,9 +211,7 @@ class GameEngine:
                 message=f"game won by {winner}",
             )
 
-        is_legal, reason = GameEngine.is_move_legal(
-            move, state.boards, state.player_turn
-        )
+        is_legal, reason = GameEngine.is_move_legal(move, state)
         if not is_legal:
             return GameResult(state=state, message=reason)
 
@@ -283,62 +281,61 @@ class GameEngine:
 
     @staticmethod
     def is_move_legal(
-        move: Move, boards: BoardsType, player: PlayerNumberType
+        move: Move,
+        state: GameState,
     ) -> ValidationResult:
-        is_legal, reason = GameEngine.is_passive_legal(move.passive, boards, player)
+        if not move.player == state.player_turn:
+            return ValidationResult(
+                False, f"it's not {player_number_to_color(move.player)}'s turn to move"
+            )
+
+        is_legal, reason = GameEngine.is_passive_legal(move.passive, state)
         if not is_legal:
             return ValidationResult(is_legal, reason)
 
-        is_legal, reason = GameEngine.is_active_legal(
-            move.active, move.passive, boards, player
-        )
+        is_legal, reason = GameEngine.is_active_legal(move.active, move.passive, state)
         return ValidationResult(is_legal, reason)
 
     @staticmethod
     def is_passive_legal(
-        passive_move_input: BoardMove,
-        boards: BoardsType,
-        player: PlayerNumberType,
+        passive_move_input: BoardMove, state: GameState
     ) -> ValidationResult:
         passive_move = GameEngine.validate_board_move(
-            passive_move_input, boards[passive_move_input.board]
+            passive_move_input, state.boards[passive_move_input.board]
         )
         if passive_move.is_push:
             return ValidationResult(
                 False, "you can't push stones with the passive move"
             )
 
-        if (player == 1 and passive_move.board < 2) or (
-            player == 0 and passive_move.board > 1
+        if (state.player_turn == 1 and passive_move.board < 2) or (
+            state.player_turn == 0 and passive_move.board > 1
         ):
-            if player == 0:
+            if state.player_turn == 0:
                 home_boards = ["a", "b"]
             else:
                 home_boards = ["c", "d"]
-            message = f"the passive (first) move must be in one of your home boards.  player is {player_number_to_color(player)}, home boards are {home_boards}"
+            message = f"the passive (first) move must be in one of your home boards.  player is {player_number_to_color(state.player_turn)}, home boards are {home_boards}"
             return ValidationResult(False, message)
 
-        if boards[passive_move.board][passive_move.origin] is None:
+        if state.boards[passive_move.board][passive_move.origin] is None:
             board_letter = index_to_board_letter(passive_move.board)
             message = f"no stone exists on {board_letter}{passive_move.origin + 1}"
             return ValidationResult(False, message)
 
-        if boards[passive_move.board][passive_move.origin] is not player:
+        if state.boards[passive_move.board][passive_move.origin] != state.player_turn:
             board_letter = index_to_board_letter(passive_move.board)
-            message = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(player)}"
+            message = f"{board_letter}{passive_move.origin + 1} does not belong to {player_number_to_color(state.player_turn)}"
             return ValidationResult(False, message)
 
         return ValidationResult(True, None)
 
     @staticmethod
     def is_active_legal(
-        active_move_input: BoardMove,
-        passive_move: BoardMove,
-        boards: BoardsType,
-        player: PlayerNumberType,
+        active_move_input: BoardMove, passive_move: BoardMove, state: GameState
     ) -> ValidationResult:
         active_move = GameEngine.validate_board_move(
-            active_move_input, boards[active_move_input.board]
+            active_move_input, state.boards[active_move_input.board]
         )
         if passive_move.board == active_move.board:
             return ValidationResult(
@@ -350,14 +347,14 @@ class GameEngine:
                 False, "active and passive moves can't be on the same shade of board"
             )
 
-        if boards[active_move.board][active_move.origin] is None:
+        if state.boards[active_move.board][active_move.origin] is None:
             board_letter = index_to_board_letter(active_move.board)
             message = f"no stone exists on {board_letter}{active_move.origin + 1}"
             return ValidationResult(False, message)
 
-        if boards[active_move.board][active_move.origin] is not player:
+        if state.boards[active_move.board][active_move.origin] != state.player_turn:
             board_letter = index_to_board_letter(active_move.board)
-            message = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(player)}"
+            message = f"{board_letter}{active_move.origin + 1} does not belong to {player_number_to_color(state.player_turn)}"
             return ValidationResult(False, message)
 
         if active_move.is_push:
@@ -365,26 +362,29 @@ class GameEngine:
                 active_move.origin, active_move.destination
             )
 
-            stones = int(bool(boards[active_move.board][active_move.destination]))
+            stones = int(bool(state.boards[active_move.board][active_move.destination]))
 
             midpoint = None
             if direction.length == 2:
                 midpoint = GameEngine.get_move_midpoint(
                     active_move.origin, active_move.destination
                 )
-                stones += int(bool(boards[active_move.board][midpoint]))
+                stones += int(bool(state.boards[active_move.board][midpoint]))
 
             if active_move.push_destination is not None:
                 stones += int(
-                    bool(boards[active_move.board][active_move.push_destination])
+                    bool(state.boards[active_move.board][active_move.push_destination])
                 )
 
             if stones > 1:
                 return ValidationResult(False, "you can't push 2 stones in a row")
 
             if (
-                midpoint is not None and boards[active_move.board][midpoint] == player
-            ) or boards[active_move.board][active_move.destination] == player:
+                midpoint is not None
+                and state.boards[active_move.board][midpoint] == state.player_turn
+            ) or state.boards[active_move.board][
+                active_move.destination
+            ] == state.player_turn:
                 return ValidationResult(False, "you can't push your own color stones")
 
         return ValidationResult(True, None)
@@ -469,38 +469,6 @@ class GameEngine:
                 cardinal = 5  # south-west
             if origin_y < destination_y:
                 cardinal = 7  # north-west
-
-        # offset by 10, dicts can't have negative indicies
-        # move_diff = origin - destination + 10
-        # direction_dict = {
-        #     14: 0,
-        #     18: 0,
-        #     13: 1,
-        #     16: 1,
-        #     9: 2,
-        #     8: 2,
-        #     5: 3,
-        #     0: 3,
-        #     2: 4,
-        #     6: 4,
-        #     7: 5,
-        #     4: 5,
-        #     11: 6,
-        #     12: 6,
-        #     15: 7,
-        #     20: 7,
-        # }
-        # cardinal=direction_dict[move_diff]
-
-        # if (
-        #    (x_move == 0 and y_move == 0)
-        #    or (x_move > 0 and y_move > 0 and x_move != y_move)
-        #    or direction_dict[move_diff] == None
-        # ):
-        #    # only allow pure othogonal / diagonal moves
-        #    raise Exception(
-        #        f"invalid direction: origin: {origin}, destination: {destination}"
-        #    )
 
         return Direction(
             cardinal=cast(CardinalNumberType, cardinal),
