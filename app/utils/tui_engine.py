@@ -126,6 +126,7 @@ class InputParser:
                 origin=active_origin,
                 destination=active_destination,
             ),
+            direction=direction,
         )
 
 
@@ -135,12 +136,14 @@ def run_terminal_game():
     print(
         "enter 'quit' to exit, 'read' to see board, 'start' to start new game"
     )
+    opponent = "human"
 
     while True:
         try:
             user_input = input("~> ").strip()
-            result = InputParser.parse_command(user_input, state.player_turn, state)
-            opponent = "rando"
+            result = InputParser.parse_command(
+                user_input, state.player_turn, state
+            )
 
             if result.message:
                 print(result.message)
@@ -161,7 +164,18 @@ def run_terminal_game():
             state = result.state
 
             if opponent == "rando":
-                print(RandoAI.get_passive_candidates(state.boards, state.player_turn))
+                passive_candidates = RandoAI.get_passive_candidates(
+                    state.boards, state.player_turn
+                )
+                active_candidates = (
+                    RandoAI.get_active_candidates_from_passive_candidates(
+                        state.boards, state.player_turn, passive_candidates
+                    )
+                )
+                print(f"passive candidates: {passive_candidates}")
+                print(f"active candidates: {active_candidates}")
+
+            print(format_game_state(state))
 
         except GameError as e:
             print(f"error: {e}")

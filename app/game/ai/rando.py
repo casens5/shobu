@@ -7,7 +7,7 @@ from app.game.types import (
     CoordinateType,
     BoardNumberType,
 )
-from app.game.engine import Direction, Boards
+from app.game.engine import BoardMove, GameEngine, Direction, Boards
 
 
 class RandoAI:
@@ -65,8 +65,14 @@ class RandoAI:
                         ):
                             continue
 
+                        board_move = BoardMove(board_id, origin, destination)
+
                         direction = Direction(cardinal=i, length=length)
-                        candidates[board_id][direction].append(origin)
+                        is_legal = GameEngine.is_passive_legal(
+                            board_move, boards, player
+                        )
+                        if is_legal:
+                            candidates[board_id][direction].append(origin)
 
         return candidates
 
@@ -74,7 +80,27 @@ class RandoAI:
     def get_active_candidates_from_passive_candidates(
         boards: Boards, player: PlayerNumberType, passive_candidates
     ):
-        print("baba", boards, player, passive_candidates)
+        """
+        takes in the active board id and player, and returns the passive board that corresponds to that board
+        """
+        passive_board_for_corresponding_active_board = {
+            0: [1, 0, 0, 1],
+            1: [2, 3, 3, 2],
+        }
+
+        candidates: DefaultDict[
+            BoardNumberType,
+            DefaultDict[Direction, list[CoordinateType]],
+        ] = defaultdict(lambda: defaultdict(list))
+        for board_id, board in enumerate(boards):
+            passive_board_id = passive_board_for_corresponding_active_board[
+                player
+            ][board_id]
+            passive_candidates_short = passive_candidates[passive_board_id]
+            for direction in passive_candidates_short.keys():
+                for cell in board:
+                    if cell is not player:
+                        continue
 
     @staticmethod
     def generate_move(boards: Boards, player: PlayerNumberType):

@@ -248,10 +248,16 @@ class GameEngine:
 
     @staticmethod
     def _update_boards(
-        boards: BoardsType, move: Move, player: PlayerNumberType
+        boards: BoardsType, input_move: Move, player: PlayerNumberType
     ) -> Boards:
+        print("wtf", input_move)
         new_boards = deepcopy(boards)
+        active_move = GameEngine.validate_board_move(
+            input_move.active, boards[input_move.active.board]
+        )
+        move = replace(input_move, active=active_move)
 
+        print("now what", move)
         new_boards[move.passive.board][move.passive.origin] = None
         new_boards[move.passive.board][move.passive.destination] = player
         new_boards[move.active.board][move.active.origin] = None
@@ -297,6 +303,7 @@ class GameEngine:
                 direction.cardinal,
                 direction.length + 1,
             )
+            print("what is push_destination?", push_destination)
 
             return replace(
                 board_move, is_push=True, push_destination=push_destination
@@ -504,9 +511,9 @@ class GameEngine:
 
         cardinal = 0
         if origin_x == destination_x:
-            if origin_y < destination_y:
-                cardinal = 0  # north
             if origin_y > destination_y:
+                cardinal = 0  # north
+            if origin_y < destination_y:
                 cardinal = 4  # south
         if origin_y == destination_y:
             if origin_x < destination_x:
@@ -514,14 +521,14 @@ class GameEngine:
             if origin_x > destination_x:
                 cardinal = 6  # west
         if origin_x < destination_x:
-            if origin_y < destination_y:
-                cardinal = 1  # north-east
             if origin_y > destination_y:
+                cardinal = 1  # north-east
+            if origin_y < destination_y:
                 cardinal = 3  # south-east
         if origin_x > destination_x:
-            if origin_y > destination_y:
-                cardinal = 5  # south-west
             if origin_y < destination_y:
+                cardinal = 5  # south-west
+            if origin_y > destination_y:
                 cardinal = 7  # north-west
 
         return Direction(
